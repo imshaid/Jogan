@@ -5,7 +5,7 @@ UV ?= uv
 PROFILE ?= dev
 SEED ?= 0
 
-.PHONY: help setup lint format test check data history baselines forecast eval clean
+.PHONY: help setup lint format test check data history baselines forecast eval bundle api clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -41,6 +41,13 @@ forecast: ## Backtest the drain forecast on the status-quo log (PROFILE, SEED; a
 
 eval: ## Final policy comparison over the evaluation seeds → artifacts/metrics.json (ARGS for dev runs)
 	$(UV) run python -m jogan.eval $(ARGS)
+
+bundle: ## Build the served demo bundle → bundle/ (PROFILE=full SEED=42 for the deployed one)
+	$(UV) run python -m jogan.api.bundle --profile $(PROFILE) --seed $(SEED) --out bundle
+
+api: ## Run the API locally on :8000 with the in-memory store (after make bundle)
+	JOGAN_STORE=memory JOGAN_ENV=development JOGAN_CORS_ORIGINS=http://localhost:3000 \
+		$(UV) run uvicorn --factory jogan.api.app:from_env --reload --port 8000
 
 clean: ## Remove caches and build outputs
 	rm -rf .pytest_cache .ruff_cache build dist
