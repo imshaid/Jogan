@@ -1,0 +1,10 @@
+# Normalise line endings so scripts work the same on Linux, macOS and Windows clones.
+* text=auto eol=lf
+*.sh text eol=lf
+Makefile text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.pdf binary
+*.woff2 binary
