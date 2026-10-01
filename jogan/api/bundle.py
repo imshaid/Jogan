@@ -3,9 +3,12 @@
 The API never trains or simulates. :func:`build_bundle` runs once, at Docker build time
 (D-002 #7, D-022): it builds the world from its seed, runs the status quo over the whole period,
 trains the forecaster on that log exactly as the evaluation does
-(:func:`jogan.eval.run.run_seed`), and switches Jogan on at the start of the test window. Each
-morning's evidence (:attr:`jogan.plan.policy.Jogan.last`) is recorded, so the API can serve any
-test day's recommendations, with their decision trace, from a few parquet files.
+(:func:`jogan.eval.run.run_seed`), fits the anomaly detector on the same training days, and
+switches Jogan on at the start of the test window. Each morning's evidence
+(:attr:`jogan.plan.policy.Jogan.last`) is recorded with, for every planned visit, the side at
+risk, its TreeSHAP drivers and its guardrail review (:mod:`jogan.explain`), and the day's
+advisory anomaly flags (:mod:`jogan.detect.anomaly`). The API serves any test day's
+recommendations, with their decision trace, from a few parquet files and never loads a model.
 
 The replay does not react to approvals: it shows what Jogan would have planned on that day of
 the simulated world. Usage: ``python -m jogan.api.bundle --profile full --seed 42 --out bundle``.
@@ -25,16 +28,21 @@ from typing import Any
 import lightgbm
 import numpy as np
 import pandas as pd
+import sklearn
 
 import jogan
-from jogan.forecast.backtest import build_dataset, fit_forecaster
+from jogan.detect.anomaly import Detector, day_features, fit_detector
+from jogan.explain.config import ExplainConfig, load_explain_config
+from jogan.explain.drivers import contributions, top_drivers
+from jogan.explain.guardrails import TrainingRange, arrived_share, review
+from jogan.forecast.backtest import Forecaster, build_dataset, fit_forecaster
 from jogan.forecast.config import load_forecast_config
 from jogan.forecast.panel import panel_from_history
 from jogan.ops.config import load_ops_config
 from jogan.ops.env import Context, Observation, simulate
 from jogan.ops.fleet import Visit
 from jogan.ops.policies import STATUS_QUO, Deployed, make_policy
-from jogan.plan.config import load_plan_config
+from jogan.plan.config import PlanConfig, load_plan_config
 from jogan.plan.policy import Jogan
 from jogan.sim.config import load_config
 from jogan.sim.world import build_world
@@ -44,15 +52,78 @@ TERRITORY_COLUMNS = ["territory", "district_en", "district_bn", "setting", "lat"
 
 
 class Recorder(Jogan):
-    """Jogan that keeps every morning's evidence instead of only the last one."""
+    """Jogan that keeps every morning's evidence, explained, instead of only the last one."""
+
+    def __init__(
+        self,
+        forecaster: Forecaster,
+        cfg: PlanConfig,
+        explain: ExplainConfig,
+        ranges: TrainingRange,
+        detector: Detector,
+    ) -> None:
+        super().__init__(forecaster, cfg)
+        self.explain, self.ranges, self.detector = explain, ranges, detector
+        self.level = forecaster.cfg.quantiles.index(explain.drivers.level)
 
     def reset(self, ctx: Context) -> None:
         super().reset(ctx)
         self.plans: list[pd.DataFrame] = []
+        self.flags: list[dict] = []
 
     def plan(self, obs: Observation) -> list[Visit]:
         visits = super().plan(obs)
-        self.plans.append(self.last.assign(day=obs.day))
+        if self.last is None or self.last_inputs is None:
+            raise RuntimeError("Jogan.plan kept no evidence")
+        panel, x = self.last_inputs
+        ev = self.last
+        n = len(ev)
+
+        # advisory anomaly flags on yesterday, from the records that have arrived by now
+        flagged: dict[int, dict] = {}
+        if obs.day > 0:
+            feats = day_features(panel, self.ctx.agents, self.explain.anomaly, now=obs.hour)
+            flagged = self.detector.flags(feats, obs.day - 1, self.dates[obs.day - 1])
+        ids = self.ctx.agents["agent_id"].astype(str).to_numpy()
+        self.flags += [{"day": obs.day, "agent_id": ids[a], **f} for a, f in flagged.items()]
+
+        rows = np.flatnonzero(ev["runner_id"].notna().to_numpy())
+        side = np.where(
+            ev["p_stockout_cash"].to_numpy() >= ev["p_stockout_efloat"].to_numpy(), "cash", "efloat"
+        )
+        drivers: list[list[dict]] = [[] for _ in range(n)]
+        for s in ("cash", "efloat"):
+            mine = rows[side[rows] == s]
+            booster = self.forecaster.models[self.cfg.horizon_hours, s].boosters[self.level]
+            sub = x.iloc[mine]
+            for a, d in zip(
+                mine,
+                top_drivers(contributions(booster, sub), sub, self.explain.drivers),
+                strict=True,
+            ):
+                drivers[a] = d
+        hours = min(24, obs.hour)
+        hist = obs.history.available(obs.hour, obs.hour - hours, obs.hour)
+        arrived = arrived_share(hist)
+        outside = self.ranges.outside(x.iloc[rows])
+        windows = x["hist_windows"].to_numpy(dtype=float)
+        reviews: list[dict | None] = [None] * n
+        for k, a in enumerate(rows):
+            q90 = float(ev[f"drain_{side[a]}_q90"].iat[a])
+            q50 = float(ev[f"drain_{side[a]}_q50"].iat[a])
+            reviews[a] = review(
+                outside[k], q90, q50, float(arrived[a]), hours, windows[a],
+                flagged.get(int(a)), self.explain.guardrails,
+            )  # fmt: skip
+        sent = ev["runner_id"].notna().to_numpy()
+        self.plans.append(
+            ev.assign(
+                day=obs.day,
+                side=np.where(sent, side, None),
+                drivers=[json.dumps(d) if sent[a] else None for a, d in enumerate(drivers)],
+                review=[json.dumps(r) if r is not None else None for r in reviews],
+            )
+        )
         return visits
 
 
@@ -64,6 +135,7 @@ class Bundle:
     agents: pd.DataFrame
     territories: pd.DataFrame
     plans: pd.DataFrame  # one row per (plan_date, agent)
+    anomalies: pd.DataFrame  # one row per advisory flag, raised on plan_date about date
 
     @property
     def bundle_id(self) -> str:
@@ -85,6 +157,9 @@ class Bundle:
         out = []
         for r in rows.itertuples(index=False):
             evidence = {c: _plain(getattr(r, c)) for c in EVIDENCE_COLUMNS}
+            evidence["side"] = r.side
+            evidence["drivers"] = json.loads(r.drivers)
+            evidence["review"] = json.loads(r.review)
             out.append(
                 {
                     "agent_id": r.agent_id,
@@ -96,6 +171,23 @@ class Bundle:
                 }
             )
         return out
+
+    def anomaly_flags(self, day: dt.date) -> list[dict[str, Any]]:
+        """Advisory anomaly flags raised on the morning of ``day``, strangest first."""
+        rows = self.anomalies[self.anomalies["plan_date"] == day].sort_values(
+            "score", ascending=False
+        )
+        territory = self.agents.set_index("agent_id")["territory"]
+        return [
+            {
+                "agent_id": r.agent_id,
+                "territory": territory[r.agent_id],
+                "date": r.date,
+                "score": round(float(r.score), 4),
+                "items": json.loads(r.items),
+            }
+            for r in rows.itertuples(index=False)
+        ]
 
     def trace(self, day: dt.date) -> dict[str, Any]:
         """Decision trace stored with every recommendation of ``day``."""
@@ -151,18 +243,30 @@ def build_bundle(profile: str, seed: int, forecast_overrides: dict | None = None
     ops = load_ops_config()
     fcfg = load_forecast_config(forecast_overrides)
     pcfg = load_plan_config()
+    ecfg = load_explain_config()
     if profile not in fcfg.splits:
         raise ValueError(f"no forecast splits for profile {profile!r}")
+    if ecfg.drivers.level not in fcfg.quantiles:
+        raise ValueError(f"drivers.level {ecfg.drivers.level} is not a forecast quantile")
     splits = fcfg.splits[profile]
 
     status_quo = simulate(world, make_policy(STATUS_QUO, world), ops)
     panel = panel_from_history(status_quo.history)
     ds = build_dataset(panel, world.calendar, world.agents, fcfg, splits, sim.start)
     forecaster = fit_forecaster(ds)
-    del ds, status_quo
+    h = pcfg.horizon_hours
+    ranges = TrainingRange.fit(
+        ds.features.matrix(h)[ds.rows("train", h)], ecfg.guardrails.range_features
+    )
+    train_days = np.arange(
+        (splits.train[0] - sim.start).days, (splits.train[1] - sim.start).days + 1
+    )
+    feats = day_features(panel, world.agents, ecfg.anomaly)
+    detector = fit_detector(feats, world.agents, train_days, ecfg.anomaly)
+    del ds, status_quo, panel, feats
 
     start_hour = (splits.test[0] - sim.start).days * 24
-    jogan_policy = Recorder(forecaster, pcfg)
+    jogan_policy = Recorder(forecaster, pcfg, ecfg, ranges, detector)
     simulate(world, Deployed(jogan_policy, start_hour), ops)
 
     dates = world.calendar["date"].dt.date.to_numpy()
@@ -171,12 +275,17 @@ def build_bundle(profile: str, seed: int, forecast_overrides: dict | None = None
     plans = plans.drop(columns=["hour"])
     plans["agent_id"] = plans["agent_id"].astype(str)
     plans["runner_id"] = plans["runner_id"].astype(object).where(plans["runner_id"].notna(), None)
+    flags = pd.DataFrame(jogan_policy.flags, columns=["day", "agent_id", "date", "score", "items"])
+    flags.insert(0, "plan_date", dates[flags.pop("day").to_numpy(dtype=int)])
+    flags["items"] = flags["items"].map(json.dumps)
+    reviewed = plans["review"].dropna().map(lambda r: json.loads(r)["flag"])
 
     hashes = {
         "sim": sim.config_hash(),
         "ops": ops.config_hash(),
         "forecast": fcfg.config_hash(),
         "plan": pcfg.config_hash(),
+        "explain": ecfg.config_hash(),
     }
     plan_dates = sorted({d.isoformat() for d in plans["plan_date"]})
     meta = {
@@ -194,9 +303,15 @@ def build_bundle(profile: str, seed: int, forecast_overrides: dict | None = None
             "runners": len(world.runners),
             "territories": len(world.territories),
             "recommendations": int(plans["runner_id"].notna().sum()),
+            "manual_review": int(reviewed.sum()),
+            "anomaly_flags": len(flags),
         },
         "config_hashes": hashes,
-        "versions": {"jogan": jogan.__version__, "lightgbm": lightgbm.__version__},
+        "versions": {
+            "jogan": jogan.__version__,
+            "lightgbm": lightgbm.__version__,
+            "scikit-learn": sklearn.__version__,
+        },
         "build_seconds": round(time.perf_counter() - started, 1),
         "simulated": True,
     }
@@ -205,7 +320,7 @@ def build_bundle(profile: str, seed: int, forecast_overrides: dict | None = None
         size_class=lambda d: d["size_class"].astype(str),
     )
     territories = world.territories[TERRITORY_COLUMNS].copy()
-    return Bundle(meta, agents.reset_index(drop=True), territories, plans)
+    return Bundle(meta, agents.reset_index(drop=True), territories, plans, flags)
 
 
 def save_bundle(bundle: Bundle, out: Path) -> None:
@@ -214,6 +329,7 @@ def save_bundle(bundle: Bundle, out: Path) -> None:
     bundle.agents.to_parquet(out / "agents.parquet", index=False)
     bundle.territories.to_parquet(out / "territories.parquet", index=False)
     bundle.plans.to_parquet(out / "plans.parquet", index=False)
+    bundle.anomalies.to_parquet(out / "anomalies.parquet", index=False)
 
 
 def load_bundle(path: Path) -> Bundle:
@@ -221,11 +337,14 @@ def load_bundle(path: Path) -> Bundle:
     plans = pd.read_parquet(path / "plans.parquet")
     plans["plan_date"] = pd.to_datetime(plans["plan_date"]).dt.date
     plans["runner_id"] = plans["runner_id"].astype(object).where(plans["runner_id"].notna(), None)
+    anomalies = pd.read_parquet(path / "anomalies.parquet")
+    anomalies["plan_date"] = pd.to_datetime(anomalies["plan_date"]).dt.date
     return Bundle(
         meta,
         pd.read_parquet(path / "agents.parquet"),
         pd.read_parquet(path / "territories.parquet"),
         plans,
+        anomalies,
     )
 
 
@@ -242,7 +361,9 @@ def main(argv: list[str] | None = None) -> None:
     m = bundle.meta
     print(
         f"bundle {m['bundle_id']}: {len(m['plan_dates'])} plan days, "
-        f"{m['counts']['recommendations']} recommendations, {m['build_seconds']} s → {args.out}"
+        f"{m['counts']['recommendations']} recommendations "
+        f"({m['counts']['manual_review']} for manual review), "
+        f"{m['counts']['anomaly_flags']} anomaly flags, {m['build_seconds']} s → {args.out}"
     )
 
 
