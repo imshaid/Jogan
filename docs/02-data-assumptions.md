@@ -272,3 +272,83 @@ Run with `make test`, on the `tiny` profile with the three baselines and the ora
 | calendar | Public holiday list plus the internal campaign calendar |
 
 Only agent-level aggregates are needed. No customer personal data is required.
+
+## 12. Drain forecast (M4)
+
+The forecast lives in `jogan/forecast/`; its parameters are in `configs/forecast/base.yaml`, and every number there carries a tag, checked by a test. `make forecast PROFILE=<p> SEED=<n>` runs the backtest on the status-quo log written by `make history` (D-020).
+
+**Target** (D-002 #3). From a forecast origin `t` (the start of hour `t`), the cash drain after `k` hours is the sum of cash-outs minus cash-ins over hours `t … t+k−1`.
+- The **peak cash drain** over `H` hours is the largest such sum (at least 0). It is the cash the agent must hold at `t` to serve every customer in the window without a top-up.
+- The **peak e-float drain** is the same for the opposite direction.
+- P(stock-out within `H` h) = P(peak drain > balance at `t`).
+- Horizons: 6, 12 and 24 h. Origins: 08:00 (the round's plan hour) and every two hours to 20:00 (**ASSUMPTION**).
+- The target is built from hourly totals, so a dip inside an hour is not seen. It understates the exact intra-hour peak; this is a limitation, the same for every method.
+
+**Splits** (time-based). An origin belongs to a split only when its whole 24-hour window lies inside it. Training origins also need 7 days of history first.
+
+| Profile | Train | Calibration | Test |
+|---|---|---|---|
+| `tiny` | 1 → 17 Mar | 18 → 22 Mar | 23 → 28 Mar |
+| `dev` | 20 Feb → 31 Mar | 1 → 9 Apr | 10 → 20 Apr |
+| `full` | 5 Jan → 22 Apr | 23 Apr → 6 May | 7 May → 3 Jun (§2) |
+
+**Inputs.** Only `ops/fixed_round/obs/hourly.parquet` (served flows, e-float, cash estimate, `available_at`) and the public tables (calendar, agents). A record is usable at origin `t` only if it arrived by `t`:
+- window sums use every received record, minus the delayed records still on their way at `t`;
+- a past window counts only if every one of its hours had arrived;
+- a test perturbs every record that arrives after `t` and checks that no feature at `t` changes.
+
+**Features** (41 per row):
+- **Agent master data:** territory, setting, size class, road km to the hub, opening hours.
+- **Calendar:** hour, weekday, day of month (payday), Ramadan, days to and since Eid, bank open and holiday today and tomorrow, the agent's hat day today and tomorrow.
+- **Recent served flows:** per side over the last 3, 24 and 168 hours; the last day against the last week; mean liquidity over the week.
+- **Per horizon:**
+  - open hours in the window;
+  - the agent's 28-day hour-of-day profile summed over the window, and its peak drain;
+  - the peak drain of the same window 1 and 7 days earlier;
+  - the median and 90th percentile of the last 28 same-hour windows.
+
+Liquidity enters only as the total. The current cash/e-float split is left out, because it mostly records when the status quo's runner came (D-020).
+
+**Censoring** (D-002 #8). A stock-out hides demand: the customer leaves and nothing is logged. Labels are therefore built from **estimated demand**, not from served flows:
+
+| Step | Rule | Basis |
+|---|---|---|
+| Censored hour | the side's balance at the start or end of the hour is below 3 of the agent's mean served tickets on that side | ASSUMPTION |
+| Clean hour | the side started the hour with at least 5 mean tickets. Even hours that never run dry lose the large tickets, so only clean hours set the profile | ASSUMPTION |
+| Expected flow | the agent's hour-of-day profile over the training split (clean hours), times the territory's level that day (clean hours, clipped to 0.25–4) | ASSUMPTION |
+| Lost record (data feed) | filled with the expected flow | ASSUMPTION |
+| Censored hour, `impute` (default) | served + expected: the conditional mean of an exponential tail, `E[D │ D > s] = s + μ` | ASSUMPTION |
+
+- `ignore` (served flows only) and `drop` (no censored windows in training and calibration) are kept as ablations: `--censoring ignore|drop`.
+- The bias is measured against true demand in `truth/hourly.parquet`, on windows with and without lost requests. The stock-out flags are scored by precision and recall over the hours in which customers asked for that side.
+- The thresholds were chosen on development seed 0 (`tiny`, `full`) by the label bias against true demand, never on the evaluation seeds 1000–1009.
+
+**Models.**
+- LightGBM 4.7.0 ([PyPI](https://pypi.org/project/lightgbm/4.7.0/), MIT), one quantile booster per horizon, side and level (0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99). That is 48 boosters, trained on `log1p` of the peak drain; quantiles survive the monotone transform.
+- Settings: 150 rounds, learning rate 0.1, 31 leaves, at least 50 rows per leaf, 63 bins, deterministic (**ASSUMPTION**; sized for about a minute per `full` seed, not tuned on evaluation seeds).
+- **Calibration:** asymmetric conformalized quantile regression ([Romano, Patterson and Candès 2019](https://arxiv.org/abs/1905.03222), Theorem 2). Each level is shifted by the conformal quantile of its own residuals on the calibration split: for `τ ≥ 0.5`, `P(y ≤ q'_τ) ≥ τ`; below the median, `P(y ≥ q'_τ) ≥ 1 − τ`, if the windows are exchangeable. Shifts are in log space, per setting by size class, with the pooled shift for groups under 200 calibration rows. Crossed levels are sorted afterwards.
+- **P(stock-out)** is read from the calibrated grid by linear interpolation. Above the 0.99 quantile, the remaining 1% of tail mass is halved (**ASSUMPTION**).
+
+**Baselines** (scored on the same rows):
+- `empirical`: the agent's quantiles of its last 28 same-hour windows, the idea behind `safety_stock`;
+- `naive_cqr`: the same window a week earlier (a day earlier when missing), plus additive conformal shifts in Tk from the calibration split.
+
+**Backtest output.** `data/<p>/seed<n>/forecast/metrics_<strategy>.json`, all on the test split:
+- pinball loss and coverage per level and method, against estimated labels and against true demand;
+- coverage and width of the 50%, 80% and 90% intervals, overall, per setting and per size class;
+- the Eid window (10 days before to 3 days after) against other days;
+- Brier score and a reliability table of P(stock-out) for the no-top-up event (true peak drain above the live balance at the origin);
+- stock-out flag quality and label bias.
+
+## 13. Forecast tests (M4)
+
+Run with `make test` on the `tiny` profile:
+
+- **Leakage:** features, the empirical quantiles and the naive forecast at every origin up to a cut are unchanged when every record arriving after the cut gets other values and a later arrival. The cut falls while late records are still on their way. No feature column is a truth column or `agent_id`, and the panel refuses a frame with any column outside the observation log.
+- **One code path:** the panel read from the log equals the panel a policy sees inside the simulation (`History`), so M5's in-simulation forecast uses the same features as training.
+- **Target:** a hand-computed peak drain; the NaN-aware quantiles match numpy.
+- **Splits:** every window lies inside its split, after the warm-up; train, calibration and test rows never overlap.
+- **Censoring:** the flags find most hours with lost requests; served labels understate true demand, and estimated labels cut that bias substantially.
+- **Calibration:** on synthetic, miscalibrated predictions, the conformal shifts reach nominal coverage per group, and small groups fall back to the pooled shift. On the calibration split, the upper levels are covered at least nominally.
+- **Outputs:** quantiles are non-negative and monotone; P(stock-out) reads the grid exactly and falls as the balance rises; every method, interval and group is scored.
+- **Determinism:** training twice gives identical predictions; the CLI writes the metrics file.
