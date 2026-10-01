@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Bengali } from "next/font/google";
+import Image from "next/image";
 
 import "./globals.css";
 
@@ -17,8 +18,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-screen font-sans antialiased">
         <header className="border-b border-line bg-white">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
-            <span className="text-lg font-bold text-brand">
-              Jogan <span aria-hidden>·</span> <span lang="bn">যোগান</span>
+            <span className="flex items-center gap-2 text-lg font-bold text-brand">
+              <Image src="/brand/jogan-mark.png" alt="" width={32} height={32} loading="eager" />
+              <span>
+                Jogan <span aria-hidden>·</span> <span lang="bn">যোগান</span>
+              </span>
             </span>
             <span className="text-sm text-muted">Agent liquidity copilot</span>
             <span
