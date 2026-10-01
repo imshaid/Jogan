@@ -3,9 +3,11 @@
 Significant choices and the reasons behind them, newest at the bottom. Facts marked `ASSUMPTION` are not verified yet.
 
 ## D-001 · 2026-10-01 · Product direction (owner decision, binding)
+
 Agent Liquidity Copilot **Jogan (যোগান)** for upay's operations and distributor analysts. Python package `jogan`, repo `imshaid/Jogan`. Not re-debated.
 
 ## D-002 · 2026-10-01 · Deviations from the owner's non-binding architecture sketch
+
 Approved by the owner on 2026-10-01.
 
 1. **Operations environment and baseline policies come before ML.** The training history is itself the log produced by today's (status-quo) policy, stock-outs included; baselines also set the bar to beat early, and the hardest component gets done first.
@@ -21,17 +23,21 @@ Approved by the owner on 2026-10-01.
 11. **Partially observed physical cash** (only if time allows). upay sees e-float exactly, but a shop's cash drawer may be shared with other MFS brands (`ASSUMPTION`), so cash is modelled with uncertainty.
 
 ## D-003 · 2026-10-01 · Python 3.12 with uv and a flat package layout
+
 Python is pinned with `.python-version` (`3.12`) and `requires-python = "==3.12.*"`. uv manages the interpreter (CPython 3.12.14 installed on 2026-10-01). Reason: well-supported by the planned scientific stack and matches a `python:3.12-slim` image. The flat `jogan/` layout (uv build backend `module-root = ""`) is easier for teammates to navigate than `src/`.
 
 ## D-004 · 2026-10-01 · MIT license
 
 ## D-005 · 2026-10-01 · Master brief kept local
+
 The owner's original brief is stored at `.claude/master-prompt.local.md` (git-ignored) and shown to judges on request. Reason: in a public repo it would expose the full plan to other teams during the 72-hour window. The binding rules are reflected in committed docs.
 
 ## D-006 · 2026-10-01 · Working copy moves from NTFS to ext4
+
 The first clone lived on an NTFS partition mounted through FUSE (`fuseblk`) with a space in the path. Measured on this machine: small-file writes about 3× slower and reads about 6× slower than the ext4 home partition, and `chmod` has no effect. Working copy moves to `~/code/Jogan` (ext4) after M0.
 
 ## D-007 · 2026-10-01 · Brand colours and contrast
+
 These are the owner's measured values; no official upay brand guide has been found yet. WCAG contrast ratios, computed locally:
 
 | Pair | Ratio | Use |
@@ -42,6 +48,7 @@ These are the owner's measured values; no official upay brand guide has been fou
 | red `#EB1D27` on white | 4.43:1 | fails AA for normal text; small text uses a darker derived red |
 
 ## D-008 · 2026-10-01 · CI, secret scanning and dependency updates
+
 - GitHub Actions runs `make lint` and `make test` through uv.
 - gitleaks-action v3 runs on every push; per its README no license is needed for personal accounts.
 - `astral-sh/setup-uv` publishes no floating major tag (only `v10.0.0` … `v10.2.0` exist), so it is pinned to `v10.2.0`.
@@ -51,5 +58,6 @@ These are the owner's measured values; no official upay brand guide has been fou
 Sources: <https://github.com/gitleaks/gitleaks-action>, <https://docs.github.com/en/code-security/dependabot/ecosystems-supported-by-dependabot/supported-ecosystems-and-repositories>.
 
 ## D-009 · 2026-10-01 · Supabase key types
+
 Use the new `sb_publishable_…` key (browser, RLS applies) and `sb_secret_…` key (server only, bypasses RLS). Supabase documents the legacy `anon` and `service_role` keys as deprecated by the end of 2026.
 Source: <https://supabase.com/docs/guides/api/api-keys>.
