@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-01, end of M0._
+_Last updated: 2026-10-01, end of M1._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -15,26 +15,48 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - CI (lint + tests), gitleaks secret scan, Dependabot
   - `.env.example`, Claude Code settings and project guide
   - decision log, AI-usage disclosure, README overview
+- **M1 · Logic chain, requirements checklist, data assumptions**
+  - [`00-requirements-checklist.md`](00-requirements-checklist.md), [`01-logic-chain.md`](01-logic-chain.md), [`02-data-assumptions.md`](02-data-assumptions.md)
+  - decisions D-010 to D-012
+  - **Facts verified online**, with sources inside the docs:
+    - 2026 Bangladesh holidays and the actual Eid dates (21 Mar, 28 May)
+    - Friday–Saturday bank weekend
+    - Labour Act s.123 wage timing
+    - BB MFS tables (accounts, agent cash-in/out by month to Jul-26)
+    - BB agent count (Feb-25)
+    - BB customer limits (27 Mar 2025)
+    - top remittance districts (Mar-26)
+    - upay's launch-time cash-out fee (2021)
+    - MIT-licensed district geocodes
 
 ## Next
 
-**M1 · Logic chain, requirements checklist, data assumptions**
+**M2 · World simulator, data profiles, tests** (hard part: maximum thinking)
 
-- Write `docs/00-requirements-checklist.md` (rulebook, guideline and owner decisions as a tickable list).
-- Write `docs/01-logic-chain.md` (guideline §10 format) and `docs/02-data-assumptions.md`.
-- Verify online before using:
-  - Bangladesh 2026 public holidays (Eid, Durga Puja, …) and weekend days
-  - garment wage payment rule (Labour Act)
-  - public upay facts, official sources only
-  - a geography dataset and its license
+- **Configs:**
+  - `configs/sim/{tiny,dev,full,stress}.yaml`
+  - `configs/calendar/bd_2026.yaml`
+  - `configs/geo/territories.yaml`
+  - `configs/calibration/bb_mfs_2026.yaml` (official values plus source URLs)
+- **`jogan/sim/`:**
+  - typed config loader
+  - calendar, territories and agents
+  - demand intensity with every pattern in data assumptions §5
+  - transaction stream (counts and amounts)
+  - anomalies and runner roster
+- **Commands:**
+  - `make data PROFILE=dev` writes parquet to `data/` (git-ignored)
+  - `make data` stays fast on `tiny` and `dev`
+- **Tests on `tiny`:** determinism, pattern recovery, calibration targets, sanity checks.
+- **Before adding dependencies:** check current versions of numpy, pandas, pyarrow, pydantic and pyyaml.
 
 ## Milestone plan
 
 | # | Milestone | Budget | Target (BST) | State |
 |---|---|---|---|---|
 | M0 | Repo foundation | 1.5 h | Thu 1 Oct 18:30 | done |
-| M1 | Logic chain, requirements checklist, data assumptions | 1.5 h | Thu 20:30 | next |
-| M2 | World simulator, data profiles, tests | 3.5 h | Fri 2 Oct 00:30 | |
+| M1 | Logic chain, requirements checklist, data assumptions | 1.5 h | Thu 20:30 | done |
+| M2 | World simulator, data profiles, tests | 3.5 h | Fri 2 Oct 00:30 | next |
 | M3 | Operations environment, baseline policies, status-quo history log | 3.5 h | Fri 11:30 | |
 | M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | |
 | M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | |
