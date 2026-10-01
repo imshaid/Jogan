@@ -39,3 +39,7 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # the project is pinned to Python 3.12 (D-003); only patch images
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
