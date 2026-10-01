@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/brand/jogan-light.png" width="160" alt="Jogan · যোগান logo"></p>
+
 # Jogan · যোগান
 
 **Agent liquidity copilot for mobile financial services (MFS) agents.** A student hackathon prototype for AI Dev Fest 2026 (DIU CPC × upay), Track 05: Merchant & Agent Intelligence.
