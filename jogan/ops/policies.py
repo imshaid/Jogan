@@ -312,6 +312,26 @@ class Oracle(Planned):
         return self.rounds(obs, [a for *_, a in scored], target)
 
 
+class Deployed:
+    """``policy`` from hour ``start_hour`` on, the status quo before it.
+
+    The evaluation switches every policy on at the start of the test window, so all of them
+    start from the same balances, runners and observed history: the status quo's (D-021).
+    """
+
+    def __init__(self, policy: Planned, start_hour: int, before: Planned | None = None) -> None:
+        self.policy, self.start_hour = policy, start_hour
+        self.before = before or FixedRound()
+        self.name = policy.name
+
+    def reset(self, ctx: Context) -> None:
+        self.before.reset(ctx)
+        self.policy.reset(ctx)
+
+    def decide(self, obs: Observation) -> list[Visit]:
+        return (self.policy if obs.hour >= self.start_hour else self.before).decide(obs)
+
+
 def make_policy(name: str, world: World) -> Planned:
     """A fresh policy by name (see ``POLICIES``)."""
     policies = {"fixed_round": FixedRound, "threshold": Threshold, "safety_stock": SafetyStock}

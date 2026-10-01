@@ -1,0 +1,28 @@
+# Jogan's morning round: newsvendor level per side, value of a visit, runner assignment
+# (docs/01-logic-chain.md §5, DECISIONS.md D-021).
+# Every number is tagged SOURCE (verified, link), DERIVED (computed in code) or ASSUMPTION.
+# Costs come from configs/ops/costs.yaml; nothing here is tuned on the evaluation seeds.
+
+# The round is planned once a day (plan_hour in configs/ops/policies.yaml), so the level must
+# last until the next one: the 24-hour forecast horizon (ASSUMPTION).
+horizon_hours: 24
+# Value of a customer lost after a failed request, Tk per lost request. It is unknown and not
+# priced (D-019): an operator setting, not a fact. The evaluation sweeps it
+# (configs/eval/base.yaml); this is the setting the live demo uses (ASSUMPTION).
+lost_customer_value_tk: 20
+dispatch: milp # milp | greedy (the ablation: same forecast and levels, M3's greedy round)
+
+newsvendor:
+  # Expected shortfalls average the quantile function over this many equal slices of [0, 1]
+  # (ASSUMPTION).
+  integration_points: 200
+  # When the liquidity cannot meet both needs: split it in proportion to the sides' typical
+  # outflow (typical), or at the two-sided newsvendor optimum (two_sided, the ablation; D-021).
+  split: typical
+  # Bisection steps for the two-sided split (ASSUMPTION).
+  split_iterations: 40
+
+# HiGHS through scipy.optimize.milp, one program per territory and day.
+milp:
+  time_limit_s: 10.0 # ASSUMPTION; the programs are small and solve far faster
+  mip_rel_gap: 0.0001 # HiGHS default as documented in scipy.optimize.milp 1.18.1 (SOURCE)
