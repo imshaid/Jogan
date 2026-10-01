@@ -58,7 +58,7 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
 |---|---|---|---|
 | Problem relevance | 20% | Official BB figures on MFS scale and Eid peaks; agent stock-outs as a real operational pain | [`01-logic-chain.md`](01-logic-chain.md) |
 | AI/ML depth | 20% | Peak-drain quantile forecasts, CQR calibration, newsvendor + MILP dispatch, TreeSHAP drivers, ablations | M4–M5, `04-model-card` |
-| Business/customer impact | 20% | Failed requests and total cost vs. four baselines over several seeds, with cost sensitivity | M5, `05-evaluation` |
+| Business/customer impact | 20% | Failed requests and known cost vs. three baselines (fixed round, threshold, safety stock) over several seeds; break-even value of a lost customer; salary sensitivity; where Jogan does not win | M5, `05-evaluation` |
 | Prototype quality | 15% | Live web app: map, agent detail, queue, approvals, impact page, bilingual | M6–M9 |
 | Innovation | 10% | Forecasting the *peak* drain, censoring-aware training, an equity knob in the optimizer | `03-architecture`, `04-model-card` |
 | Scalability & integration | 10% | `DataSource` adapter, stateless API, territory decomposition, stress test | M8, M10, `07-product-readiness` |
