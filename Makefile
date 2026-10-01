@@ -5,7 +5,7 @@ UV ?= uv
 PROFILE ?= dev
 SEED ?= 0
 
-.PHONY: help setup lint format test check data history baselines clean
+.PHONY: help setup lint format test check data history baselines forecast clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -35,6 +35,9 @@ history: ## Run the status quo and write its observation log (PROFILE, SEED)
 
 baselines: ## Compare every baseline policy on one world (PROFILE, SEED)
 	$(UV) run python -m jogan.ops --profile $(PROFILE) --seed $(SEED) --policy all
+
+forecast: ## Backtest the drain forecast on the status-quo log (PROFILE, SEED; after history)
+	$(UV) run python -m jogan.forecast --profile $(PROFILE) --seed $(SEED)
 
 clean: ## Remove caches and build outputs
 	rm -rf .pytest_cache .ruff_cache build dist

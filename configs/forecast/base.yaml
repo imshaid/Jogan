@@ -1,0 +1,72 @@
+# Forecast of the peak cumulative drain (docs/02-data-assumptions.md §12, DECISIONS.md D-020).
+# Every number is tagged SOURCE (verified, link), DERIVED (computed in code) or ASSUMPTION.
+
+# Forecast origins: the hours of the day at which forecasts are made and scored. 08:00 is the
+# round's plan hour (configs/ops/policies.yaml); the others cover the hours in which agents
+# call (ASSUMPTION).
+origin_hours: [8, 10, 12, 14, 16, 18, 20]
+horizons_hours: [6, 12, 24] # the owner's sketch, D-002 #3 (ASSUMPTION)
+# Quantile levels. The pairs give the 50%, 80% and 90% intervals; 0.99 bounds the tail that
+# stock-out risk is read from (ASSUMPTION).
+quantiles: [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99]
+warmup_days: 7 # training origins need this many days of history (ASSUMPTION)
+
+# Time-based splits, dates inclusive. An origin belongs to a split only when its longest
+# window lies inside it. full follows docs/02-data-assumptions.md §2 (D-010); tiny and dev are
+# development profiles (ASSUMPTION).
+splits:
+  tiny:
+    train: [2026-03-01, 2026-03-17] # ASSUMPTION
+    calibration: [2026-03-18, 2026-03-22] # ASSUMPTION
+    test: [2026-03-23, 2026-03-28] # ASSUMPTION
+  dev:
+    train: [2026-02-20, 2026-03-31] # ASSUMPTION
+    calibration: [2026-04-01, 2026-04-09] # ASSUMPTION
+    test: [2026-04-10, 2026-04-20] # ASSUMPTION
+  full: # D-010
+    train: [2026-01-05, 2026-04-22] # ASSUMPTION
+    calibration: [2026-04-23, 2026-05-06] # ASSUMPTION
+    test: [2026-05-07, 2026-06-03] # ASSUMPTION
+
+# History windows behind the features (ASSUMPTION). profile_days and history_windows match the
+# 28 days the baseline policies look back (configs/ops/policies.yaml).
+features:
+  recent_hours: [3, 24, 168] # ASSUMPTION
+  profile_days: 28 # ASSUMPTION
+  history_windows: 28 # ASSUMPTION
+  lag_days: [1, 7] # ASSUMPTION
+
+# Stock-outs hide demand: served flows under-report it (data assumptions §7).
+censoring:
+  strategy: impute # impute | ignore | drop
+  # A side counts as stocked out in an hour when its balance at the start or end of the hour is
+  # below this many of the agent's mean served ticket on that side (ASSUMPTION).
+  low_balance_tickets: 3.0 # ASSUMPTION
+  # Hours whose side started with at least this many mean tickets count as fully observed and
+  # set the profile below (ASSUMPTION).
+  clean_balance_tickets: 5.0 # ASSUMPTION
+  # A censored hour is lifted to max(served, expected), or to served + expected (ASSUMPTION).
+  lift: add
+  # Expected demand = the agent's hour-of-day profile times the territory's level that day, both
+  # from clean hours; the level is clipped to this range (ASSUMPTION).
+  day_factor_clip: [0.25, 4.0] # ASSUMPTION
+
+# Asymmetric CQR (Romano, Patterson and Candès 2019, Theorem 2), one shift per quantile level
+# and agent group; a group with fewer calibration rows than this uses the pooled shift
+# (ASSUMPTION).
+conformal:
+  groups: [setting, size_class]
+  min_group_rows: 200 # ASSUMPTION
+
+# LightGBM 4.7.0 quantile objective. Not tuned on any evaluation seed (ASSUMPTION). Sized so
+# one seed of the full profile trains in about a minute on a 20-thread laptop.
+lightgbm:
+  num_boost_round: 150 # ASSUMPTION
+  learning_rate: 0.1 # ASSUMPTION
+  num_leaves: 31 # ASSUMPTION
+  min_data_in_leaf: 50 # ASSUMPTION
+  feature_fraction: 0.9 # ASSUMPTION
+  lambda_l2: 1.0 # ASSUMPTION
+  max_bin: 63 # ASSUMPTION
+  seed: 0 # ASSUMPTION
+  num_threads: 0 # 0 = LightGBM's default thread count (ASSUMPTION)
