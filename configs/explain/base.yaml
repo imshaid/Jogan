@@ -48,12 +48,13 @@ guardrails:
   # (ASSUMPTION).
   min_history_windows: 7 # ASSUMPTION
 
-# Gemini only rewords the template from the same structured evidence. Model ids and their free
-# tier checked on 2026-10-02 (SOURCE: https://ai.google.dev/gemini-api/docs/models,
+# Gemini only rewords the template from the same structured evidence. Flash-Lite models, the
+# owner's choice (D-023); there is no 3.8 Flash-Lite text model. Ids and free tier checked on
+# 2026-10-02 (SOURCE: https://ai.google.dev/gemini-api/docs/models,
 # https://ai.google.dev/gemini-api/docs/pricing). The fallback is used on HTTP 429 or 5xx.
 narrator:
-  primary: gemini-3.8-flash # SOURCE: stable, free tier
-  fallback: gemini-3.5-flash-lite # SOURCE: stable, free tier
+  primary: gemini-3.5-flash-lite # SOURCE: stable, free tier
+  fallback: gemini-3.1-flash-lite # SOURCE: stable, free tier
   timeout_s: 20 # ASSUMPTION
   temperature: 0.2 # ASSUMPTION
   max_chars: 1200 # longer output is refused (ASSUMPTION)
