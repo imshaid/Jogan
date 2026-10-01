@@ -1,0 +1,17 @@
+# Baseline policies (docs/01-logic-chain.md §2). Every value is an ASSUMPTION.
+# Proactive policies plan one runner round per day; every policy that uses runners also
+# answers agents' calls with whatever runner capacity is left.
+
+plan_hour: 8 # the day's rounds are planned at 08:00, before the 09:00 shift
+call_reserve_visits: 4 # per runner, kept free in morning rounds for agents who call
+
+# How a policy estimates an agent's typical day (served outflow per side) from observed history.
+typical:
+  history_days: 28
+  min_days: 3
+  cold_start_balance_days: 1.25 # before min_days: opening balance ÷ this
+
+reactive: {call_days: 0.25} # an agent calls when a side drops below this many typical days
+threshold: {min_days: 0.75} # morning round: visit agents below this cover on either side
+safety_stock: {k: 1.65, history_days: 28, min_days: 7} # need = mean + k·sd of peak 24 h drain
+oracle: {horizon_hours: 26} # perfect foresight of true demand over this horizon

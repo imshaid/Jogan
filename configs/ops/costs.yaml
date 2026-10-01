@@ -1,0 +1,13 @@
+# Money in the operations environment (docs/02-data-assumptions.md §6). Every value is an
+# ASSUMPTION. Costs are counted after a run from logged outcomes, so a sensitivity range can be
+# re-priced without re-running any policy that does not itself use the costs.
+commission_rate: {CO: 0.004, CI: 0.003} # agent commission, share of the amount
+goodwill_per_lost_tk: 50 # value lost per customer turned away (switching risk)
+runner: {per_km_tk: 10, per_visit_tk: 100}
+idle:
+  rate_per_year: 0.10
+  need_days: 1.0 # a side's balance above this many typical days of outflow is idle
+
+sensitivity:
+  commission_rate: {CO: [0.003, 0.005], CI: [0.002, 0.004]}
+  goodwill_per_lost_tk: [0, 200]
