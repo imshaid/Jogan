@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-01, end of M2._
+_Last updated: 2026-10-01, end of M3._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -44,30 +44,30 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - `make data PROFILE=… SEED=…`; timings on this machine: tiny 0.4 s, dev 0.5 s, full 0.8 s, stress 1.2 s
   - 42 tests, about 1.4 s: determinism, pattern recovery (pooled seeds), calibration, sanity, leakage split
   - decisions D-013 (Eid calibration; Fitr shares Azha's because of the Nagad data gap), D-014 (public/truth split, one RNG stream per component), D-015 (profiles)
+- **M3 · Operations environment, baseline policies, status-quo history log**
+  - configs: `configs/ops/{costs,env,policies}.yaml` (typed loader `jogan/ops/config.py`, sensitivity ranges for commission and goodwill)
+  - `jogan/ops/`:
+    - `env` (event replay of every attempt, hourly policy decisions, retries, agents' bank trips, observation history with gaps)
+    - `fleet` (road km, runner shifts, feasibility shared by planners and environment)
+    - `dispatch` (first-free runner for calls; prioritised sector rounds in nearest-neighbour order, the greedy baseline for M5)
+    - `policies` (`none`, `reactive`, `fixed_round` = status quo, `threshold`, `safety_stock`, `oracle`), `metrics` (costs, groups, windows), `io`, CLI
+  - **Verified online:** ANA Bangladesh survey (Helix / MicroSave, 2014): runners rebalance 96% of agents at the shop, usually at a predetermined time, plus on demand; about 22 rebalances a month; median zero denials a day. Status quo and runner visit limit (8 → 20) changed accordingly (D-016)
+  - `make history PROFILE=… SEED=…` writes the status-quo log; `make baselines` compares all policies. Full profile: about 1.5 s per policy, 4 s with the log (14 MB)
+  - 88 tests in about 3 s (46 new): no negative balances, liquidity conservation, common random numbers, oracle beats every baseline on lost requests, roster and shift limits, bank hours, observation gaps and no leakage, determinism, cost split by window
+  - decisions D-016 (status quo per ANA), D-017 (environment design), D-018 (observation layer)
+
 
 ## Next
 
-**M3 · Operations environment, baseline policies, status-quo history log** (hard part: maximum thinking)
+**M4 · Features (leakage test), quantile forecast, CQR, backtest, censoring** (budget 4 h)
 
-- **Costs config:** `configs/ops/costs.yaml` with commission, goodwill, runner and idle-cash costs and their sensitivity ranges (data assumptions §6).
-- **Environment** (`jogan/ops/`), hourly over `truth/demand`:
-  - cash and e-float balances; failed attempts when a side runs dry (censoring), optional 30% retry within 2 h
-  - status-quo self-refill: below 15% of a typical day, 2–6 h delay, no bank refill on Fri/Sat/holidays
-  - runner visits (shift, bag capacity, max visits, travel time with disruption speed factor)
-  - costs: lost commission, goodwill, runner km and visits, idle liquidity
-- **Observation layer:** what Jogan sees (data assumptions §7):
-  - served transactions only
-  - exact e-float, estimated cash
-  - about 1% missing hours and late days (moved here from M2)
-- **Policies:** reactive, static threshold, safety stock (mean + kσ), oracle, plus a policy interface for Jogan (M5).
-- **Status-quo history log** for M4 training.
-- **Tests:**
-  - no negative balances
-  - liquidity conservation (a visit swaps cash and e-float)
-  - identical demand under every policy (common random numbers)
-  - oracle at least as good as every baseline
+- **Features** from `ops/fixed_round/obs/` only, respecting `available_at`: recent served flows per side, balances, calendar (weekday, payday, days to Eid, bank-open, Ramadan), agent master data, hat days. A leakage test (no feature uses a record after the forecast origin, no truth column).
+- **Target:** peak cumulative drain of cash and of e-float over 6/12/24 h from the forecast origin (D-002 #3), from served flows.
+- **Censoring:** hours with a stock-out under-report demand; mark them (balance near zero, failed side) and handle them explicitly; measure the bias against `truth/hourly.parquet`.
+- **Models:** LightGBM quantile regression (check the current version and API before pinning), conformalized quantile regression on the calibration split, pinball loss and coverage per quantile and agent group; simple statistical baselines; time-based backtest (splits in data assumptions §2).
+- Add `lightgbm` to the dependencies (verify the release first).
 
-**Inputs from M2:** `build_world(load_config(profile), seed)` or `read_world(path, truth=True)`. `agents.parquet` is master data; starting balances and typical-day amounts are in `truth/agents`. Runner speeds are in `runners`, on-duty days in `roster`, and disruption days and speed factors in `truth/disruptions`.
+**Inputs from M3:** `simulate(world, make_policy("fixed_round", world))` or the files of `make history`. `Observation`/`History` (`jogan/ops/env.py`) is the in-simulation view a Jogan policy will get in M5; a Jogan policy subclasses `Planned` in `jogan/ops/policies.py` and plans its round with `plan_rounds`.
 
 ## Milestone plan
 
@@ -76,8 +76,8 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M0 | Repo foundation | 1.5 h | Thu 1 Oct 18:30 | done |
 | M1 | Logic chain, requirements checklist, data assumptions | 1.5 h | Thu 20:30 | done |
 | M2 | World simulator, data profiles, tests | 3.5 h | Fri 2 Oct 00:30 | done |
-| M3 | Operations environment, baseline policies, status-quo history log | 3.5 h | Fri 11:30 | next |
-| M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | |
+| M3 | Operations environment, baseline policies, status-quo history log | 3.5 h | Fri 11:30 | done |
+| M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | next |
 | M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | |
 | M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | |
 | M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | |
@@ -101,6 +101,7 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 
 - **Organizers:** are fix pushes and redeploys allowed between 4 Oct 10:00 and the on-site start? The owner will ask. Until answered, only critical fixes in that window.
 - All service accounts below must exist before M6 (Friday evening).
+- **Owner: cost balance.** With the default costs (runner Tk 10/km + Tk 100/visit, goodwill Tk 50 per lost request), a runner visit usually costs more than the goodwill and commission it saves, so `none` has the lowest total cost in development runs. Not tuned on purpose. Options: keep the costs (Jogan's cost-aware newsvendor must then earn every visit, and the report says so), or revisit the runner cost or goodwill with a source. Decide before M5.
 
 ## Owner checklist
 
@@ -135,5 +136,7 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 make setup   # install deps and git hooks
 make check   # lint + tests (same as CI)
 make data PROFILE=dev SEED=0   # simulated world → data/dev/seed0/
+make history PROFILE=dev SEED=0   # status-quo log → data/dev/seed0/ops/fixed_round/
+make baselines PROFILE=dev SEED=0 # compare every baseline policy
 make help    # list all targets
 ```
