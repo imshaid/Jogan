@@ -1,0 +1,66 @@
+name: Deploy API
+
+# After CI passes on main: build the API image (which rebuilds the demo bundle from its seed),
+# push it to Artifact Registry and roll it out on Cloud Run. Keyless: GitHub's OIDC token is
+# exchanged through Workload Identity Federation, which trusts only this repo's main branch
+# (scripts/gcp-setup.sh, DECISIONS.md D-022).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+env:
+  PROJECT: jogan-510317
+  REGION: asia-southeast1
+  SERVICE: jogan-api
+  IMAGE: asia-southeast1-docker.pkg.dev/jogan-510317/jogan/api
+
+jobs:
+  deploy:
+    name: Build and deploy to Cloud Run
+    # skipped until scripts/gcp-setup.sh has stored the repository variables
+    if: >
+      vars.GCP_WIF_PROVIDER != '' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Log in to Artifact Registry
+        run: gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+      - uses: docker/setup-buildx-action@v4
+      - name: Build and push the image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE }}:${{ env.SHA }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Deploy
+        run: >
+          gcloud run deploy "$SERVICE" --image "$IMAGE:$SHA"
+          --project "$PROJECT" --region "$REGION" --quiet
+      - name: Smoke test
+        run: |
+          url=$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" --format='value(status.url)')
+          curl -fsS --retry 3 --retry-delay 5 "$url/health"
