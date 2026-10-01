@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Brand tokens measured from the official guideline PDF (DECISIONS.md D-007).
+   Yellow is a fill only (ink text on it); red marks critical states only. */
+:root {
+  --upay-yellow: #fbd603;
+  --upay-blue: #0c55a4;
+  --upay-red: #eb1d27;
+  --upay-ink: #050608;
+  /* derived */
+  --red-text: #b5121b; /* darker red for small text: 6.85:1 on white */
+  --blue-tint: #e8f0f9;
+  --yellow-tint: #fff8cc;
+  --line: #d9dde3;
+  --muted: #4a5361;
+  --bg: #f6f7f9;
+}
+
+@theme inline {
+  --color-brand: var(--upay-blue);
+  --color-accent: var(--upay-yellow);
+  --color-danger: var(--upay-red);
+  --color-danger-text: var(--red-text);
+  --color-ink: var(--upay-ink);
+  --color-brand-tint: var(--blue-tint);
+  --color-accent-tint: var(--yellow-tint);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-page: var(--bg);
+  --font-sans: var(--font-inter), var(--font-bengali), system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--upay-ink);
+}
