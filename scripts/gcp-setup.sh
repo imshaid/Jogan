@@ -93,7 +93,7 @@ echo "== first deploy of $SERVICE"
 gcloud run deploy "$SERVICE" --project "$PROJECT" --region "$REGION" --image "$IMAGE" \
   --service-account "$RUNTIME_SA" --allow-unauthenticated \
   --cpu 1 --memory 1Gi --min-instances 0 --max-instances 2 --cpu-boost \
-  --set-secrets "SUPABASE_URL=supabase-url:latest,SUPABASE_PUBLISHABLE_KEY=supabase-publishable-key:latest,SUPABASE_SECRET_KEY=supabase-secret-key:latest" \
+  --set-secrets "SUPABASE_URL=supabase-url:latest,SUPABASE_PUBLISHABLE_KEY=supabase-publishable-key:latest,SUPABASE_SECRET_KEY=supabase-secret-key:latest,GEMINI_API_KEY=gemini-api-key:latest" \
   --set-env-vars "JOGAN_CORS_ORIGINS=$WEB_ORIGIN" \
   --format=none
 URL=$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" --format='value(status.url)')
