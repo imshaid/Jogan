@@ -1,0 +1,57 @@
+# --- Secrets and local-only config (never commit) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.claude/settings.local.json
+.claude/*.local.md
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# --- Node / web ---
+node_modules/
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+
+# --- Generated data, models and artifacts (rebuild with make) ---
+data/
+artifacts/*
+!artifacts/metrics.json
+!artifacts/figures/
+*.parquet
+*.feather
+*.pkl
+*.joblib
+
+# --- Throw-away experiments ---
+scratch/
+.ipynb_checkpoints/
+
+# --- Editors and OS ---
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs ---
+*.log
+logs/
