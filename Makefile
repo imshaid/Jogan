@@ -2,8 +2,10 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 UV ?= uv
+PROFILE ?= dev
+SEED ?= 0
 
-.PHONY: help setup lint format test check clean
+.PHONY: help setup lint format test check data clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -24,6 +26,9 @@ test: ## Run the test suite
 	$(UV) run pytest
 
 check: lint test ## Lint and tests (same as CI)
+
+data: ## Generate a simulated world into data/ (PROFILE=tiny|dev|full|stress, SEED=0)
+	$(UV) run python -m jogan.sim --profile $(PROFILE) --seed $(SEED)
 
 clean: ## Remove caches and build outputs
 	rm -rf .pytest_cache .ruff_cache build dist

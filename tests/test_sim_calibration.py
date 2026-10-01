@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from jogan.sim.calendar import as_float
 from jogan.sim.calibration import (
     achieved,
     calibrate,
@@ -8,7 +9,11 @@ from jogan.sim.calibration import (
     derive_targets,
     targets_flat,
 )
-from jogan.sim.config import load_config
+from jogan.sim.config import TX_TYPES, load_config
+from jogan.sim.demand import festival_shape
+from jogan.sim.world import World
+
+from .conftest import normal_demand
 
 
 def test_targets_are_derived_from_official_figures() -> None:
@@ -36,3 +41,20 @@ def test_capped_lognormal_mean_matches_monte_carlo() -> None:
     assert float(capped_lognormal_mean(7.0, 0.9, 3_000)) == pytest.approx(
         np.minimum(x, 3_000).mean(), rel=0.01
     )
+
+
+def test_realized_attempts_match_expected_intensity(tiny_world: World) -> None:
+    normal = ~tiny_world.agents["agent_id"].isin(tiny_world.anomalies["agent_id"]).to_numpy()
+    expected = tiny_world.expected[normal].sum()
+    assert len(normal_demand(tiny_world)) == pytest.approx(expected, rel=0.04)
+
+
+@pytest.mark.parametrize("side", TX_TYPES)
+def test_realized_tickets_match_bb_means_outside_eid_surge(dev_world: World, side: str) -> None:
+    cfg = dev_world.config
+    g = festival_shape(as_float(dev_world.calendar["days_to_eid"]), cfg.festival)
+    plain_days = dev_world.calendar.loc[g == 0, "date"]
+    d = normal_demand(dev_world)
+    d = d[d["date"].isin(plain_days) & (d["tx_type"] == side)]
+    target = derive_targets(cfg.calibration).ticket[side]
+    assert d["amount_tk"].mean() == pytest.approx(target, rel=0.03)
