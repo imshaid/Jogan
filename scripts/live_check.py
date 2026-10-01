@@ -148,11 +148,15 @@ def main() -> int:
             decided.append(("approved", agent_f))
             print(f"flagged {agent_f}: refused without a note (422), approved with one")
 
+        # match by recommendation id: earlier bundles may hold decisions on the same agent and day
+        rec_id = {x["agent_id"]: x["id"] for x in plan["items"]}
         audit = page.locator("section", has_text="Audit log")
         entries = audit.get_by_role("listitem")
         for action, agent in decided:
-            entry = entries.filter(has_text=f"recommendation.{action}").filter(has_text=agent)
+            mine = re.compile(rf"#{rec_id[agent]}(?!\d)")
+            entry = entries.filter(has_text=f"recommendation.{action}").filter(has_text=mine)
             expect(entry).to_have_count(1)
+            expect(entry).to_contain_text(agent)
             expect(entry).to_contain_text("approver")
         print(f"approver decided {', '.join(a for _, a in decided)} on {day}; all audited")
         browser.close()
