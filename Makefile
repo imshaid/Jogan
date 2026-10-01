@@ -5,7 +5,7 @@ UV ?= uv
 PROFILE ?= dev
 SEED ?= 0
 
-.PHONY: help setup lint format test check data clean
+.PHONY: help setup lint format test check data history baselines clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -29,6 +29,12 @@ check: lint test ## Lint and tests (same as CI)
 
 data: ## Generate a simulated world into data/ (PROFILE=tiny|dev|full|stress, SEED=0)
 	$(UV) run python -m jogan.sim --profile $(PROFILE) --seed $(SEED)
+
+history: ## Run the status quo and write its observation log (PROFILE, SEED)
+	$(UV) run python -m jogan.ops --profile $(PROFILE) --seed $(SEED) --write
+
+baselines: ## Compare every baseline policy on one world (PROFILE, SEED)
+	$(UV) run python -m jogan.ops --profile $(PROFILE) --seed $(SEED) --policy all
 
 clean: ## Remove caches and build outputs
 	rm -rf .pytest_cache .ruff_cache build dist
