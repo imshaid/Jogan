@@ -64,7 +64,7 @@ AI is material: without the forecast and the optimizer, Jogan would just be a th
 |---|---|---|
 | **Prediction** | LightGBM quantile models of the **peak cumulative drain** of cash and e-float over 6/12/24 h, calibrated with conformalized quantile regression (CQR) | No |
 | **Recommendation and optimization** | Newsvendor target level from config costs; mixed-integer runner assignment (HiGHS) with a greedy baseline | Proposes only; a human approves |
-| **Detection** | Isolation Forest per peer group (advisory anomaly flag) | Never |
+| **Detection** | Isolation Forest per agent setting plus two rules (advisory anomaly flag, D-023) | Never |
 | **Generation** | Bilingual explanations from TreeSHAP drivers via templates, with an optional Gemini narration of the same structured evidence | Never |
 
 Business rules (costs, caps, guardrails) live in config files, separate from the ML. A low-confidence or out-of-distribution case goes to manual review.

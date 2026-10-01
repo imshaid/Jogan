@@ -170,3 +170,38 @@ Not priced, for lack of a source: motorcycle wear and depreciation, the runner's
 - **Web.** Next.js 16.3.8 as `create-next-app` scaffolds it (React 19.2, TypeScript 5, Tailwind 4) with `@supabase/supabase-js` 2.117.2. In M6 it is one client page: sign in, the day's queue with P(stock-out) labelled as a prediction, approve or reject for approvers, and the audit log. Risk is shown with a word and a symbol, never by colour alone. The display bands (≥ 50% high, ≥ 20% medium) are an ASSUMPTION of the UI, not a decision rule. The derived small-text red `#B5121B` has 6.85:1 contrast on white.
 
 Verified on 2026-10-01/02: FastAPI 0.142.2, Uvicorn 0.54.0, httpx2 2.13.1 (PyPI), Next.js 16.3.8, supabase-js 2.117.2, Supabase CLI 2.119.0 (npm), the action tags `google-github-actions/auth@v3`, `setup-gcloud@v3`, `docker/build-push-action@v7`, `setup-buildx-action@v4`, `actions/setup-node@v7`, the `ghcr.io/astral-sh/uv:0.12.21` and `python:3.12-slim-trixie` images. The publishable and secret keys go in the `apikey` header, never as a bearer token (<https://supabase.com/docs/guides/api/api-keys>). Explicit grants for new tables: <https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically>.
+
+## D-023 · 2026-10-02 · Explanations, guardrails, Gemini narrator and the anomaly flag
+
+- **Drivers.** LightGBM's built-in TreeSHAP (`pred_contrib`, D-002 #5) on the 24-hour booster at the 0.9 quantile of the side at risk (the side with the higher P(stock-out)). They are computed once, when the bundle is built, for every planned visit and stored in its evidence, so the API never loads a model. The boosters are trained on `log1p`, so a feature's effect is `exp(φ) - 1`, relative to the model's average prediction. The conformal shift is one constant per agent group, so it is not a driver. The top 3 with an effect of at least 5% are kept. A test checks that the contributions add up to the raw prediction.
+- **Template explanation.** English and Bangla, written only from the stored evidence by `jogan/explain/template.py`; the words live in `configs/explain/labels.yaml` (Bangla digits, lakh grouping). The template is the explanation of record. An approver's note, or any other user text, never enters an explanation or a prompt.
+- **Gemini narrator.** `gemini-3.8-flash`, with `gemini-3.5-flash-lite` as the fallback on HTTP 429 or 5xx. Both are stable and on the free tier (models and pricing pages, checked 2026-10-02).
+  - The API calls REST `models.generateContent` with `responseMimeType: application/json` and a `responseSchema`. The key goes in the `x-goog-api-key` header, never in the URL.
+  - Input: the template and the same evidence as display text.
+  - The answer is accepted only if it is JSON, at most 1,200 characters, in the requested script, keeps the stock-out chance, and uses no number that is not already in the template (Bangla digits and grouping are normalised first). Otherwise the template is shown, with the reason.
+  - Calls happen on request only (one visit, one language), at most 8 a minute per instance, and results are cached. A whole day (about 230 visits) cannot be narrated within free-tier limits, so nothing is precomputed.
+  - Free-tier prompts may be used by Google to improve its products; only simulated data is sent.
+  - Tests mock the HTTP layer.
+  - The key is the `gemini-api-key` secret. The CI deployer has `roles/run.developer`, and the Cloud Run docs list `roles/run.admin` for configuring secrets, so the owner mounts it once by hand (`gcloud run services update … --update-secrets`) instead of widening the deployer's role. Later image deploys keep it. `scripts/gcp-setup.sh` mounts it on a fresh setup.
+- **Guardrails and manual review.** A visit goes to manual review when one of these fires:
+  - **out of range:** one of the agent's own amounts lies outside the training min/max. Calendar features are left out: a test window later in the year is always outside the training calendar (days since Eid, for one).
+  - **wide interval:** the 90% quantile is more than 4× the median.
+  - **data gap:** fewer than 75% of the last 24 hourly records had arrived at the plan hour.
+  - **short history:** fewer than 7 past same-hour windows behind the features.
+  - **anomaly:** the advisory anomaly flag fired.
+
+  "Cash plus e-float cannot cover both needs" was dropped: on development seed 0 it fired on 728 of 732 planned visits. For a visited agent that is the normal case, not a warning. On the demo bundle 772 of 6,559 visits (12%) go to manual review.
+
+  Approving a flagged visit needs a note. The rule is in `decide_recommendation` (a new migration), because an approver can call that function through the Data API directly, and in `MemoryStore`. The audit row records `manual_review`. Rejecting needs no note.
+- **Anomaly flag.** Agent-day features from the observed log only:
+  - transactions outside opening hours;
+  - volume against the agent's own hour-of-day profile;
+  - mean cash-out against the agent's own mean;
+  - the busiest hour's cash-outs against their usual count.
+
+  The last three are divided by the territory's median that day, so a payday or an Eid that lifts everyone is not unusual. Only excess counts (`log(max(x, 1))`): on development seeds the strangest days were quiet ones, agents that had run dry, which the liquidity forecast already covers. An Isolation Forest (scikit-learn 1.9.1, BSD-3-Clause) per setting scores the three continuous features, and an agent-day is flagged above the 99.5% quantile of its setting's training scores. Two rules cover what a forest misses:
+  - transactions outside opening hours are zero on nearly every training day, so the forest's sub-samples almost never hold a value to split on;
+  - a forest scores a point past the edge of its training sample like the edge itself, so a feature above its setting's training maximum is flagged directly. A synthetic test with a 7× cash-out size showed this.
+
+  Flags never act. They put the agent's visit under manual review and list the agent for a person to look at. Each morning the bundle scores the previous day from the records that have arrived by then. `make eval` reports precision at 5, 10 and 20 and how many injected windows got a flag, on the test window of every evaluation seed.
+- **Bundle id.** The bundle hashes now include the explain config (narrator settings excluded, since they act only at request time). The new evidence is therefore published under a new bundle id, and live decisions made on the old one stay with it.
