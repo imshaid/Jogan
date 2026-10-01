@@ -1,0 +1,41 @@
+# Official Bangladesh Bank MFS figures used as calibration targets (SOURCE).
+# Values are copied as published. Table 9 units: "Number in unit, Amount in million (TK.)".
+# The targets (means, ratios) are computed from these in jogan/sim/calibration.py, never typed.
+sources:
+  tab9: https://www.bb.org.bd/econdata/fin_digitalfstat/tab9.pdf
+  agents: https://www.bb.org.bd/en/index.php/financialactivity/mfsdata
+  limits: https://www.bssnews.net/business/258749
+
+# Table 9, columns "Cash In / Agent" and "Cash Out / Agent", fetched 2026-10-01.
+agent_transactions:
+  "2026-04":
+    cash_in_count: 212240411
+    cash_in_amount_mtk: 457744.8
+    cash_out_count: 310171518
+    cash_out_amount_mtk: 401864.6
+  "2026-05":
+    cash_in_count: 223725920
+    cash_in_amount_mtk: 508766.0
+    cash_out_count: 351763403
+    cash_out_amount_mtk: 508903.2
+  "2026-07":
+    cash_in_count: 211378627
+    cash_in_amount_mtk: 477301.5
+    cash_out_count: 308646376
+    cash_out_amount_mtk: 419415.1
+
+# Total MFS agents. A different month from the transactions, so volume per agent is
+# an order of magnitude only.
+agents_total: {count: 1856190, as_of: "2025-02"}
+
+# Customer limits at agent points per day (BB circular of 27 March 2025, via BSS).
+# The simulator applies them per transaction.
+customer_daily_limits_tk: {cash_out: 30000, cash_in: 50000}
+
+# Which month plays which role. Table 9 note 5: Nagad sent no data for Mar-25 to Feb-26,
+# so Mar-26 vs Feb-26 is not comparable and Eid-ul-Fitr cannot be calibrated on its own.
+# Both Eids therefore share the surge calibrated on Apr-26 -> May-26 (Eid-ul-Azha, 28 May).
+months:
+  reference: "2026-07"
+  eid_base: "2026-04"
+  eid: "2026-05"

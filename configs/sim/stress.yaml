@@ -1,0 +1,8 @@
+# Inference and optimizer timing only: each territory is replicated as 10 distributor areas.
+extends: base.yaml
+name: stress
+start: 2026-05-18
+end: 2026-05-31
+n_agents: 10000
+territories: [DHK, GZP, CUM, SYL, RNG, KUR]
+replicas: 10

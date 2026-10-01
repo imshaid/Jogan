@@ -1,0 +1,92 @@
+# Shared simulator parameters; every profile extends this file.
+# Every value here is an ASSUMPTION (docs/02-data-assumptions.md) unless a comment says otherwise.
+# Calibrated quantities (overall volume, cash-out mix, Eid surge, ticket means) are not set here:
+# jogan/sim/calibration.py solves them against configs/calibration/.
+
+calendar: calendar/bd_2026.yaml
+geo: geo/territories.yaml
+calibration: calibration/bb_mfs_2026.yaml
+
+agents:
+  volume_sigma: 0.6 # log-normal spread of agents' base daily volume
+  volume_scale: {urban: 1.3, peri_urban: 1.0, rural: 0.8}
+  size_quantiles: [0.50, 0.85] # small below p50, medium to p85, large above
+  hours: {urban: [9, 22], peri_urban: [8, 21], rural: [8, 20]} # open from, close at
+  eid_day_hours: [14, 20]
+  start_balance_days: [1.0, 1.5] # starting cash / e-float, in days of expected outflow
+  min_start_balance_tk: 2000
+  hat_clusters: 4 # market clusters (angular sectors) per hat territory
+  hat_days_per_cluster: [1, 2]
+
+# Cash-out share of an agent's transactions, as log-odds tilts around a calibrated centre.
+# Urban agents lean to cash-in, rural and remittance agents to cash-out.
+mix:
+  tilt: {urban: -0.8, peri_urban: 0.0, rural: 0.5}
+  remittance_tilt: 0.4
+  agent_sigma: 0.25
+
+# Hour of day: a floor plus late-morning and evening bumps, zero when closed, each day sums to 1.
+hour_profile:
+  floor: 0.35
+  morning: {centre: 11.5, width: 2.0, weight: 1.0}
+  evening: {centre: {urban: 19.0, peri_urban: 18.5, rural: 17.5}, width: 2.0, weight: 1.0}
+  ramadan: {morning_factor: 0.6, evening_shift_h: 1.5, evening_factor: 1.4}
+  friday: {morning_before: 12, morning_factor: 0.8, prayer: [12, 14], prayer_factor: 0.4}
+
+weekday: {Thu: 1.05, Fri: 0.90} # daily multipliers; other days 1.0
+
+payday: # cash-out only; timing per Labour Act s.123 (SOURCE), size ASSUMPTION
+  peak_day: 6
+  width_days: 2.0
+  last_day: 10
+  peak: 1.6
+
+remittance: # cash-out only
+  month_start: {last_day: 7, factor: 1.1}
+  pre_eid: {days: 14, peak: 1.3} # linear ramp up to the day before Eid
+
+hat: {factor: 1.5}
+
+# Pre-Eid surge: a bump peaking `peak_days_before` days before Eid, zero beyond `ramp_days`.
+# Its amplitude (count and ticket size, per side) is calibrated; the weights spread it by setting.
+festival:
+  ramp_days: 10
+  peak_days_before: 2
+  width_days: 2.5
+  cash_out_weight: {urban: 0.7, peri_urban: 1.0, rural: 1.2}
+  cash_in_weight: {urban: 1.0, peri_urban: 0.6, rural: 0.2}
+  eid_drop: [0.3, 0.4, 0.6] # Eid day, day after, two days after
+
+cattle: {days: 7, factor: 1.3} # cash-out, Eid-ul-Azha only
+
+disruption: {prob: 0.02, demand_factor: 0.6, speed_factor: 0.5}
+
+noise: {day_cv: 0.15, hour_cv: 0.30} # gamma multipliers with mean 1
+
+tickets:
+  sigma: {CO: 0.9, CI: 0.9} # log-normal shape; the scale is calibrated
+  min_tk: 50
+  rounding: # [below this amount, round to]; the last step applies to everything above
+    - [1000, 50]
+    - [10000, 100]
+    - [null, 500]
+
+anomalies:
+  share: 0.02
+  start_after_days: 7
+  split: # structuring-like bursts of cash-outs just under round amounts
+    days: [3, 7]
+    bursts_per_day: [1, 3]
+    burst_size: [3, 6]
+    burst_minutes: 40
+    amounts: [9950, 14950, 19950, 24950, 29950]
+  spike: {days: [1, 3], factor: [2.5, 4.0]}
+  night: {days: [7, 14], day_prob: 0.6, per_day: [1, 4], hours: [0, 5]}
+
+runners:
+  shift: [9, 18]
+  max_visits: 8
+  bag_capacity_tk: 300000
+  visit_minutes: 10
+  absence_prob: 0.02
+  off_on_eid_day: true

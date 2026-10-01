@@ -1,0 +1,45 @@
+# Bangladesh calendar for 2026, used by the simulator (docs/02-data-assumptions.md §2).
+# Dates are SOURCE unless marked otherwise. Bangla names are UI copy, reviewed in M9.
+year: 2026
+timezone: Asia/Dhaka
+
+sources:
+  holidays: https://tds-images.thedailystar.net/news/bangladesh/news/govt-announces-official-list-public-holidays-2026-4031596
+  eid_ul_fitr: https://www.bssnews.net/news/370394
+  eid_ul_azha: https://en.ittefaq.com.bd/16594/bangladesh-to-celebrate-eid-ul-azha-on-may-28
+  bank_weekend: https://thefinancialexpress.com.bd/views/opinions/banking-on-holidays
+
+# Banks close on Friday and Saturday. Agent shops open every day (ASSUMPTION).
+bank_weekend: [Fri, Sat]
+
+# DERIVED: a full 30-day Ramadan ending the day before Eid-ul-Fitr. The loader checks this.
+ramadan:
+  start: 2026-02-19
+  end: 2026-03-20
+
+eids:
+  - key: fitr
+    name_en: Eid-ul-Fitr
+    name_bn: ঈদুল ফিতর
+    date: 2026-03-21
+    holidays: [2026-03-19, 2026-03-23]
+  - key: azha
+    name_en: Eid-ul-Azha
+    name_bn: ঈদুল আযহা
+    date: 2026-05-28
+    holidays: [2026-05-25, 2026-05-31]
+
+holidays:
+  - {date: 2026-02-04, name_en: Shab-e-Barat, name_bn: শবে বরাত}
+  - {date: 2026-02-21, name_en: Shaheed Day, name_bn: শহীদ দিবস}
+  - {date: 2026-03-17, name_en: Shab-e-Qadr, name_bn: শবে কদর}
+  - {date: 2026-03-26, name_en: Independence Day, name_bn: স্বাধীনতা দিবস}
+  - {date: 2026-04-14, name_en: Pahela Baishakh, name_bn: পহেলা বৈশাখ}
+  - {date: 2026-05-01, name_en: May Day and Buddha Purnima, name_bn: মে দিবস ও বুদ্ধ পূর্ণিমা}
+  - {date: 2026-06-26, name_en: Ashura, name_bn: আশুরা}
+  - {date: 2026-08-05, name_en: Mass Uprising Day, name_bn: গণঅভ্যুত্থান দিবস}
+  - {date: 2026-08-26, name_en: Eid-e-Miladunnabi, name_bn: ঈদে মিলাদুন্নবী}
+  - {date: 2026-09-04, name_en: Janmashtami, name_bn: জন্মাষ্টমী}
+  - {date: 2026-10-20, end: 2026-10-21, name_en: Durga Puja, name_bn: দুর্গাপূজা}
+  - {date: 2026-12-16, name_en: Victory Day, name_bn: বিজয় দিবস}
+  - {date: 2026-12-25, name_en: Christmas, name_bn: বড়দিন}
