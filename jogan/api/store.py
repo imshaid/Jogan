@@ -21,6 +21,7 @@ import httpx2 as httpx
 ROLES = ("analyst", "approver")
 DECISIONS = ("approved", "rejected")
 NOTE_MAX = 500
+REVIEW_NOTE = "a recommendation flagged for manual review needs a note to approve"
 
 
 class StoreError(Exception):
@@ -37,6 +38,8 @@ class Store(Protocol):
     def publish(self, bundle_id: str, day: dt.date, rows: list[dict], trace: dict) -> int: ...
 
     def queue(self, token: str, bundle_id: str, day: dt.date) -> list[dict]: ...
+
+    def recommendation(self, token: str, rec_id: int) -> dict | None: ...
 
     def decide(self, token: str, rec_id: int, decision: str, note: str | None) -> dict: ...
 
@@ -112,6 +115,11 @@ class SupabaseStore:
             "order": "value_tk.desc,id.asc",
         }
         return self._send("GET", "/recommendations", self._user(token), params=params)
+
+    def recommendation(self, token: str, rec_id: int) -> dict | None:
+        params = {"select": "*", "id": f"eq.{rec_id}"}
+        rows = self._send("GET", "/recommendations", self._user(token), params=params)
+        return rows[0] if rows else None
 
     def decide(self, token: str, rec_id: int, decision: str, note: str | None) -> dict:
         body = {"p_id": rec_id, "p_decision": decision, "p_note": note}
@@ -197,6 +205,12 @@ class MemoryStore:
         ]
         return sorted(rows, key=lambda r: (-r["value_tk"], r["id"]))
 
+    def recommendation(self, token: str, rec_id: int) -> dict | None:
+        _, role = self._who(token)
+        if not role:
+            return None
+        return next((dict(r) for r in self.recommendations if r["id"] == rec_id), None)
+
     def decide(self, token: str, rec_id: int, decision: str, note: str | None) -> dict:
         user, role = self._who(token)
         if role != "approver":
@@ -212,12 +226,16 @@ class MemoryStore:
             if rec["status"] != "pending":
                 raise StoreError(409, f"recommendation {rec_id} is already decided")
             note = (note or "").strip() or None
+            review = bool((rec["evidence"].get("review") or {}).get("flag", False))
+            if decision == "approved" and review and note is None:
+                raise StoreError(422, REVIEW_NOTE)
             rec.update(status=decision, decided_by=user, decided_at=_now(), decision_note=note)
             detail = {
                 "note": note,
                 "agent_id": rec["agent_id"],
                 "plan_date": rec["plan_date"],
                 "bundle_id": rec["bundle_id"],
+                "manual_review": review,
             }
             self._log(user, role, f"recommendation.{decision}", rec_id, detail)
             return dict(rec)
