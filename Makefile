@@ -1,0 +1,30 @@
+# Jogan developer commands. Run `make help` to list them.
+SHELL := /bin/bash
+.DEFAULT_GOAL := help
+UV ?= uv
+
+.PHONY: help setup lint format test check clean
+
+help: ## List available targets
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
+
+setup: ## Install Python deps with uv and the git hooks
+	$(UV) sync
+	$(UV) run pre-commit install
+
+lint: ## Lint and check formatting
+	$(UV) run ruff check .
+	$(UV) run ruff format --check .
+
+format: ## Auto-format and apply safe lint fixes
+	$(UV) run ruff format .
+	$(UV) run ruff check --fix .
+
+test: ## Run the test suite
+	$(UV) run pytest
+
+check: lint test ## Lint and tests (same as CI)
+
+clean: ## Remove caches and build outputs
+	rm -rf .pytest_cache .ruff_cache build dist
+	find . -path ./.venv -prune -o -name __pycache__ -type d -prune -exec rm -rf {} +
