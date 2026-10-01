@@ -3,11 +3,15 @@
 Signs in with the one-click demo accounts on the web app and checks:
 - the "Simulated data" badge;
 - the analyst sees the queue but no decision buttons, and the API refuses the analyst's decision;
-- the approver approves one visit and rejects another on the last plan day, and both decisions
-  appear in the append-only audit log;
+- a visit's "Why?" shows the template explanation in English and Bangla, and "Reword with AI"
+  answers (Gemini's rewording, or the template with the reason); the anomaly flags are listed;
+- the approver approves one visit and rejects another on the last plan day; a visit flagged for
+  manual review is refused without a note and approved with one; every decision appears in the
+  append-only audit log;
 - the API answers only the production web origin (CORS) and refuses calls without a token.
 
-It changes live data: two recommendations get decided, for good, by the demo approver. Run:
+It changes live data: two or three recommendations get decided, for good, by the demo approver.
+Run:
 
     uv run --with playwright python scripts/live_check.py
 
@@ -93,26 +97,64 @@ def main() -> int:
         )
         assert refused.status_code == 403, refused.text
         print("analyst decision refused with 403")
+
+        row = page.locator("tbody tr").first
+        row.get_by_role("button", name="▸ Why?").click()
+        why = page.locator("tbody tr[id^='why-']").first
+        expect(why).to_contain_text("Send runner")
+        expect(why).to_contain_text("a prediction")
+        page.get_by_role("button", name="বাংলা").click()
+        expect(why).to_contain_text("পূর্বাভাস")
+        why.get_by_role("button", name="Reword with AI").click()
+        answer = why.get_by_text(re.compile("Reworded by AI|AI rewording not shown"))
+        expect(answer).to_be_visible(timeout=TIMEOUT_MS)
+        print(f"why panel ok in both languages; AI: {answer.inner_text()[:90]}")
+        page.get_by_role("button", name="English").click()
+        flags = page.locator("section", has_text="Advisory anomaly flags")
+        expect(flags).to_be_visible()
+        print(f"anomaly flags listed: {flags.get_by_role('listitem').count()}")
         sign_out(page)
 
         sign_in(page, "approver")
         page.get_by_label("Plan date").select_option(day)
         expect(page.get_by_role("button", name="✓ Approve").first).to_be_visible(timeout=TIMEOUT_MS)
-        first = page.locator("tbody tr", has=page.get_by_role("button", name="✓ Approve")).first
-        agent_a = first.locator("td").first.inner_text().split("\n")[0]
-        first.get_by_role("button", name="✓ Approve").click()
+        pending = page.locator("tbody tr", has=page.get_by_role("button", name="✓ Approve"))
+        plain = pending.filter(has_not_text="Manual review").first
+        agent_a = plain.locator("td").first.inner_text().split("\n")[0]
+        plain.get_by_role("button", name="✓ Approve").click()
         expect(page.locator("tbody tr", has_text=agent_a)).to_contain_text("approved")
         second = page.locator("tbody tr", has=page.get_by_role("button", name="✕ Reject")).first
         agent_r = second.locator("td").first.inner_text().split("\n")[0]
         second.get_by_role("button", name="✕ Reject").click()
         expect(page.locator("tbody tr", has_text=agent_r)).to_contain_text("rejected")
+        decided = [("approved", agent_a), ("rejected", agent_r)]
+
+        flagged = pending.filter(has_text="Manual review")
+        if flagged.count():
+            row = flagged.first
+            agent_f = row.locator("td").first.inner_text().split("\n")[0]
+            rec = next(x for x in plan["items"] if x["agent_id"] == agent_f)
+            approver = {"Authorization": f"Bearer {access_token(page)}"}
+            bare = httpx.post(
+                f"{api}/v1/recommendations/{rec['id']}/decision",
+                headers=approver,
+                json={"decision": "approved"},
+            )
+            assert bare.status_code == 422, bare.text
+            row.get_by_role("button", name="✓ Approve").click()
+            row.get_by_label(re.compile("Note")).fill("live check: evidence reviewed")
+            row.get_by_role("button", name="✓ Approve with note").click()
+            expect(page.locator("tbody tr", has_text=agent_f)).to_contain_text("approved")
+            decided.append(("approved", agent_f))
+            print(f"flagged {agent_f}: refused without a note (422), approved with one")
+
         audit = page.locator("section", has_text="Audit log")
         entries = audit.get_by_role("listitem")
-        for action, agent in (("approved", agent_a), ("rejected", agent_r)):
+        for action, agent in decided:
             entry = entries.filter(has_text=f"recommendation.{action}").filter(has_text=agent)
             expect(entry).to_have_count(1)
             expect(entry).to_contain_text("approver")
-        print(f"approver approved {agent_a} and rejected {agent_r} on {day}; both audited")
+        print(f"approver decided {', '.join(a for _, a in decided)} on {day}; all audited")
         browser.close()
     print("live check passed")
     return 0
