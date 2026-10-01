@@ -92,7 +92,7 @@ The first environment run used agents' own bank trips as the status quo and lost
 
 - The status quo (`fixed_round`) is now a fixed cycle per runner plus calls; the bank trip stays as every agent's fallback under every policy.
 - `runners.max_visits` goes from 8 to 20 so the status quo can reach that rebalancing frequency (the count is still an ASSUMPTION).
-- `reactive` (calls only) and `none` (no runners) stay as reference policies.
+- `reactive` (calls only) and `none` (no runners) were kept as reference policies; D-019 drops them.
 - The survey's "median of zero denials a day" is used as a plausibility test of the status quo, not as a calibration target: it is from 2014 and self-reported.
 
 ## D-017 · 2026-10-01 · Operations environment design
@@ -101,9 +101,30 @@ The first environment run used agents' own bank trips as the status quo and lost
 - **Common random numbers.** Retry, bank-trip delay and data-gap draws are keyed by the world seed and the customer or agent, never by the policy, so policy differences are not noise.
 - **A visit sets a cash level, not an amount.** The runner swaps cash and e-float until the agent's cash reaches the target, within the agent's balances and the runner's bag. Total liquidity per agent never changes, which a test checks.
 - **One dispatch code path.** Planners schedule on a copy of the fleet with the same feasibility code the environment uses, so a plan never fails in execution. Morning rounds are prioritised, split into sectors and ordered by nearest neighbour (the greedy baseline for M5's optimizer); calls go to the runner that arrives first.
-- **Costs after the run.** Outcomes and runner km are logged; costs are computed afterwards, so goodwill and commission ranges re-price the same run.
+- **Costs after the run.** Outcomes, runner km and busy minutes are logged; costs are computed afterwards, so another cost setting re-prices the same run (cost model: D-019).
 - **The oracle** knows every future attempt and plans the same morning round. It bounds lost requests, not total cost, because it is not cost-aware; the cost-aware comparison comes with the newsvendor in M5.
 
 ## D-018 · 2026-10-01 · Observation layer
 
 Jogan sees served transactions only, exact e-float, a cash estimate (exact until the shared drawer exists), runner visits and agents' bank trips as e-float transfers. The hourly feed loses 1% of agent-hour records and delivers 1% of agent-days a day late (ASSUMPTION); every record carries `available_at`, and features must respect it. Live balances at decision time are not affected. The status-quo log under `ops/fixed_round/obs/` is the only training input of M4; `ops/<policy>/truth/` is for evaluation.
+
+## D-019 · 2026-10-01 · Costs from real inputs, break-even for lost customers, three baselines (owner decision)
+
+The owner decided: no made-up or round cost numbers.
+
+- **Runner cost is built from real inputs:**
+  - the official petrol price by date in 2026 (Energy and Mineral Resources Division, as reported in the press);
+  - the manufacturer's mileage of a 100 cc commuter motorcycle;
+  - a 2026 job ad for a bKash distribution sales officer (Tk 13,000–17,000 a month);
+  - the 48-hour legal week (Labour Act s.102).
+
+  Fuel per km and runner time per minute are DERIVED in `jogan/ops/costs.py`. A runner's time is priced only while driving or at a stop, because the roster and salaries are the same under every policy. The earlier Tk 10 per km and Tk 100 per visit are gone.
+- **Lost commission** = each lost amount × Tk 4.10 per 1,000 (the agent commission, the same at bKash, Nagad, Rocket and upay, Prothom Alo 2022), replacing the 0.40% / 0.30% guesses.
+- **A lost customer's value is unknown and not priced.** The Tk 50 "goodwill" is gone. For any two policies the evaluation reports the break-even value per lost request at which they cost the same (`break_even` in `jogan/ops/costs.py`). Consequence for M5: Jogan's newsvendor needs an underage cost, so the lost-customer value enters it as an operator setting (a policy knob, not a fact), and the evaluation shows results across that setting next to the break-even values.
+- **Idle money** is priced at Bangladesh Bank's policy rate (10% until 2 Aug 2026); using it as the cost of idle money is an ASSUMPTION.
+- **Bank hours** for agents' own bank trips are the 2026 transaction hours, 10:00–15:00 from 5 April (Dhaka Tribune), applied to the whole run.
+- **Every number in `configs/ops/*.yaml` is tagged** SOURCE, DERIVED or ASSUMPTION, and a test fails if one is not. The safety-stock factor is derived from a 95% service level instead of a typed 1.65.
+- **Comparison set:** Jogan is compared with `fixed_round` (status quo), `threshold` and `safety_stock`. The oracle stays as an upper bound for the forecast, not a rival. `reactive` and `none` are removed.
+- **Where Jogan does not win** goes into the evaluation output and gets its own report section: every baseline, agent group, period or cost setting in which a baseline does as well or better.
+
+Not priced, for lack of a source: motorcycle wear and depreciation, the runner's phone, the agent's own time on bank trips. Each one understates a cost, and the report lists them.

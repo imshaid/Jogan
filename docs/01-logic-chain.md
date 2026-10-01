@@ -4,9 +4,9 @@ The one-page argument for Jogan, in the format of the Student Guideline §10. Ex
 
 ## Problem statement
 
-> **For** upay's liquidity-operations analysts and distributor managers, **reactive** rebalancing of agents' physical cash and e-float **causes** agent stock-outs that turn customers away, costing transactions, agent commission and trust, most of all before Eid.
+> **For** upay's liquidity-operations analysts and distributor managers, rebalancing of agents' physical cash and e-float on **fixed rounds and calls**, not on a forecast, **causes** agent stock-outs that turn customers away, costing transactions, agent commission and trust, most of all before Eid.
 > **We will build** Jogan, an AI copilot that **uses** agents' transaction and balance histories **to** forecast each agent's liquidity pressure for the next 6–24 hours and recommend human-approved runner dispatches.
-> **Success is measured by** failed customer requests and total liquidity cost versus reactive, threshold and safety-stock policies in a seeded operations simulation.
+> **Success is measured by** failed customer requests, known cost and the break-even value of a lost customer versus fixed-round (status quo), threshold and safety-stock policies in a seeded operations simulation.
 
 ## 1. User
 
@@ -24,12 +24,12 @@ An agent needs **physical cash** for cash-out and **e-float** for cash-in. A cas
 
 **Baseline (status quo).** In Bangladesh, 96% of agents rebalance at their shop through visits by the distributor's runners, "usually at a predetermined time", and some distributors also rebalance on demand. Agents deny a median of zero transactions a day for lack of liquidity, but 34% deny at least one a day ([ANA Bangladesh survey, Helix Institute / MicroSave, 2014](https://www.microsave.net/wp-content/uploads/2014/11/Agent-Network-Accelerator-Bangladesh-Country-Report-2014.pdf)). So today's rebalancing works on a fixed rhythm plus calls, not on a forecast. Refill amounts follow simple rules of thumb (`ASSUMPTION` to validate with upay).
 
-Jogan is compared against these policies, all simulated on the same customers:
-1. **fixed round** (status quo): each runner visits its agents on a fixed cycle and answers calls
-2. **reactive**: a runner comes only after the agent calls because it runs low
-3. **static threshold**: min/max levels per agent
-4. **safety stock**: historical mean + kσ
-5. **oracle**: perfect foresight, as an upper bound
+Jogan is compared against three baselines, all simulated on the same customers, all answering agents' calls the same way:
+1. **fixed round** (status quo): each runner visits its agents on a fixed cycle
+2. **static threshold**: min/max levels per agent
+3. **safety stock**: historical mean + kσ of the peak drain
+
+The **oracle** (perfect foresight) is an upper bound for the forecast, not a rival.
 
 ## 3. Why now
 
@@ -74,19 +74,20 @@ Business rules (costs, caps, guardrails) live in config files, separate from the
 **Primary metric:** failed customer requests per 1,000 requests (stock-outs).
 
 **Secondary metrics:**
-- lost agent commission (simulated ৳)
-- total liquidity cost (simulated ৳): lost commission + goodwill penalty + runner cost + idle-cash cost
-- runner trips and km
+- lost agent commission (simulated ৳, at the sourced Tk 4.10 per 1,000)
+- known cost (simulated ৳): lost commission + runner fuel + runner time + idle liquidity, each priced from sourced inputs ([`02-data-assumptions.md`](02-data-assumptions.md) §6)
+- break-even value of a lost customer against each baseline: that value is unknown, so it is not priced; instead the value at which Jogan and the baseline cost the same is reported
+- runner trips, km and busy hours
 - idle cash and e-float
 - failure rate by agent group (fairness)
 
 **Targets.** These are hypotheses tested by `make eval`, not results:
-- **H1:** Jogan's total cost is lower than every baseline's. The paired 95% interval of the difference across seeds excludes zero.
-- **H2:** Jogan has fewer failed requests than the best baseline, without more runner km.
+- **H1:** Against each of the three baselines, Jogan is cheaper at every lost-customer value (lower known cost and fewer lost requests), or the break-even value is reported with its paired 95% interval across seeds.
+- **H2:** Jogan has fewer failed requests than the best of the three baselines, without more runner km.
 - **H3:** Prediction intervals are calibrated: empirical coverage within ±5 percentage points of nominal on the held-out window, overall and per agent group.
-- **H4:** No agent group is systematically worse served under Jogan than under the best baseline.
+- **H4:** No agent group is systematically worse served under Jogan than under the best of the three baselines.
 
-Where a hypothesis fails, the evaluation says so.
+Where a hypothesis fails, the evaluation says so. The report has a section on **where Jogan does not win**: every baseline, agent group, period (for example the Eid-ul-Azha test window) or cost setting in which a baseline does as well or better.
 
 ## 7. Data
 

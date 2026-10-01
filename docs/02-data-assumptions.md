@@ -158,38 +158,49 @@ The survey is from 2014 and self-reported. It sets the form of the status quo an
 |---|---|---|
 | Runners per territory | 3 urban/peri-urban, 2 rural per 100 agents (at least 1) | ASSUMPTION |
 | Runner roster | Off on Eid day; 2% random absence per runner-day | ASSUMPTION |
-| Runner shift | 09:00–18:00, at most 20 visits of 10 min, cash bag up to Tk 300,000 with Tk 150,000 loaded each morning | visit count sized to the ANA rebalancing frequency (SOURCE above); values ASSUMPTION |
+| Runner shift | 09:00–18:00: 8 working hours plus a 1-hour break; at most 20 visits of 10 min; cash bag up to Tk 300,000 with Tk 150,000 loaded each morning | 8-hour day SOURCE (Bangladesh Labour Act 2006 s.100, [text](https://www.lawyersnjurists.com/article/the-bangladesh-labour-act-2006-chapter-ix/)); visit count sized to the ANA rebalancing frequency (SOURCE above); the rest ASSUMPTION |
 | Travel | road km between agents (§3) at the runner's speed, halved on disruption days; the runner must be back at the hub when the shift ends | ASSUMPTION |
 | What a visit does | Brings the agent's cash to a target level by swapping cash and e-float with the distributor; the agent's total liquidity is unchanged. The swap is limited by the agent's balances and the runner's bag, in Tk 100 steps | Problem framing |
 | Status quo (`fixed_round`) | Each runner serves a compact sector of agents. Its route is cut into daily groups of at most 16 stops that fit a shift, visited in turn. At each stop the agent asks for a balanced split. 4 visits per runner stay free for calls | form SOURCE (ANA); sizes ASSUMPTION |
 | Agent call | When cash or e-float drops below 0.25 of the agent's typical day, the runner who can arrive first goes | ASSUMPTION |
-| Agent self-refill (fallback under every policy) | Below 15% of a typical day, the agent goes to a bank after 2–6 h, only on bank-open days between 10:00 and 17:00; called off if a runner fixed it first | ASSUMPTION; Fri/Sat bank weekend SOURCE |
-| Customer cash-out fee | 1.4% (Tk 14 per 1,000) at agent points | Reported at upay's 2021 launch ([TBS](https://www.tbsnews.net/node/234661)); the 2026 value is an ASSUMPTION |
-| Agent commission | CO 0.40%, CI 0.30% of amount; sensitivity CO 0.3–0.5%, CI 0.2–0.4% | ASSUMPTION |
-| Goodwill cost per failed request | Tk 50; sensitivity Tk 0–200 (stands for the value lost if a customer switches provider) | ASSUMPTION |
-| Runner cost | Tk 10 per km + Tk 100 per visit | ASSUMPTION |
-| Idle-liquidity cost | 10% per year on cash or e-float above one typical day of outflow on that side | ASSUMPTION |
+| Agent self-refill (fallback under every policy) | Below 15% of a typical day, the agent goes to a bank after 2–6 h, only on bank-open days between 10:00 and 15:00; called off if a runner fixed it first | bank transaction hours 10:00–15:00 from 5 Apr 2026 SOURCE ([Dhaka Tribune](https://www.dhakatribune.com/business/banks/406921/bb-reschedules-bank-transaction-hours)), applied to the whole run ASSUMPTION; Fri/Sat bank weekend SOURCE; the rest ASSUMPTION |
+| Agent commission | Tk 4.10 per Tk 1,000 of cash-out and of cash-in | SOURCE: the same at bKash, Nagad, Rocket and upay ([Prothom Alo, 10 Aug 2022](https://www.prothomalo.com/business/7cxvrytmp6)); unchanged in 2026 ASSUMPTION |
+| Idle-liquidity cost | 10% a year on cash or e-float above one typical day of outflow on that side | rate SOURCE: Bangladesh Bank policy rate until the cut to 9.5% from 2 Aug 2026 ([The Financial Express](https://thefinancialexpress.com.bd/economy/bb-cuts-repo-rate-by-50-bps-to-950pc-to-spur-investment-economic-recovery)); using it as the cost of idle money and the one-day need ASSUMPTION |
 | Failed request | Lost, no retry; sensitivity: 30% retry within 2 h, with the same retry draws under every policy | ASSUMPTION |
 
-**Total liquidity cost** = lost commission (failed amount × rate) + goodwill per lost request + runner km and visits + idle liquidity. Costs are counted after a run from the logged outcomes, so the sensitivity ranges re-price the same run.
+**Runner cost** is built from real inputs (`configs/ops/costs.yaml`; D-019), not typed per km or per visit:
 
-**Policies compared** (`configs/ops/policies.yaml`, all **ASSUMPTION**). Every policy uses the same runners, the same call handling and the same agents' self-refill; they differ only in the 08:00 morning round.
+| Input | Value | Basis |
+|---|---|---|
+| Petrol, official consumer price | Tk 118 a litre from 1 Jan 2026, 116 from 1 Feb, 135 from 19 Apr, 140 from 1 Jun | SOURCE: Energy and Mineral Resources Division notifications as reported by [The Financial Express](https://thefinancialexpress.com.bd/trade/fuel-prices-cut-by-tk-2-a-litre-at-start-of-2026), [Dhaka Tribune](https://www.dhakatribune.com/bangladesh/power-energy/420367/fuel-prices-rise-up-to-nearly-36%25-between-january), [TBS](https://www.tbsnews.net/node/1426246) and [UNB](https://unb.com.bd/category/Bangladesh/fuel-prices-raised-again-octane-petrol-up-by-tk-5-per-litre/187098) |
+| Motorcycle mileage | 45 km a litre in town (urban, peri-urban), 50 on open roads (rural) | SOURCE: Bajaj's claim for the 100 cc Platina 100 ([BikeBD](https://bikebd.com/price/bajaj-platina-100-2015)); that runners ride such a bike ASSUMPTION. Claimed mileage beats real riding, so fuel cost is understated |
+| Runner salary | Tk 13,000–17,000 a month; the midpoint is used, the range is the sensitivity | SOURCE: bKash distribution sales officer at a distributor, Dhaka, job ad of 21 May 2026 ([EZ Jobs](https://ezjobsbangla.com/jobs/bkash-distribution-sales-officer--j_wE-oIwkZQKe2FRlqJ-UF6A); a second ad gives Tk 13,500–17,000, [Niyog](https://niyog.co/jobs/bkash-distribution-sales-officer-883a8e53)) |
+| Working week | 48 hours | SOURCE: Bangladesh Labour Act 2006 s.102 |
+| Fuel, Tk per km | petrol price on the day ÷ mileage of the setting | DERIVED in `jogan/ops/costs.py` |
+| Runner time, Tk per minute | salary ÷ (48 h × 60 × 365.25 ÷ 12 ÷ 7 weeks a month) | DERIVED |
+| Which runner minutes cost money | only minutes spent driving or at a stop, including the ride back to the hub | ASSUMPTION: the roster and salaries are the same under every policy, so only the time a policy uses differs |
+
+Motorcycle wear, depreciation and the runner's phone are not priced (no source found); this understates runner cost.
+
+**Known cost** = lost commission (each lost amount × the commission rate) + runner fuel + runner time + idle liquidity. Costs are counted after a run from the logged outcomes, so a run can be re-priced.
+
+**A lost customer's value is not priced.** It is unknown. For any two policies, the break-even value per lost request is the value at which they cost the same: `(known cost A − known cost B) ÷ (lost requests B − lost requests A)`. The policy with fewer lost requests is cheaper for every value above it. A policy with both a lower known cost and fewer lost requests is cheaper at every value. This replaces the earlier Tk 50 "goodwill" assumption (D-019).
+
+**Policies compared** (`configs/ops/policies.yaml`, all **ASSUMPTION**). Jogan is compared with three baselines; the oracle is an upper bound, not a rival (D-019). Every policy uses the same runners, the same call handling and the same agents' self-refill; they differ only in the 08:00 morning round.
 
 | Policy | Morning round | Calls |
 |---|---|---|
-| `none` | none (agents' self-refill only) | no |
-| `reactive` | none | yes |
 | `fixed_round` (status quo) | the runner's next fixed group | yes |
 | `threshold` | agents below 0.75 typical days of cover on either side | yes |
-| `safety_stock` | agents below mean + 1.65·sd of their observed peak 24-hour drain on either side | yes |
-| `oracle` | agents whose true balance would fail within 26 h, highest avoidable loss first; target in the middle of the cash band that serves every attempt | yes |
+| `safety_stock` | agents below mean + k·sd of their observed peak 24-hour drain on either side; k is the standard normal quantile of a 95% service level (DERIVED) | yes |
+| `oracle` (upper bound) | agents whose true balance would fail within 26 h, most lost requests first; target in the middle of the cash band that serves every attempt | yes |
 | Jogan (M5) | forecast, newsvendor target and optimizer | yes |
 
 - **Typical day** (policy side): mean served outflow per side over the last 28 complete observed days, or the opening balance ÷ 1.25 before 3 such days exist. Served flows are censored by stock-outs, as in reality.
 - **Rounds:** the top-priority agents that fit the runners' remaining capacity, split into sectors around the hub, each in nearest-neighbour order. Stops that do not fit the shift are dropped, lowest priority first.
-- **Oracle:** never deployable; an upper bound for the forecast. It is not cost-aware, so it bounds lost requests, not total cost.
+- **Oracle:** never deployable; an upper bound for the forecast. It is not cost-aware, so it bounds lost requests, not cost.
 
-The results are reported across the goodwill and commission ranges. Jogan's advantage, or the lack of it, depends on these values and is shown honestly.
+Results are reported with the break-even value against each baseline and across the salary range. Where Jogan does not win (a baseline, an agent group, a period or a cost setting), the evaluation and the report say so (D-019).
 
 ## 7. Ground truth vs what Jogan sees
 
@@ -236,7 +247,7 @@ Run with `make test`; they use the `tiny` profile (the ticket check uses `dev` f
 
 ## 10. Operations tests (M3)
 
-Run with `make test`, on the `tiny` profile with every baseline policy:
+Run with `make test`, on the `tiny` profile with the three baselines and the oracle:
 
 - **Balances:** cash and e-float never go negative, and their sum per agent never changes (customers, visits and bank trips only move money between the two sides).
 - **Common random numbers:** every policy replays the same attempts, and the hourly requests are identical.
@@ -244,9 +255,10 @@ Run with `make test`, on the `tiny` profile with every baseline policy:
 - **Runners:** on-duty only, inside the shift, at most the daily visit limit, inside their own territory; plans made on the fleet copy are never rejected.
 - **Self-refill:** only on bank-open days in bank hours.
 - **Observation:** no failed attempts or truth columns; about 1% of agent-hours missing; some late days; a policy never sees a record before its `available_at` or any ground truth.
-- **Oracle** loses fewer requests than every other policy (two seeds), and every runner policy loses fewer than `none`.
+- **Oracle** loses fewer requests than each of the three baselines (two seeds).
+- **Costs:** prices are derived from the configured inputs (commission per 1,000, petrol by date, mileage, salary, legal week); break-even values are exact; known cost adds up and splits across date windows; **every number in `configs/ops/*.yaml` carries a SOURCE, DERIVED or ASSUMPTION tag** (a test fails otherwise).
 - **Status quo plausibility:** the median agent-day has zero lost requests, the shape of the ANA finding.
-- **Determinism and costs:** the same run gives identical outcomes and byte-identical logs; costs add up and split exactly across date windows.
+- **Determinism:** the same run gives identical outcomes and byte-identical logs.
 
 ## 11. Mapping to real upay data (future)
 
