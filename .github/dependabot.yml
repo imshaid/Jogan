@@ -32,6 +32,10 @@ updates:
     groups:
       web:
         patterns: ["*"]
+    ignore:
+      # majors wait until the Next.js toolchain supports them (typescript-eslint has no TS 7 yet)
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "docker"
     directory: "/"
