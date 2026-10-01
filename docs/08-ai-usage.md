@@ -19,7 +19,7 @@ Updated as each component lands. All model inputs are simulated data.
 | Demand forecast | LightGBM quantile regression, trained in this repo | Predicts cash and e-float pressure per agent | No: feeds the decision rules |
 | Calibration | Conformalized quantile regression (CQR) | Makes the prediction intervals honest | No |
 | Dispatch optimizer | Mixed-integer program (SciPy `milp`, HiGHS) | Proposes runner visits and amounts | No: a human approver decides |
-| Explanations | TreeSHAP drivers (LightGBM `pred_contrib`) + bilingual templates; on request, Gemini rewords a template: `gemini-3.8-flash`, falling back to `gemini-3.5-flash-lite` (Google AI Studio free tier, ids verified 2026-10-02). A rewording with any number not in the evidence is discarded | Explains structured evidence in English and Bangla | Never |
+| Explanations | TreeSHAP drivers (LightGBM `pred_contrib`) + bilingual templates; on request, Gemini rewords a template: `gemini-3.5-flash-lite`, falling back to `gemini-3.1-flash-lite` (Google AI Studio free tier, ids verified 2026-10-02). A rewording with any number not in the evidence is discarded | Explains structured evidence in English and Bangla | Never |
 | Guardrails | Rules on the evidence (out of training range, wide interval, data gap, short history, anomaly flag) | Sends a visit to manual review; approving it needs a note | Never |
 | Anomaly flag | Isolation Forest per agent setting (scikit-learn) plus two rules | Advisory flag for human review | Never |
 
