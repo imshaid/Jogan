@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-01, end of M1._
+_Last updated: 2026-10-01, end of M2._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -28,27 +28,46 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
     - top remittance districts (Mar-26)
     - upay's launch-time cash-out fee (2021)
     - MIT-licensed district geocodes
+- **M2 · World simulator, data profiles, tests**
+  - configs:
+    - `configs/sim/{base,tiny,dev,full,stress}.yaml`
+    - `configs/calendar/bd_2026.yaml`
+    - `configs/geo/territories.yaml` (hubs verified against nuhil/bangladesh-geocode)
+    - `configs/calibration/bb_mfs_2026.yaml` (BB table 9 re-fetched; Apr, May, Jul 2026)
+  - `jogan/sim/`:
+    - `config` (pydantic, `extra=forbid`, config hash)
+    - `calendar`
+    - `demand` (every pattern in data assumptions §5)
+    - `calibration` (bisection on the expected network)
+    - `world` (agents, roster, demand stream, anomalies)
+    - `io`, CLI
+  - `make data PROFILE=… SEED=…`; timings on this machine: tiny 0.4 s, dev 0.5 s, full 0.8 s, stress 1.2 s
+  - 42 tests, about 1.4 s: determinism, pattern recovery (pooled seeds), calibration, sanity, leakage split
+  - decisions D-013 (Eid calibration; Fitr shares Azha's because of the Nagad data gap), D-014 (public/truth split, one RNG stream per component), D-015 (profiles)
 
 ## Next
 
-**M2 · World simulator, data profiles, tests** (hard part: maximum thinking)
+**M3 · Operations environment, baseline policies, status-quo history log** (hard part: maximum thinking)
 
-- **Configs:**
-  - `configs/sim/{tiny,dev,full,stress}.yaml`
-  - `configs/calendar/bd_2026.yaml`
-  - `configs/geo/territories.yaml`
-  - `configs/calibration/bb_mfs_2026.yaml` (official values plus source URLs)
-- **`jogan/sim/`:**
-  - typed config loader
-  - calendar, territories and agents
-  - demand intensity with every pattern in data assumptions §5
-  - transaction stream (counts and amounts)
-  - anomalies and runner roster
-- **Commands:**
-  - `make data PROFILE=dev` writes parquet to `data/` (git-ignored)
-  - `make data` stays fast on `tiny` and `dev`
-- **Tests on `tiny`:** determinism, pattern recovery, calibration targets, sanity checks.
-- **Before adding dependencies:** check current versions of numpy, pandas, pyarrow, pydantic and pyyaml.
+- **Costs config:** `configs/ops/costs.yaml` with commission, goodwill, runner and idle-cash costs and their sensitivity ranges (data assumptions §6).
+- **Environment** (`jogan/ops/`), hourly over `truth/demand`:
+  - cash and e-float balances; failed attempts when a side runs dry (censoring), optional 30% retry within 2 h
+  - status-quo self-refill: below 15% of a typical day, 2–6 h delay, no bank refill on Fri/Sat/holidays
+  - runner visits (shift, bag capacity, max visits, travel time with disruption speed factor)
+  - costs: lost commission, goodwill, runner km and visits, idle liquidity
+- **Observation layer:** what Jogan sees (data assumptions §7):
+  - served transactions only
+  - exact e-float, estimated cash
+  - about 1% missing hours and late days (moved here from M2)
+- **Policies:** reactive, static threshold, safety stock (mean + kσ), oracle, plus a policy interface for Jogan (M5).
+- **Status-quo history log** for M4 training.
+- **Tests:**
+  - no negative balances
+  - liquidity conservation (a visit swaps cash and e-float)
+  - identical demand under every policy (common random numbers)
+  - oracle at least as good as every baseline
+
+**Inputs from M2:** `build_world(load_config(profile), seed)` or `read_world(path, truth=True)`. `agents.parquet` is master data; starting balances and typical-day amounts are in `truth/agents`. Runner speeds are in `runners`, on-duty days in `roster`, and disruption days and speed factors in `truth/disruptions`.
 
 ## Milestone plan
 
@@ -56,8 +75,8 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 |---|---|---|---|---|
 | M0 | Repo foundation | 1.5 h | Thu 1 Oct 18:30 | done |
 | M1 | Logic chain, requirements checklist, data assumptions | 1.5 h | Thu 20:30 | done |
-| M2 | World simulator, data profiles, tests | 3.5 h | Fri 2 Oct 00:30 | next |
-| M3 | Operations environment, baseline policies, status-quo history log | 3.5 h | Fri 11:30 | |
+| M2 | World simulator, data profiles, tests | 3.5 h | Fri 2 Oct 00:30 | done |
+| M3 | Operations environment, baseline policies, status-quo history log | 3.5 h | Fri 11:30 | next |
 | M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | |
 | M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | |
 | M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | |
@@ -115,5 +134,6 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 ```bash
 make setup   # install deps and git hooks
 make check   # lint + tests (same as CI)
+make data PROFILE=dev SEED=0   # simulated world → data/dev/seed0/
 make help    # list all targets
 ```
