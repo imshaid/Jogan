@@ -35,7 +35,11 @@ begin
     {"agent_id": "DHK-002", "territory": "DHK", "runner_id": "R1", "target_cash_tk": 900,
      "value_tk": 10, "evidence": {}}]', '{"bundle_id": "b1"}') = 2, 'first publish inserts';
   assert public.publish_plan('b1', '2026-05-07', '[]', '{}') = 0, 'second publish is ignored';
-  assert (select count(*) from public.audit_log where action = 'plan.published') = 1;
+  assert public.publish_plan('b1', '2026-05-08', '[
+    {"agent_id": "DHK-003", "territory": "DHK", "runner_id": "R1", "target_cash_tk": 800,
+     "value_tk": 30, "evidence": {"review": {"flag": true, "reasons": [{"code": "data_gap"}]}}}
+    ]', '{"bundle_id": "b1"}') = 1, 'a flagged recommendation';
+  assert (select count(*) from public.audit_log where action = 'plan.published') = 2;
 end $$;
 select pg_temp.expect_error($$insert into public.recommendations (bundle_id, plan_date,
   agent_id, territory, runner_id, target_cash_tk, value_tk, evidence, trace)
@@ -70,8 +74,8 @@ set request.jwt.claims = '{"sub": "00000000-0000-0000-0000-00000000000a"}';
 do $$
 begin
   assert public.app_role() = 'analyst';
-  assert (select count(*) from public.recommendations) = 2, 'analyst reads the queue';
-  assert (select count(*) from public.audit_log) = 1, 'analyst reads the audit log';
+  assert (select count(*) from public.recommendations) = 3, 'analyst reads the queue';
+  assert (select count(*) from public.audit_log) = 2, 'analyst reads the audit log';
   assert (select count(*) from public.user_roles) = 1, 'only their own role';
 end $$;
 select pg_temp.expect_error($$select public.decide_recommendation(1, 'approved')$$, '42501');
@@ -99,6 +103,21 @@ select pg_temp.expect_error($$select public.decide_recommendation(99, 'rejected'
 select pg_temp.expect_error($$select public.decide_recommendation(2, 'maybe')$$, '22023');
 select pg_temp.expect_error(
   $$select public.decide_recommendation(2, 'rejected', repeat('x', 501))$$, '22001');
+-- flagged for manual review: approving needs a note, and the audit row says it was flagged
+select pg_temp.expect_error($$select public.decide_recommendation(3, 'approved')$$, '22023');
+select pg_temp.expect_error($$select public.decide_recommendation(3, 'approved', '  ')$$, '22023');
+do $$
+declare
+  rec public.recommendations;
+begin
+  assert (select status from public.recommendations where id = 3) = 'pending', 'still pending';
+  rec := public.decide_recommendation(3, 'approved', 'records arrived late; checked by phone');
+  assert rec.status = 'approved';
+  assert (select detail ->> 'manual_review' from public.audit_log
+          where recommendation_id = 3) = 'true', 'the flag is audited';
+  assert (select detail ->> 'manual_review' from public.audit_log
+          where recommendation_id = 1) = 'false', 'an unflagged decision says so';
+end $$;
 reset role;
 
 -- not even the table owner can rewrite history
@@ -112,7 +131,7 @@ select pg_temp.expect_error('delete from public.recommendations where id = 2', '
 select pg_temp.expect_error('truncate public.recommendations cascade', '42501');
 do $$
 begin
-  assert (select count(*) from public.audit_log) = 2, 'publish + one decision';
+  assert (select count(*) from public.audit_log) = 4, 'two publishes + two decisions';
 end $$;
 
 \echo 'database checks passed'
