@@ -1,0 +1,9 @@
+# Only pyproject.toml, uv.lock, README.md, LICENSE, jogan/ and configs/ go into the image.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!jogan/
+!configs/
+**/__pycache__
