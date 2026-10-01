@@ -7,7 +7,7 @@ Jogan runs on **synthetic data only**. This page lists every assumption behind t
 - **DERIVED**: computed from sources; the formula is shown, and the simulator code recomputes it
 - **ASSUMPTION**: our choice, made for realism; not verified, and covered by sensitivity analysis where it matters
 
-The parameter values live in `configs/` (added in M2). This page explains them.
+The parameter values live in `configs/`: `sim/base.yaml` (shared), `sim/<profile>.yaml`, `calendar/`, `geo/` and `calibration/`. This page explains them. The generator is `jogan/sim/`.
 
 ## 1. Principles
 
@@ -46,14 +46,14 @@ The simulator uses the real 2026 Bangladesh calendar (**SOURCE**):
 
 **Weekly holidays.** Banks close on Friday and Saturday (**SOURCE**: [The Financial Express](https://thefinancialexpress.com.bd/views/opinions/banking-on-holidays)). Agent shops open every day (**ASSUMPTION**).
 
-**Profiles.** The plan is below; exact values go in `configs/sim/` in M2.
+**Profiles** (`configs/sim/`). `make data PROFILE=<name> SEED=<n>` writes one world to `data/<name>/seed<n>/`.
 
 | Profile | Agents | Territories | Window | Days | Purpose |
 |---|---|---|---|---|---|
-| `tiny` | 40 | 2 | 7 Mar → 3 Apr | 28 | CI tests, seconds |
-| `dev` | 150 | 3 | 20 Feb → 20 Apr | 60 | development |
+| `tiny` | 40 | 2 (GZP, RNG) | 1 Mar → 28 Mar | 28 | CI tests, seconds; payday, hat days, Ramadan and Eid-ul-Fitr in one month |
+| `dev` | 150 | 3 (DHK, CUM, KUR) | 20 Feb → 20 Apr | 60 | development |
 | `full` | 600 | 6 | 5 Jan → 3 Jun | 150 | final evaluation and demo |
-| `stress` | 10,000 | 6 hubs, replicated | 14-day slice | 14 | inference and optimizer timing only |
+| `stress` | 10,000 | 6 hubs × 10 distributor areas | 18 May → 31 May | 14 | inference and optimizer timing only |
 
 **Splits for `full`** (time-based):
 
@@ -80,7 +80,8 @@ There are six distributor territories. Each hub sits at a district centroid (**S
 
 **Placement and travel** (all **ASSUMPTION**):
 - **Agent locations:** uniform in a disc around the hub. Radius is 6 km for urban, 12 km for peri-urban and 20 km for rural territories.
-- **Road distance:** straight-line (haversine) distance × 1.3 (urban) or 1.4 (rural).
+- **Road distance:** straight-line (haversine) distance × 1.3 (urban and peri-urban) or 1.4 (rural).
+- **Market clusters:** in hat territories, agents are split into 4 angular sectors around the hub; each sector has 1–2 fixed market weekdays.
 - **Runner speed:** 12 km/h in Dhaka traffic, 18 km/h peri-urban, 22 km/h rural. Halved on disruption days.
 
 ## 4. Agents
@@ -90,6 +91,8 @@ There are six distributor territories. Each hub sits at a district centroid (**S
 - ÷ 31 days
 - ÷ 1,856,190 agents in February 2025 ([BB MFS data](https://www.bb.org.bd/en/index.php/financialactivity/mfsdata))
 - The two figures come from different months, so this is an order of magnitude only.
+
+The overall level is **calibrated**: the expected reference network (every territory, equal agent counts) averages the DERIVED volume per agent-day in July 2026. Agent spread: log-normal with σ = 0.6; urban ×1.3, peri-urban ×1.0, rural ×0.8 (**ASSUMPTION**).
 
 Size classes by quantile (**ASSUMPTION**): small is the bottom 50%, medium the next 35%, large the top 15%.
 
@@ -113,25 +116,28 @@ rate(agent, hour) = base(agent) × area_mix(type) × hour_profile(area, hour) ×
 
 | Pattern | Applies to | Shape | Default | Basis |
 |---|---|---|---|---|
-| Hour of day | all | late-morning and evening peaks; zero when closed | — | ASSUMPTION |
-| Ramadan | all | activity shifts towards the evening | profile shift | ASSUMPTION |
-| Weekday | all | Friday quieter in the morning; banks shut Fri–Sat, so agents cannot self-refill from banks | ±10% | weekend SOURCE; size ASSUMPTION |
+| Hour of day | all | late-morning (11:30) and evening (17:30–19:00 by setting) peaks over a floor; zero when closed | each day sums to 1 | ASSUMPTION |
+| Ramadan | all | activity shifts towards the evening | evening peak 1.5 h later and ×1.4, morning ×0.6 | ASSUMPTION |
+| Weekday | all | Friday quieter in the morning (×0.8 before 12:00, ×0.4 at prayer time 12:00–14:00); banks shut Fri–Sat, so agents cannot self-refill from banks | Thu ×1.05, Fri ×0.90 | weekend SOURCE; size ASSUMPTION |
 | Payday | GZP, DHK | CO uplift on days 1–10 of the month, peak around day 5–7 | ×1.6 at peak | timing SOURCE (wages due within 7 working days after the wage period, [Labour Act s.123](https://www.thedailystar.net/law-our-rights/news/the-entitlements-the-workers-relating-wages-1890601)); size ASSUMPTION |
-| Remittance | CUM, SYL | CO uplift before each Eid and a mild uplift at month start | ×1.3 | concentration SOURCE; size ASSUMPTION |
+| Remittance | CUM, SYL | CO uplift before each Eid (linear ramp over 14 days) and a mild uplift on days 1–7 of the month | ×1.3 before Eid, ×1.1 at month start | concentration SOURCE; size ASSUMPTION |
 | Hat days | RNG, KUR | each agent cluster has 1–2 fixed market weekdays | ×1.5 | ASSUMPTION |
-| Pre-Eid surge | all | CO ramps up over the 10 days before Eid, peaking 1–3 days before; urban CI rises as people send money home | calibrated, see below | DERIVED target, ASSUMPTION shape |
-| Eid days | all | volume drops on Eid day and the next 1–2 days | ×0.3 | ASSUMPTION |
+| Pre-Eid surge | all | counts and ticket sizes ramp up over the 10 days before Eid, peaking 2 days before; CO weight urban 0.7, peri-urban 1.0, rural 1.2; CI weight urban 1.0, peri-urban 0.6, rural 0.2, as city workers send money home | calibrated, see below | DERIVED target, ASSUMPTION shape |
+| Eid days | all | volume drops on Eid day and the next 2 days; shops open 14:00–20:00 on Eid day | ×0.3, ×0.4, ×0.6 | ASSUMPTION |
 | Cattle markets | RNG, KUR, GZP | extra CO in the 7 days before Eid-ul-Azha only | ×1.3 extra | ASSUMPTION (the out-of-distribution test) |
 | Disruptions | random territory-days | demand ×0.6, runner speed ×0.5; probability 2% per territory-day, 5% for KUR in June | — | ASSUMPTION |
 | Noise | all | gamma multipliers: CV 0.15 per day, 0.30 per hour | — | ASSUMPTION |
 
-**Eid calibration target (DERIVED).** Bangladesh Bank reports agent cash-out of Tk 508,903.2 million in May 2026 (the Eid-ul-Azha month) against Tk 401,864.6 million in April 2026 ([BB table 9](https://www.bb.org.bd/econdata/fin_digitalfstat/tab9.pdf)). The simulated Eid-month uplift is tuned to the same ratio. The ratio is computed in code in M2, not typed here.
+**Eid calibration targets (DERIVED).** Bangladesh Bank's agent figures for April and May 2026 (the Eid-ul-Azha month, [BB table 9](https://www.bb.org.bd/econdata/fin_digitalfstat/tab9.pdf)) give four May ÷ April ratios: cash-out count and amount, cash-in count and amount. Amounts grow faster than counts, so people also withdraw and deposit **larger tickets** before Eid. The simulator therefore calibrates, per side, a count surge and a ticket-size surge with the same pre-Eid shape. The ratios are computed in code (`jogan/sim/calibration.py`) and every world's `meta.json` records targets and achieved values.
+
+**Eid-ul-Fitr uses the same surge.** Table 9 note 5: Nagad sent no data from March 2025 to February 2026, so March 2026 is not comparable with February 2026 and the Fitr month cannot be calibrated on its own. Both Eids share the Azha-calibrated surge; cattle markets add extra cash-out before Azha only.
 
 **Ticket sizes.**
 - **Distribution:** log-normal per transaction type (**ASSUMPTION**).
 - **Calibration:** network-wide means are tuned to BB's July 2026 agent averages, i.e. amount ÷ count for CO (Tk 419,415.1 million ÷ 308,646,376) and for CI (Tk 477,301.5 million ÷ 211,378,627) (**DERIVED** in code).
-- **CO/CI count ratio:** taken from the same table.
-- **Rounding:** amounts round to Tk 50, 100 or 500 (**ASSUMPTION**).
+- **CO/CI count ratio:** taken from the same table. Each agent's cash-out share is a log-odds tilt by setting (urban −0.8, peri-urban 0, rural +0.5, remittance territories +0.4 more, agent noise σ = 0.25; **ASSUMPTION**) around a centre calibrated to the July 2026 ratio.
+- **Rounding:** to Tk 50 below Tk 1,000, Tk 100 below Tk 10,000, Tk 500 above; at least Tk 50 (**ASSUMPTION**).
+- **Spread:** log-normal σ = 0.9 on both sides (**ASSUMPTION**); the location is calibrated so the capped mean equals the July 2026 mean.
 - **Caps:** cash-out at most Tk 30,000 and cash-in at most Tk 50,000 per customer per day (**SOURCE**: BB circular of 27 March 2025, via [BSS](https://www.bssnews.net/business/258749)). The simulator simplifies these to per-transaction caps.
 
 **Area mix** (**ASSUMPTION**). Urban agents lean towards cash-in; rural and remittance agents lean towards cash-out. Cash therefore piles up in cities and drains in villages, which is exactly why rebalancing is needed.
@@ -140,7 +146,8 @@ rate(agent, hour) = base(agent) × area_mix(type) × hour_profile(area, hour) ×
 
 | Item | Default | Basis |
 |---|---|---|
-| Runners per territory | 3 urban/peri-urban, 2 rural | ASSUMPTION |
+| Runners per territory | 3 urban/peri-urban, 2 rural per 100 agents (at least 1) | ASSUMPTION |
+| Runner roster | Off on Eid day; 2% random absence per runner-day | ASSUMPTION |
 | Runner shift | 09:00–18:00, at most 8 visits, cash bag up to Tk 300,000, 10 min per visit | ASSUMPTION |
 | What a visit does | Swaps cash for e-float with the distributor; the agent's total liquidity is unchanged | Problem framing |
 | Status-quo self-refill | When cash or e-float falls below 15% of a typical day, the agent goes to the distributor or bank after a 2–6 h delay; no bank refills on Fri/Sat | ASSUMPTION; weekend SOURCE |
@@ -162,29 +169,35 @@ The results are reported across the goodwill and commission ranges. Jogan's adva
 | Physical cash | exact | estimated from the start value and net flows, plus noise when the shared drawer is on |
 | Runner visits | exact | logged |
 | Anomaly labels | known | hidden; used only to evaluate the detector |
-| Data gaps | none | about 1% of hourly records missing, and occasional late days (**ASSUMPTION**) |
+| Data gaps | none | about 1% of hourly records missing, and occasional late days (**ASSUMPTION**; applied by the observation layer in M3) |
 
 ## 8. Injected anomalous agents
 
-About 2% of agents get one injected pattern (**ASSUMPTION**):
-1. **Split cash-outs:** many cash-outs just under round amounts, a structuring-like pattern.
-2. **Unexplained spike:** a sudden volume jump vs. peers with no calendar reason.
-3. **Night activity:** transactions outside opening hours.
+About 2% of agents (at least one) get one injected pattern inside a random window (**ASSUMPTION**):
+1. **Split cash-outs:** for 3–7 days, 1–3 bursts a day of 3–6 cash-outs within 40 minutes, at amounts just under round figures (Tk 9,950 … 29,950), a structuring-like pattern.
+2. **Unexplained spike:** for 1–3 days, the agent's volume is ×2.5–4 with no calendar reason.
+3. **Night activity:** for 7–14 days, on about 60% of days, 1–4 transactions between 00:00 and 05:00, outside opening hours.
 
 These flags are **advisory** and always go to human review. Precision@k is reported.
 
 ## 9. Simulator tests (M2)
 
-- **Determinism:** the same seed gives byte-identical data.
-- **Pattern recovery:** the payday, hat-day and Eid uplifts show up in the generated data.
+Run with `make test`; they use the `tiny` profile (the ticket check uses `dev` for a larger sample).
+
+- **Determinism:** the same seed gives byte-identical files; a different seed gives different demand.
+- **Pattern recovery:** payday, hat-day, pre-Eid (counts and tickets), Eid-day drop, Ramadan evening shift and the rural cash-out tilt all show up in the generated attempts. These tests pool four seeds, so a pattern must be clearly present, not luckily drawn.
 - **Calibration:**
-  - Mean tickets, the CO/CI count ratio and the Eid-month uplift land close to their DERIVED targets.
+  - The solver reproduces every DERIVED target exactly in the expected network.
+  - Realized attempts match the expected intensity, and realized mean tickets on days without the Eid surge match the July 2026 means.
   - The targets are stored with their sources in `configs/calibration/`.
 - **Sanity:**
-  - no negative balances
-  - opening hours respected
-  - caps respected
-  - anomaly labels never leak into model inputs
+  - opening hours respected (except injected night activity)
+  - amounts on the rounding grid and within the caps
+  - agents inside their territory's radius; size classes follow the quantiles
+  - runners off on Eid day
+  - each anomaly pattern present and visible
+  - no negative balances (checked in the operations environment, M3)
+- **Leakage guard:** public tables (`calendar`, `territories`, `agents`, `runners`, `roster`) and truth tables (`truth/demand`, `truth/agents`, `truth/anomalies`, `truth/disruptions`) are written to separate folders. A test checks that no truth column appears in a public table, and the reader returns truth tables only on request.
 
 ## 10. Mapping to real upay data (future)
 

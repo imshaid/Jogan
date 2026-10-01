@@ -73,3 +73,15 @@ Mean ticket sizes, the cash-out/cash-in count ratio and the Eid-month uplift are
 ## D-012 · 2026-10-01 · Six territories
 
 The territories are Dhaka (urban), Gazipur (industrial payday), Cumilla and Sylhet (top remittance districts per BB data for March 2026), Rangpur (rural hat economy) and Kurigram (remote, flood-prone). Together they cover the demand patterns that make rebalancing hard. Reasons per territory: [`02-data-assumptions.md`](02-data-assumptions.md) §3.
+
+## D-013 · 2026-10-01 · Eid surge calibrated on counts and ticket sizes; both Eids share it
+
+BB table 9 shows agent cash-out amounts rising faster than counts from April to May 2026 (the Eid-ul-Azha month), and the same for cash-in, so tickets grow before Eid as well as volume. The simulator calibrates four quantities by bisection on the expected network: a count surge and a ticket-size surge per side, all with one pre-Eid shape. Eid-ul-Fitr cannot be calibrated separately: table 9 note 5 says Nagad sent no data from March 2025 to February 2026, so March 2026 is not comparable with February 2026. Both Eids therefore use the Azha-calibrated surge. Details: [`02-data-assumptions.md`](02-data-assumptions.md) §5.
+
+## D-014 · 2026-10-01 · World files split into public and truth; one random stream per component
+
+`data/<profile>/seed<n>/` holds public tables (what an operator would know) at the top level and ground truth (every customer attempt, true agent parameters, anomaly labels, disruptions) under `truth/`. Feature code reads only the public level plus the M3 observation log, so labels cannot leak by accident; a test checks the split. Each component draws from its own seeded stream (`numpy` `SeedSequence` keyed by seed and component name), so changing anomalies never shifts demand, and policies compared in M3 replay identical demand.
+
+## D-015 · 2026-10-01 · Simulator profiles
+
+`tiny` moved to 1–28 March (GZP and RNG) so a single month covers payday, hat days, Ramadan, Eid-ul-Fitr and the post-Eid drop for CI tests. `dev` uses DHK, CUM and KUR (urban, remittance, remote rural). `stress` replicates each of the six hubs as 10 distributor areas (60 territories, 10,000 agents), because the optimizer decomposes by territory and one 1,667-agent territory would not reflect real distributor sizes. Runners scale with agents per territory.
