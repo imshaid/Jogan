@@ -12,6 +12,8 @@
 3. Each episode is summarised on the test window and on the Eid days inside it (ten days before
    an Eid to three days after, as the forecast scores them), with the known cost at the low,
    middle and high runner salary.
+4. The advisory anomaly flag is fit on the status-quo log's training days and scored on its
+   test days against the injected anomalies (:func:`jogan.detect.anomaly.evaluate`).
 
 Nothing here reads files: the world is rebuilt from its seed and the log is taken from the
 simulation, which a test shows equals the written log (D-020).
@@ -26,7 +28,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from jogan.detect.anomaly import evaluate as evaluate_anomalies
 from jogan.eval.config import EvalConfig
+from jogan.explain.config import load_explain_config
 from jogan.forecast.backtest import build_dataset, evaluate, fit_forecaster
 from jogan.forecast.config import load_forecast_config
 from jogan.forecast.panel import panel_from_history
@@ -116,6 +120,7 @@ def run_seed(
         {"lightgbm": {"num_threads": ecfg.lightgbm_threads}} | (forecast_overrides or {})
     )
     pcfg = load_plan_config()
+    xcfg = load_explain_config()
     if profile not in fcfg.splits:
         raise ValueError(f"no forecast splits for profile {profile!r}")
     splits = fcfg.splits[profile]
@@ -125,18 +130,16 @@ def run_seed(
     timing: dict[str, float] = {}
 
     status_quo = simulate(world, make_policy(STATUS_QUO, world), ops)
-    ds = build_dataset(
-        panel_from_history(status_quo.history),
-        world.calendar,
-        world.agents,
-        fcfg,
-        splits,
-        sim.start,
-    )
+    panel = panel_from_history(status_quo.history)
+    ds = build_dataset(panel, world.calendar, world.agents, fcfg, splits, sim.start)
     fc = fit_forecaster(ds)
     forecast = evaluate(ds, fc, truth_of(status_quo))
     del ds
     timing["forecast_s"] = time.perf_counter() - started
+    anomaly = evaluate_anomalies(
+        panel, world.agents, world.anomalies, sim.start, splits.train, splits.test, xcfg.anomaly
+    )
+    del panel
 
     policies = {STATUS_QUO: record(status_quo, windows, ops.costs)}
     del status_quo
@@ -164,6 +167,7 @@ def run_seed(
         "seed": seed,
         "windows": {k: [d.isoformat() for d in v] for k, v in windows.items()},
         "forecast": forecast,
+        "anomaly": anomaly,
         "policies": policies,
         "jogan_diagnostics": diagnostics,
         "timing_s": {k: round(v, 1) for k, v in timing.items()},
@@ -172,6 +176,7 @@ def run_seed(
             "ops": ops.config_hash(),
             "forecast": fcfg.config_hash(),
             "plan": pcfg.config_hash(),
+            "explain": xcfg.config_hash(),
             "eval": ecfg.config_hash(),
         },
     }
