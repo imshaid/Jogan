@@ -12,7 +12,10 @@ Sections:
 - ``fairness``: lost requests per 1,000 by agent group against the best baseline;
 - ``hypotheses``: H1-H4 of ``docs/01-logic-chain.md`` §6, each with what decided it;
 - ``does_not_win``: every baseline, period, agent group and cost setting in which a baseline
-  does as well or better, or the difference is not significant (D-019).
+  does as well or better, or the difference is not significant (D-019);
+- ``anomaly``: the advisory anomaly flag on the test window, per seed and pooled over seeds:
+  precision at k (per seed, then averaged), flags and their precision, and how many injected
+  anomaly windows got at least one flag, by pattern (D-023).
 """
 
 from __future__ import annotations
@@ -177,6 +180,43 @@ def build_report(
         "hypotheses": hypotheses,
         "does_not_win": does_not_win,
         "forecast": forecast,
+        "anomaly": anomaly_summary([s["anomaly"] for s in seeds]),
+    }
+
+
+def _mean_known(values: list[float | None]) -> float | None:
+    known = [v for v in values if v is not None]
+    return round(float(np.mean(known)), 4) if known else None
+
+
+def anomaly_summary(per_seed: list[dict]) -> dict:
+    """Pooled counts over seeds, precision at k averaged over seeds (the base rate is tiny)."""
+    total = {k: sum(s[k] for s in per_seed) for k in
+             ("agent_days", "anomalous_agent_days", "flagged", "flagged_true", "windows",
+              "windows_detected")}  # fmt: skip
+    patterns = sorted({p for s in per_seed for p in s["windows_by_pattern"]})
+    by_pattern = {
+        p: {
+            "detected": sum(s["windows_by_pattern"].get(p, [0, 0])[0] for s in per_seed),
+            "windows": sum(s["windows_by_pattern"].get(p, [0, 0])[1] for s in per_seed),
+        }
+        for p in patterns
+    }
+    ks = list(per_seed[0]["precision_at_k"])
+    return {
+        **total,
+        "base_rate": round(total["anomalous_agent_days"] / max(total["agent_days"], 1), 4),
+        "flag_precision": round(total["flagged_true"] / total["flagged"], 4)
+        if total["flagged"]
+        else None,
+        "window_recall": round(total["windows_detected"] / total["windows"], 4)
+        if total["windows"]
+        else None,
+        "precision_at_k_mean": {
+            k: _mean_known([s["precision_at_k"][k] for s in per_seed]) for k in ks
+        },
+        "windows_by_pattern": by_pattern,
+        "per_seed": per_seed,
     }
 
 

@@ -24,6 +24,7 @@ import lightgbm
 import numpy as np
 import pandas as pd
 import scipy
+import sklearn
 
 import jogan
 from jogan.eval.config import EvalConfig, load_eval_config
@@ -70,6 +71,7 @@ def run(ecfg: EvalConfig, overrides: dict, out: Path, seed_dir: Path) -> dict:
             "pandas": pd.__version__,
             "lightgbm": lightgbm.__version__,
             "scipy": scipy.__version__,
+            "scikit-learn": sklearn.__version__,
         },
         "runtime_s": round(time.perf_counter() - started, 1),
         "seed_runtime_s": {str(s["seed"]): s["timing_s"] for s in seeds},
@@ -108,6 +110,12 @@ def _print(body: dict) -> None:
         if "holds" in h:
             print(f"  {name}: {'holds' if h['holds'] else 'does not hold'}")
     print(f"  {len(body['does_not_win'])} cases where Jogan does not win (see does_not_win)")
+    a = body["anomaly"]
+    print(
+        f"  anomaly flag: {a['flagged']} flags, {a['flagged_true']} on injected anomalies; "
+        f"{a['windows_detected']} of {a['windows']} injected windows flagged; "
+        f"precision at k {a['precision_at_k_mean']} (base rate {a['base_rate']})"
+    )
 
 
 def main(argv: list[str] | None = None) -> None:
