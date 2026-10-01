@@ -20,7 +20,7 @@ import pandas as pd
 from jogan.forecast.backtest import GROUP_COLUMNS, Forecaster
 from jogan.forecast.features import build_features
 from jogan.forecast.model import stockout_probability
-from jogan.forecast.panel import panel_from_history
+from jogan.forecast.panel import Panel, panel_from_history
 from jogan.ops.costs import commission_rate, fuel_tk_per_km, labour_tk_per_minute
 from jogan.ops.env import Context, Observation
 from jogan.ops.fleet import Visit
@@ -43,6 +43,7 @@ class Jogan(Planned):
             raise ValueError(f"no forecast for a {self.cfg.horizon_hours}-hour horizon")
         self.log = SolveLog()
         self.last: pd.DataFrame | None = None
+        self.last_inputs: tuple[Panel, pd.DataFrame] | None = None  # panel and features
 
     def reset(self, ctx: Context) -> None:
         super().reset(ctx)
@@ -64,6 +65,7 @@ class Jogan(Planned):
         self.agent_runner = ctx.agents["territory"].map(first).to_numpy(dtype=int)
         self.log = SolveLog()
         self.last = None
+        self.last_inputs = None
 
     def fuel_per_km(self, day: int) -> np.ndarray:
         """Fuel Tk per km for each runner on ``day`` (petrol price on the date, its setting)."""
@@ -101,6 +103,7 @@ class Jogan(Planned):
         levels = fcfg.quantiles
         panel = panel_from_history(obs.history)
         x = build_features(panel, ctx.calendar, ctx.agents, fcfg, np.array([obs.hour])).matrix(h)
+        self.last_inputs = (panel, x)
         q_cash = self.forecaster.models[h, "cash"].predict(x, self.groups)
         q_efloat = self.forecaster.models[h, "efloat"].predict(x, self.groups)
 

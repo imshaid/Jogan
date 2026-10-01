@@ -1,14 +1,18 @@
 """API on the tiny bundle with the in-memory store: roles, publish once, decide, audit."""
 
 import datetime as dt
+import json
 from pathlib import Path
 
+import httpx2 as httpx
 import pytest
 from fastapi.testclient import TestClient
 
 from jogan.api.app import create_app
 from jogan.api.bundle import Bundle, build_bundle, load_bundle, save_bundle
-from jogan.api.store import MemoryStore
+from jogan.api.store import REVIEW_NOTE, MemoryStore
+from jogan.explain.config import load_explain_config
+from jogan.explain.narrator import Narrator
 
 FAST = {"lightgbm": {"num_boost_round": 30, "num_threads": 4}}
 USERS = {
@@ -50,9 +54,21 @@ def test_bundle_covers_the_test_window(bundle: Bundle) -> None:
     assert recs, "the tiny world should get at least one visit on its first test day"
     assert [r["value_tk"] for r in recs] == sorted((r["value_tk"] for r in recs), reverse=True)
     assert {"p_stockout_cash", "drain_cash_q90", "need_efloat_tk"} <= recs[0]["evidence"].keys()
+    for r in recs:
+        ev = r["evidence"]
+        assert ev["side"] in ("cash", "efloat")
+        assert ev[f"p_stockout_{ev['side']}"] == max(ev["p_stockout_cash"], ev["p_stockout_efloat"])
+        assert 0 < len(ev["drivers"]) <= 3
+        assert set(ev["review"]) == {"flag", "reasons"}
+        assert ev["review"]["flag"] == bool(ev["review"]["reasons"])
+    counts = bundle.meta["counts"]
+    reviewed = sum(r["evidence"]["review"]["flag"] for d in bundle.plan_dates
+                   for r in bundle.recommendations(d))  # fmt: skip
+    assert counts["manual_review"] == reviewed
+    assert counts["anomaly_flags"] == len(bundle.anomalies)
     trace = bundle.trace(bundle.plan_dates[0])
     assert trace["bundle_id"] == bundle.bundle_id
-    assert set(trace["config_hashes"]) == {"sim", "ops", "forecast", "plan"}
+    assert set(trace["config_hashes"]) == {"sim", "ops", "forecast", "plan", "explain"}
 
 
 def test_bundle_round_trips_through_files(bundle: Bundle, tmp_path: Path) -> None:
@@ -61,6 +77,7 @@ def test_bundle_round_trips_through_files(bundle: Bundle, tmp_path: Path) -> Non
     assert loaded.meta == bundle.meta
     day = bundle.plan_dates[-1]
     assert loaded.recommendations(day) == bundle.recommendations(day)
+    assert loaded.anomalies.equals(bundle.anomalies)
 
 
 def test_health_and_meta_need_no_sign_in(client: TestClient, bundle: Bundle) -> None:
@@ -149,3 +166,89 @@ def test_cors_allows_only_configured_origins(bundle: Bundle, store: MemoryStore)
     assert allowed("https://jogan-imshaid.vercel.app") == "https://jogan-imshaid.vercel.app"
     assert allowed("https://evil.example") is None
     assert allowed("https://jogan.vercel.app.evil.example") is None
+
+
+def test_queue_rows_carry_bilingual_template_explanations(
+    client: TestClient, bundle: Bundle
+) -> None:
+    items = client.get(f"/v1/plans/{first_day(bundle)}", headers=auth("t-analyst")).json()["items"]
+    for r in items:
+        assert r["explanation"]["en"].startswith(f"Send runner {r['runner_id']} to agent")
+        assert "পূর্বাভাস" in r["explanation"]["bn"]
+
+
+def gemini(text: str, status: int = 200) -> Narrator:
+    def answer(request: httpx.Request) -> httpx.Response:
+        body = {"candidates": [{"content": {"parts": [{"text": json.dumps({"text": text})}]}}]}
+        return httpx.Response(status, json=body)
+
+    cfg = load_explain_config().narrator
+    return Narrator(cfg, "test-key", transport=httpx.MockTransport(answer))
+
+
+def test_explanation_is_reworded_only_when_it_keeps_the_evidence(
+    bundle: Bundle, store: MemoryStore
+) -> None:
+    day = first_day(bundle)
+    plain = TestClient(create_app(bundle, store))
+    items = plain.get(f"/v1/plans/{day}", headers=auth("t-analyst")).json()["items"]
+    rec = items[0]
+    url = f"/v1/recommendations/{rec['id']}/explanation"
+    off = plain.get(url, headers=auth("t-analyst")).json()
+    assert off["source"] == "template"
+    assert off["text"] == off["template"] == rec["explanation"]["en"]
+
+    side = rec["evidence"]["side"]
+    p = round(rec["evidence"][f"p_stockout_{side}"] * 100)
+    good = f"Runner {rec['runner_id']} should visit {rec['agent_id']}: a predicted {p}% chance."
+    on = TestClient(create_app(bundle, store, narrator=gemini(good))).get(
+        url, headers=auth("t-analyst")
+    )
+    assert on.json()["source"] == "gemini"
+    assert on.json()["text"] == good
+
+    bad = TestClient(create_app(bundle, store, narrator=gemini(good + " Saves 123457 taka.")))
+    refused = bad.get(url + "?lang=bn", headers=auth("t-approver")).json()
+    assert refused["source"] == "template"
+    assert refused["text"] == rec["explanation"]["bn"]
+
+    assert plain.get(url).status_code == 401
+    assert plain.get(url, headers=auth("t-nobody")).status_code == 403
+    assert plain.get(url + "?lang=fr", headers=auth("t-analyst")).status_code == 422
+    missing = "/v1/recommendations/999999/explanation"
+    assert plain.get(missing, headers=auth("t-analyst")).status_code == 404
+
+
+def test_anomaly_flags_are_advisory_and_need_a_role(client: TestClient, bundle: Bundle) -> None:
+    day = first_day(bundle)
+    r = client.get(f"/v1/anomalies/{day}", headers=auth("t-analyst"))
+    assert r.status_code == 200
+    assert r.json()["advisory"] is True
+    assert len(r.json()["items"]) == len(bundle.anomaly_flags(bundle.plan_dates[0]))
+    assert client.get(f"/v1/anomalies/{day}").status_code == 401
+    assert client.get(f"/v1/anomalies/{day}", headers=auth("t-nobody")).status_code == 403
+    assert client.get("/v1/anomalies/1999-01-01", headers=auth("t-analyst")).status_code == 404
+
+
+def test_a_flagged_recommendation_needs_a_note_to_approve(
+    client: TestClient, store: MemoryStore
+) -> None:
+    review = {"flag": True, "reasons": [{"code": "data_gap", "arrived": 6, "hours": 24}]}
+    row = {"agent_id": "X-001", "territory": "X", "runner_id": "X-R1", "target_cash_tk": 1.0,
+           "value_tk": 1.0, "evidence": {"review": review}}  # fmt: skip
+    store.publish("other", dt.date(2026, 5, 7), [row, {**row, "agent_id": "X-002"}], {})
+    first, second = (r["id"] for r in store.recommendations[-2:])
+    url = "/v1/recommendations/{}/decision"
+    h = auth("t-approver")
+    refused = client.post(url.format(first), json={"decision": "approved"}, headers=h)
+    assert refused.status_code == 422
+    assert refused.json()["detail"] == REVIEW_NOTE
+    blank = client.post(url.format(first), json={"decision": "approved", "note": " "}, headers=h)
+    assert blank.status_code == 422
+    note = {"decision": "approved", "note": "data arrived late; called the agent"}
+    assert client.post(url.format(first), json=note, headers=h).status_code == 200
+    assert (
+        client.post(url.format(second), json={"decision": "rejected"}, headers=h).status_code == 200
+    )
+    audit = client.get("/v1/audit", headers=h).json()["items"]
+    assert [a["detail"]["manual_review"] for a in audit[:2]] == [True, True]
