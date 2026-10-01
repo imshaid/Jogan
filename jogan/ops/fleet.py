@@ -109,6 +109,7 @@ class Fleet:
         self.loc = [HUB] * n
         self.speed = list(self.base_speed)
         self.km = [0.0] * n
+        self.busy_s = [0] * n
         self.bag = [0] * n
 
     def start_day(
@@ -124,14 +125,16 @@ class Fleet:
         self.loc = [HUB] * n
         self.speed = [s * f for s, f in zip(self.base_speed, speed_factor, strict=True)]
         self.km = [0.0] * n
+        self.busy_s = [0] * n
         self.bag = [min(bag_tk, self.capacity) if on else 0 for on in on_duty]
 
-    def end_day(self) -> list[float]:
-        """Total km per runner today, including the trip back to the hub."""
-        return [
-            km + (self.network.km(HUB, loc) if loc != HUB else 0.0)
-            for km, loc in zip(self.km, self.loc, strict=True)
-        ]
+    def end_day(self) -> list[tuple[float, int]]:
+        """Km and busy seconds (driving or at a stop) per runner today, with the trip home."""
+        out = []
+        for r, loc in enumerate(self.loc):
+            home = self.network.km(HUB, loc) if loc != HUB else 0.0
+            out.append((self.km[r] + home, self.busy_s[r] + travel_seconds(home, self.speed[r])))
+        return out
 
     def arrival(self, runner: int, agent: int, now: int) -> int | None:
         """When ``runner`` would reach ``agent`` if sent now; ``None`` if it cannot go."""
@@ -160,6 +163,7 @@ class Fleet:
         if arrive is None:
             return None
         leg = self.network.km(self.loc[runner], agent)
+        self.busy_s[runner] += travel_seconds(leg, self.speed[runner]) + self.visit_s
         self.free_at[runner] = arrive + self.visit_s
         self.loc[runner] = agent
         self.visits[runner] += 1
@@ -169,6 +173,6 @@ class Fleet:
     def copy(self) -> Fleet:
         """An independent copy for planning; the network is shared."""
         out = copy.copy(self)
-        for name in ("on_duty", "visits", "free_at", "loc", "speed", "km", "bag"):
+        for name in ("on_duty", "visits", "free_at", "loc", "speed", "km", "busy_s", "bag"):
             setattr(out, name, list(getattr(self, name)))
         return out

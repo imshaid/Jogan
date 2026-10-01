@@ -84,11 +84,11 @@ anomalies:
   night: {days: [7, 14], day_prob: 0.6, per_day: [1, 4], hours: [0, 5]}
 
 # Agents rebalance about 22 times a month (median 12 cash deposits + 10 withdrawals, SOURCE:
-# Helix ANA Bangladesh 2014), so runners make many short shop visits a day (count ASSUMPTION).
+# Helix ANA Bangladesh 2014), so runners make many short shop visits a day.
 runners:
-  shift: [9, 18]
-  max_visits: 20
-  bag_capacity_tk: 300000
-  visit_minutes: 10
-  absence_prob: 0.02
-  off_on_eid_day: true
+  shift: [9, 18] # 8 working hours (Labour Act 2006 s.100, SOURCE) + a 1-hour break (ASSUMPTION)
+  max_visits: 20 # ASSUMPTION, sized to the ANA rebalancing frequency
+  bag_capacity_tk: 300000 # ASSUMPTION
+  visit_minutes: 10 # ASSUMPTION
+  absence_prob: 0.02 # ASSUMPTION
+  off_on_eid_day: true # ASSUMPTION

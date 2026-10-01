@@ -1,13 +1,48 @@
-# Money in the operations environment (docs/02-data-assumptions.md §6). Every value is an
-# ASSUMPTION. Costs are counted after a run from logged outcomes, so a sensitivity range can be
-# re-priced without re-running any policy that does not itself use the costs.
-commission_rate: {CO: 0.004, CI: 0.003} # agent commission, share of the amount
-goodwill_per_lost_tk: 50 # value lost per customer turned away (switching risk)
-runner: {per_km_tk: 10, per_visit_tk: 100}
-idle:
-  rate_per_year: 0.10
-  need_days: 1.0 # a side's balance above this many typical days of outflow is idle
+# Money in the operations environment (docs/02-data-assumptions.md §6, DECISIONS.md D-019).
+# Every number is tagged: SOURCE (verified outside fact, link below), DERIVED (computed in
+# jogan/ops/costs.py from sourced inputs, never typed) or ASSUMPTION (our choice).
+# Costs are counted after a run from logged outcomes, so a run can be re-priced.
+#
+# Not priced: the value of a customer lost after a failed request. It is unknown, so reports give
+# the break-even value per lost request at which two policies cost the same (D-019).
 
-sensitivity:
-  commission_rate: {CO: [0.003, 0.005], CI: [0.002, 0.004]}
-  goodwill_per_lost_tk: [0, 200]
+sources:
+  commission: https://www.prothomalo.com/business/7cxvrytmp6 # Prothom Alo, 10 Aug 2022
+  petrol_jan: https://thefinancialexpress.com.bd/trade/fuel-prices-cut-by-tk-2-a-litre-at-start-of-2026
+  petrol_2026: https://www.dhakatribune.com/bangladesh/power-energy/420367/fuel-prices-rise-up-to-nearly-36%25-between-january
+  petrol_may: https://www.tbsnews.net/node/1426246 # April prices kept for May
+  petrol_jun: https://unb.com.bd/category/Bangladesh/fuel-prices-raised-again-octane-petrol-up-by-tk-5-per-litre/187098
+  mileage: https://bikebd.com/price/bajaj-platina-100-2015
+  salary: https://ezjobsbangla.com/jobs/bkash-distribution-sales-officer--j_wE-oIwkZQKe2FRlqJ-UF6A
+  salary_check: https://niyog.co/jobs/bkash-distribution-sales-officer-883a8e53
+  hours: https://www.lawyersnjurists.com/article/the-bangladesh-labour-act-2006-chapter-ix/
+  policy_rate: https://thefinancialexpress.com.bd/economy/bb-cuts-repo-rate-by-50-bps-to-950pc-to-spur-investment-economic-recovery
+
+# Agent commission per Tk 1,000 of cash-out and of cash-in: Tk 4.10 at bKash, Nagad, Rocket and
+# upay alike (SOURCE, 2022). Unchanged in 2026: ASSUMPTION. Lost commission = lost amount × rate.
+agent_commission_per_1000_tk: {CO: 4.10, CI: 4.10}
+
+runner:
+  # Official consumer price of petrol, Tk per litre, from each date (SOURCE: Energy and Mineral
+  # Resources Division notifications as reported; the February change applies from the 1st).
+  petrol_tk_per_litre:
+    - [2026-01-01, 118]
+    - [2026-02-01, 116]
+    - [2026-04-19, 135]
+    - [2026-06-01, 140]
+  # Bajaj Platina 100 (100 cc commuter), manufacturer claim: city 45, highway 50 km per litre
+  # (SOURCE). That runners ride such a bike, and city for urban/peri-urban, highway for rural:
+  # ASSUMPTION. Claimed mileage beats real riding, so fuel cost is understated.
+  km_per_litre: {urban: 45, peri_urban: 45, rural: 50}
+  # bKash distribution sales officer at a distributor, Dhaka, Tk 13,000–17,000 a month (SOURCE:
+  # job ad of 21 May 2026). The midpoint is used; the range is the sensitivity (DERIVED).
+  salary_tk_per_month: [13000, 17000]
+  # Ordinary working week, Bangladesh Labour Act 2006 s.102 (SOURCE). Tk per working minute is
+  # DERIVED. A runner's time is priced only while driving or at a stop (ASSUMPTION, D-019).
+  hours_per_week: 48
+
+idle:
+  # Bangladesh Bank policy (repo) rate, 10% until the cut to 9.5% from 2 Aug 2026 (SOURCE).
+  # Using it as the cost of money held idle: ASSUMPTION.
+  rate_per_year: 0.10
+  need_days: 1.0 # a side's balance above this many typical days of outflow is idle (ASSUMPTION)
