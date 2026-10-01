@@ -104,10 +104,10 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
   - Supabase free tier
   - UptimeRobot on `/health`, plus a keep-alive so Supabase does not pause
   - live until about 15 Oct (M6, M10)
-- [ ] **Gemini** (Google AI Studio free tier):
-  - model ids in env vars
-  - second model on HTTP 429
-  - explanations cached and precomputed
+- [x] **Gemini** (Google AI Studio free tier, M7, D-023):
+  - model ids in config, overridable by env vars
+  - second model on HTTP 429 (and 5xx)
+  - template explanations precomputed; Gemini rewordings cached
   - mocked in tests and CI
   - synthetic data only
   - billing off (M7)

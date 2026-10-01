@@ -12,19 +12,20 @@ Commits made with Claude Code carry a `Co-Authored-By: Claude …` trailer, so i
 
 ## AI inside the product (run time)
 
-Everything here is planned and will be updated as each component lands. All model inputs are simulated data.
+Updated as each component lands. All model inputs are simulated data.
 
 | Component | Technique | Role | Decides on its own? |
 |---|---|---|---|
 | Demand forecast | LightGBM quantile regression, trained in this repo | Predicts cash and e-float pressure per agent | No: feeds the decision rules |
 | Calibration | Conformalized quantile regression (CQR) | Makes the prediction intervals honest | No |
 | Dispatch optimizer | Mixed-integer program (SciPy `milp`, HiGHS) | Proposes runner visits and amounts | No: a human approver decides |
-| Explanations | TreeSHAP drivers + bilingual templates; optional Gemini Flash-Lite narration (Google AI Studio free tier, model ids verified before use) | Explains structured evidence in English and Bangla | Never |
-| Anomaly flag | Isolation Forest per peer group | Advisory flag for human review | Never |
+| Explanations | TreeSHAP drivers (LightGBM `pred_contrib`) + bilingual templates; on request, Gemini rewords a template: `gemini-3.8-flash`, falling back to `gemini-3.5-flash-lite` (Google AI Studio free tier, ids verified 2026-10-02). A rewording with any number not in the evidence is discarded | Explains structured evidence in English and Bangla | Never |
+| Guardrails | Rules on the evidence (out of training range, wide interval, data gap, short history, anomaly flag) | Sends a visit to manual review; approving it needs a note | Never |
+| Anomaly flag | Isolation Forest per agent setting (scikit-learn) plus two rules | Advisory flag for human review | Never |
 
 ## How AI-written content is marked
 
-The UI labels every output as a **prediction**, an **assumption**, or an **AI-written explanation**. LLM text is never the source of a number or a decision.
+The UI labels every output as a **prediction**, an **assumption**, or an **AI-written explanation**. LLM text is never the source of a number or a decision: the template explanation is shown by default, and a Gemini rewording is marked "Reworded by AI" with the model id. Free-tier prompts may be used by Google to improve its products, so only simulated data is ever sent.
 
 ## Prompt and development history
 

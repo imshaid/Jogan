@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02, end of M6._
+_Last updated: 2026-10-02, end of M7._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -124,18 +124,59 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
     - probed as anonymous on live Supabase: sign-up disabled, every table and function refused (42501)
   - decision D-022
 
+- **M7 · Explanations, guardrails, Gemini narrator, anomaly flag**
+  - configs: `configs/explain/base.yaml` (every number tagged, enforced by a test) and `configs/explain/labels.yaml` (English and Bangla words; teammate 1 reviews the Bangla)
+  - `jogan/explain/`:
+    - `drivers`: TreeSHAP from LightGBM's `pred_contrib`, on the 24-hour 0.9-quantile booster of the side at risk; top 3 effects of at least 5%
+    - `guardrails`: manual review on out of training range (the agent's own amounts only), wide interval, data gap, short history or an anomaly flag
+    - `template`: the explanation of record, in English and Bangla, from the stored evidence only (Bangla digits, lakh grouping)
+    - `narrator`: Gemini rewords one template on request; `gemini-3.8-flash`, falling back to `gemini-3.5-flash-lite` on 429/5xx (both verified stable and free-tier on 2026-10-02); refused, and the template shown, if any number is new, the stock-out chance is lost, the script is wrong or the text is too long; 8 calls a minute per instance, cached
+  - `jogan/detect/anomaly.py`: advisory flag from the observed log (night transactions, volume, cash-out size, busiest hour, against the agent's own history and the territory's day). An Isolation Forest per setting (scikit-learn 1.9.1, new dependency) plus two rules: night transactions, and a value beyond the setting's training maximum
+  - bundle: every planned visit's evidence now holds `side`, `drivers` and `review`, and each morning's anomaly flags (on the previous day) are kept. Demo bundle (`full`, seed 42, about 80 s): 6,559 visits, 772 for manual review, 104 anomaly flags over 28 days
+  - API:
+    - every queue row carries `explanation.en` and `explanation.bn`
+    - `GET /v1/recommendations/{id}/explanation?lang=en|bn` returns Gemini's rewording or the template, with the reason
+    - `GET /v1/anomalies/{day}` lists the advisory flags
+  - database: migration `20261002020000_review_note.sql`. Approving a flagged visit needs a note (422 otherwise), and the audit row records `manual_review`
+  - web:
+    - "Why?" panel per visit with an English/Bangla switch and "Reword with AI" (labelled with the model id; the template stays the default)
+    - "⚑ Manual review" tag (word and symbol, not colour alone) and a note form when approving a flagged visit
+    - anomaly flag list
+    - the owner's logo: favicon, Apple icon and header mark from `docs/brand/jogan-light.png` (`scripts/brand_icons.py`); the text wordmark stays
+  - `make eval` also scores the anomaly flag on every evaluation seed's test window (`anomaly` in `artifacts/metrics.json`); every other section is unchanged:
+    - 168,000 test agent-days over 10 seeds; 1,219 flags (0.7%), 48 of them on injected anomalies, a precision of 3.9% against a base rate of 0.08%
+    - precision at 5 / 10 / 20 (per seed, averaged): 0.30 / 0.36 / 0.22
+    - injected windows with at least one flag: night 6 of 6, spike 3 of 6, split (structuring) 1 of 9
+    - **the flag is weak on structuring**, which goes into the report's "where Jogan does not win"
+  - **Checks:** 160 Python tests (28 new: drivers add up to the raw prediction, every feature has both labels, lakh grouping and Bangla digits, guardrail reasons, the narrator with a mocked Gemini (fallback, refusals, rate limit, cache, no user text in the prompt), the anomaly flag on a synthetic log (patterns found, a territory-wide payday ignored, no leak from late or future records), API explanation, anomaly and review-note endpoints); `make test-db` checks the note rule; `scripts/live_check.py` now covers "Why?", Bangla, the AI rewording and a flagged approval
+  - decision D-023
+
 ## Next
 
-**M7 · Explanations, guardrails, Gemini narrator, anomaly flag** (budget 2.5 h)
+**Owner, once, then run the live check** (`uv run --with playwright python scripts/live_check.py`):
 
-- Drivers per recommendation from LightGBM TreeSHAP (`pred_contrib`, D-002 #5), computed when the bundle is built and stored with each day's evidence, so the API never loads a model.
-- Template explanation in English and Bangla from structured evidence. Gemini (model ids verified in the official docs; primary + fallback on HTTP 429, secret `gemini-api-key` already in Secret Manager, not yet mounted on Cloud Run) only rewords it; every number in its output must appear in the evidence, otherwise the template is used. LLM mocked in tests.
-- Guardrails: low confidence or out-of-range evidence → manual review flag.
-- Anomaly flag (first on the cut-line).
-- **Inputs from M6:** `Bundle.plans` (every agent, every plan day), `Bundle.trace(day)`, the evidence JSON stored with every recommendation.
+1. Apply the new migration to live Supabase. Until then the live database still lets an approver approve a flagged visit without a note, and the live check fails on that:
 
-**Carried into M7 and M11:**
-- The report gets a section on **where Jogan does not win**: H4 (DHK/urban vs `threshold`), H3 (group coverage of the forecast), the oracle gap, and the costs left unpriced (motorcycle wear, phone, agents' own time).
+   ```fish
+   npx supabase@2.119.0 db push
+   ```
+
+2. Mount the Gemini key on Cloud Run. Until then "Reword with AI" shows the template with "narrator is off":
+
+   ```fish
+   gcloud run services update jogan-api --region asia-southeast1 --project jogan-510317 --update-secrets GEMINI_API_KEY=gemini-api-key:latest
+   ```
+
+**M8 · Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace** (budget 2.5 h)
+
+- API-level JWT verification (Supabase JWKS) instead of trusting PostgREST alone for every call.
+- Rate limiting per user and per IP, with clear 429 answers; the narrator keeps its own per-minute cap.
+- Decision trace endpoint: a recommendation with its evidence, drivers, review, bundle trace and audit rows.
+- Input validation everywhere (dates, ids, languages, note length) and consistent error bodies.
+- **Inputs from M7:** `evidence.side`, `evidence.drivers`, `evidence.review`, `Bundle.anomaly_flags(day)`, `jogan.explain.template.render/facts`.
+
+**Carried into M8–M11:**
+- The report gets a section on **where Jogan does not win**: H4 (DHK/urban vs `threshold`), H3 (group coverage of the forecast), the oracle gap, the anomaly flag's weakness on structuring (split cash-outs, 1 of 9 windows), and the costs left unpriced (motorcycle wear, phone, agents' own time).
 - Not modelled in the policy: the runner's bag in the program, the hours between the forecast and the runner's arrival, and a call rescuing an agent who was not visited (D-021).
 - Every number in README, report, UI and video comes from `artifacts/metrics.json`. Re-run `make eval` after any change to sim, ops, forecast or plan code or configs; its `meta.config_hashes` records the versions.
 
@@ -150,20 +191,18 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | done |
 | M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | done |
 | M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | done |
-| M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | next |
-| M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | |
+| M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | done |
+| M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | next |
 | M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | |
 | M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | |
 | M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | |
 | M12 | Clean-clone test, live check, fixes, tag `submission-initial` | 3 h | Sun 4 Oct 08:00 | |
 | – | Buffer and submission form (submit by about 09:00) | 2 h | Sun 10:00 | |
 
-**Cut-line if behind schedule** (drop in this order):
+**Cut-line if behind schedule** (drop in this order; the anomaly flag and Gemini narration are done in M7):
 
-1. anomaly flag
-2. 10k-agent stress test
-3. Gemini narration (templates stay)
-4. partially observed cash
+1. 10k-agent stress test
+2. partially observed cash
 
 Never cut the end-to-end flow: simulator → environment → forecast → dispatch → approval → impact page → deploy → docs.
 
