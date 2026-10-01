@@ -1,0 +1,78 @@
+# Explanations, guardrails, the Gemini narrator and the anomaly flag (DECISIONS.md D-023).
+# The words shown to users, in English and Bangla, are in labels.yaml.
+# Every number is tagged SOURCE (verified, link), DERIVED (computed in code) or ASSUMPTION.
+# Thresholds were set by looking at development seed 0 only, never at an evaluation seed.
+
+# Drivers: LightGBM's built-in TreeSHAP (pred_contrib, D-002 #5) on the 24-hour booster of the
+# side at risk (the side with the higher P(stock-out)). Contributions are in log1p space, so a
+# feature's effect is exp(contribution) - 1, relative to the model's average prediction.
+drivers:
+  level: 0.9 # the upper quantile the risk is read from (ASSUMPTION)
+  top_k: 3 # ASSUMPTION
+  min_effect_pct: 5 # smaller effects are not shown (ASSUMPTION)
+
+# A recommendation goes to manual review when any check fires. The approver must then write a
+# note to approve it (supabase/migrations/, D-023).
+guardrails:
+  # Out of range: one of these features outside the [min, max] seen in training (trees cannot
+  # extrapolate, so the forecast flattens there; the range is DERIVED from the training rows).
+  # Only the agent's own amounts: calendar features are known ahead, and a test window later
+  # in the year is always outside the training calendar (days since Eid, for one).
+  range_features:
+    - co_3h
+    - ci_3h
+    - co_24h
+    - ci_24h
+    - co_168h
+    - ci_168h
+    - liquidity
+    - prof_co
+    - prof_ci
+    - prof_peak_cash
+    - prof_peak_efloat
+    - lag1_peak_cash
+    - lag7_peak_cash
+    - hist_q50_cash
+    - hist_q90_cash
+    - lag1_peak_efloat
+    - lag7_peak_efloat
+    - hist_q50_efloat
+    - hist_q90_efloat
+  # Low confidence: the 90% quantile of the side at risk is more than this many times its
+  # median (ASSUMPTION).
+  max_q90_to_q50: 4.0 # ASSUMPTION
+  # Data gap: fewer than this share of the agent's last 24 hourly records had arrived at the
+  # plan hour (ASSUMPTION).
+  min_arrived_share: 0.75 # ASSUMPTION
+  # A day of quiet history is not a forecast: fewer past same-hour windows than this
+  # (ASSUMPTION).
+  min_history_windows: 7 # ASSUMPTION
+
+# Gemini only rewords the template from the same structured evidence. Model ids and their free
+# tier checked on 2026-10-02 (SOURCE: https://ai.google.dev/gemini-api/docs/models,
+# https://ai.google.dev/gemini-api/docs/pricing). The fallback is used on HTTP 429 or 5xx.
+narrator:
+  primary: gemini-3.8-flash # SOURCE: stable, free tier
+  fallback: gemini-3.5-flash-lite # SOURCE: stable, free tier
+  timeout_s: 20 # ASSUMPTION
+  temperature: 0.2 # ASSUMPTION
+  max_chars: 1200 # longer output is refused (ASSUMPTION)
+  # Calls per minute per API instance, to stay inside the free tier (ASSUMPTION; the limits
+  # are shown only in AI Studio, https://ai.google.dev/gemini-api/docs/rate-limits).
+  per_minute: 8 # ASSUMPTION
+  cache_size: 2048 # narrations kept in memory per instance (ASSUMPTION)
+
+# Advisory anomaly flag: an Isolation Forest per agent setting on agent-day features from the
+# observed log (docs/01-logic-chain.md §5, docs/02-data-assumptions.md §8). It never decides;
+# a flagged agent's visit goes to manual review.
+anomaly:
+  history_days: 28 # an agent's own baseline (ASSUMPTION)
+  min_history_days: 7 # fewer usable days: not scored (ASSUMPTION)
+  min_arrived_share: 0.75 # an agent-day with fewer arrived hours is not scored (ASSUMPTION)
+  n_estimators: 200 # ASSUMPTION
+  max_samples: 256 # the Isolation Forest paper's default sub-sample (ASSUMPTION)
+  # Flag an agent-day whose score is above this quantile of its group's training scores
+  # (ASSUMPTION).
+  threshold_quantile: 0.995 # ASSUMPTION
+  precision_at_k: [5, 10, 20] # reported by make eval (ASSUMPTION)
+  seed: 0 # ASSUMPTION
