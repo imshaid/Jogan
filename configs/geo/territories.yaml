@@ -1,0 +1,63 @@
+# Distributor territories (docs/02-data-assumptions.md §3).
+# Hubs are district centroids, SOURCE: nuhil/bangladesh-geocode (MIT), districts/districts.json,
+# fetched 2026-10-01. The dataset spells Cumilla as "Comilla". Bangla names come from the same file.
+source: https://github.com/nuhil/bangladesh-geocode/blob/master/districts/districts.json
+
+# Placement and travel by setting, all ASSUMPTION.
+settings:
+  urban: {radius_km: 6, road_factor: 1.3, runner_speed_kmh: 12}
+  peri_urban: {radius_km: 12, road_factor: 1.3, runner_speed_kmh: 18}
+  rural: {radius_km: 20, road_factor: 1.4, runner_speed_kmh: 22}
+
+# runners: per 100 agents (ASSUMPTION); a profile with fewer agents scales it down.
+# patterns: which demand patterns apply (docs §5). Reasons per territory: DECISIONS.md D-012.
+territories:
+  - code: DHK
+    district_en: Dhaka
+    district_bn: ঢাকা
+    lat: 23.7115253
+    lon: 90.4111451
+    setting: urban
+    runners: 3
+    patterns: [payday]
+  - code: GZP
+    district_en: Gazipur
+    district_bn: গাজীপুর
+    lat: 24.0022858
+    lon: 90.4264283
+    setting: peri_urban
+    runners: 3
+    patterns: [payday, cattle]
+  - code: CUM
+    district_en: Cumilla
+    district_bn: কুমিল্লা
+    lat: 23.4682747
+    lon: 91.1788135
+    setting: peri_urban
+    runners: 3
+    patterns: [remittance]
+  - code: SYL
+    district_en: Sylhet
+    district_bn: সিলেট
+    lat: 24.8897956
+    lon: 91.8697894
+    setting: peri_urban
+    runners: 3
+    patterns: [remittance]
+  - code: RNG
+    district_en: Rangpur
+    district_bn: রংপুর
+    lat: 25.7558096
+    lon: 89.244462
+    setting: rural
+    runners: 2
+    patterns: [hat, cattle]
+  - code: KUR
+    district_en: Kurigram
+    district_bn: কুড়িগ্রাম
+    lat: 25.805445
+    lon: 89.636174
+    setting: rural
+    runners: 2
+    patterns: [hat, cattle]
+    disruption_prob_by_month: {6: 0.05}  # flood season (ASSUMPTION)

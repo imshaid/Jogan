@@ -1,0 +1,8 @@
+# CI tests: runs in seconds. Covers payday (GZP), hat days (RNG), Ramadan and Eid-ul-Fitr.
+extends: base.yaml
+name: tiny
+start: 2026-03-01
+end: 2026-03-28
+n_agents: 40
+territories: [GZP, RNG]
+anomalies: {share: 0.075} # three agents, one per pattern

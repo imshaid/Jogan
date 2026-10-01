@@ -1,0 +1,7 @@
+# Final evaluation and demo. Train holds Eid-ul-Fitr, test holds Eid-ul-Azha (DECISIONS.md D-010).
+extends: base.yaml
+name: full
+start: 2026-01-05
+end: 2026-06-03
+n_agents: 600
+territories: [DHK, GZP, CUM, SYL, RNG, KUR]

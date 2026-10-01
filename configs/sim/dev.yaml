@@ -1,0 +1,7 @@
+# Development: urban, remittance and remote rural territories around Eid-ul-Fitr.
+extends: base.yaml
+name: dev
+start: 2026-02-20
+end: 2026-04-20
+n_agents: 150
+territories: [DHK, CUM, KUR]
