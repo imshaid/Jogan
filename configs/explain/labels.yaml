@@ -1,0 +1,134 @@
+# Words shown to users in explanations, in English and Bangla (product copy, not parameters;
+# the numbers inside labels are part of their names). Placeholders in {braces} are filled by
+# jogan/explain/template.py from the structured evidence. Bangla copy: review by a native
+# speaker before the final demo.
+
+# What each forecast feature is called, and how its value is shown.
+# Units: tk, km, hours, days, count, ratio, flag, hour, weekday, day, text.
+features:
+  territory: {unit: text, en: territory, bn: এলাকা}
+  setting: {unit: text, en: setting, bn: এলাকার ধরন}
+  size_class: {unit: text, en: agent size, bn: এজেন্টের আকার}
+  hub_road_km: {unit: km, en: road distance to the hub, bn: হাব থেকে সড়কপথে দূরত্ব}
+  open_hour: {unit: hour, en: opening hour, bn: খোলার সময়}
+  close_hour: {unit: hour, en: closing hour, bn: বন্ধের সময়}
+  hour: {unit: hour, en: hour of the forecast, bn: পূর্বাভাসের সময়}
+  weekday: {unit: weekday, en: weekday, bn: বার}
+  day_of_month: {unit: day, en: day of the month (payday), bn: মাসের তারিখ (বেতনের দিন)}
+  is_ramadan: {unit: flag, en: Ramadan, bn: রমজান}
+  days_to_eid: {unit: days, en: days to Eid, bn: ঈদ পর্যন্ত বাকি দিন}
+  days_since_eid: {unit: days, en: days since Eid, bn: ঈদের পর পেরোনো দিন}
+  bank_open: {unit: flag, en: banks open today, bn: আজ ব্যাংক খোলা}
+  bank_open_next: {unit: flag, en: banks open tomorrow, bn: কাল ব্যাংক খোলা}
+  holiday: {unit: flag, en: public holiday today, bn: আজ সরকারি ছুটি}
+  holiday_next: {unit: flag, en: public holiday tomorrow, bn: কাল সরকারি ছুটি}
+  hat_day: {unit: flag, en: market (hat) day today, bn: আজ হাটবার}
+  hat_day_next: {unit: flag, en: market (hat) day tomorrow, bn: কাল হাটবার}
+  co_3h: {unit: tk, en: cash-out in the last 3 h, bn: গত ৩ ঘণ্টার ক্যাশ-আউট}
+  ci_3h: {unit: tk, en: cash-in in the last 3 h, bn: গত ৩ ঘণ্টার ক্যাশ-ইন}
+  co_24h: {unit: tk, en: cash-out in the last 24 h, bn: গত ২৪ ঘণ্টার ক্যাশ-আউট}
+  ci_24h: {unit: tk, en: cash-in in the last 24 h, bn: গত ২৪ ঘণ্টার ক্যাশ-ইন}
+  co_168h: {unit: tk, en: cash-out in the last 7 days, bn: গত ৭ দিনের ক্যাশ-আউট}
+  ci_168h: {unit: tk, en: cash-in in the last 7 days, bn: গত ৭ দিনের ক্যাশ-ইন}
+  co_trend: {unit: ratio, en: cash-out trend (last day vs week), bn: ক্যাশ-আউটের প্রবণতা (শেষ দিন বনাম সপ্তাহ)}
+  ci_trend: {unit: ratio, en: cash-in trend (last day vs week), bn: ক্যাশ-ইনের প্রবণতা (শেষ দিন বনাম সপ্তাহ)}
+  liquidity: {unit: tk, en: average cash plus e-float over the week, bn: সপ্তাহের গড় ক্যাশ ও ই-ফ্লোট}
+  open_hours: {unit: hours, en: open hours in the next 24 h, bn: আগামী ২৪ ঘণ্টায় খোলা থাকার সময়}
+  prof_co: {unit: tk, en: usual cash-out over these hours, bn: এই সময়ে সাধারণ ক্যাশ-আউট}
+  prof_ci: {unit: tk, en: usual cash-in over these hours, bn: এই সময়ে সাধারণ ক্যাশ-ইন}
+  prof_peak_cash: {unit: tk, en: usual peak cash drain over these hours, bn: এই সময়ে ক্যাশের সাধারণ সর্বোচ্চ ঘাটতি}
+  prof_peak_efloat: {unit: tk, en: usual peak e-float drain over these hours, bn: এই সময়ে ই-ফ্লোটের সাধারণ সর্বোচ্চ ঘাটতি}
+  lag1_peak_cash: {unit: tk, en: peak cash drain in the same window yesterday, bn: গতকাল একই সময়ে ক্যাশের সর্বোচ্চ ঘাটতি}
+  lag7_peak_cash: {unit: tk, en: peak cash drain in the same window last week, bn: গত সপ্তাহে একই সময়ে ক্যাশের সর্বোচ্চ ঘাটতি}
+  hist_q50_cash: {unit: tk, en: median peak cash drain of the last 28 days, bn: গত ২৮ দিনে ক্যাশের সর্বোচ্চ ঘাটতির মধ্যমা}
+  hist_q90_cash: {unit: tk, en: 90th-percentile peak cash drain of the last 28 days, bn: গত ২৮ দিনে ক্যাশের সর্বোচ্চ ঘাটতির ৯০তম পার্সেন্টাইল}
+  lag1_peak_efloat: {unit: tk, en: peak e-float drain in the same window yesterday, bn: গতকাল একই সময়ে ই-ফ্লোটের সর্বোচ্চ ঘাটতি}
+  lag7_peak_efloat: {unit: tk, en: peak e-float drain in the same window last week, bn: গত সপ্তাহে একই সময়ে ই-ফ্লোটের সর্বোচ্চ ঘাটতি}
+  hist_q50_efloat: {unit: tk, en: median peak e-float drain of the last 28 days, bn: গত ২৮ দিনে ই-ফ্লোটের সর্বোচ্চ ঘাটতির মধ্যমা}
+  hist_q90_efloat: {unit: tk, en: 90th-percentile peak e-float drain of the last 28 days, bn: গত ২৮ দিনে ই-ফ্লোটের সর্বোচ্চ ঘাটতির ৯০তম পার্সেন্টাইল}
+  hist_windows: {unit: count, en: past days on record, bn: রেকর্ডে থাকা আগের দিনের সংখ্যা}
+
+# Anomaly features (jogan/detect/anomaly.py).
+anomaly_features:
+  night_n: {unit: count, en: transactions outside opening hours, bn: খোলার সময়ের বাইরে লেনদেন}
+  volume: {unit: ratio, en: transactions against the agent's usual, bn: সাধারণের তুলনায় লেনদেন}
+  ticket: {unit: ratio, en: cash-out size against the agent's usual, bn: সাধারণের তুলনায় ক্যাশ-আউটের আকার}
+  burst: {unit: ratio, en: busiest hour of cash-outs against the usual, bn: সাধারণের তুলনায় সবচেয়ে ব্যস্ত ঘণ্টার ক্যাশ-আউট}
+
+# Values of categorical and flag features.
+values:
+  flag: {"true": {en: "yes", bn: হ্যাঁ}, "false": {en: "no", bn: না}}
+  setting:
+    urban: {en: urban, bn: শহুরে}
+    peri_urban: {en: peri-urban, bn: উপশহর}
+    rural: {en: rural, bn: গ্রামীণ}
+  size_class:
+    small: {en: small, bn: ছোট}
+    medium: {en: medium, bn: মাঝারি}
+    large: {en: large, bn: বড়}
+  # Monday first, as Python's date.weekday()
+  weekday:
+    en: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+    bn: [সোমবার, মঙ্গলবার, বুধবার, বৃহস্পতিবার, শুক্রবার, শনিবার, রবিবার]
+  side:
+    cash: {en: cash, bn: ক্যাশ}
+    efloat: {en: e-float, bn: ই-ফ্লোট}
+
+# Units after a number.
+units:
+  km: {en: "{x} km", bn: "{x} কিমি"}
+  hours: {en: "{x} h", bn: "{x} ঘণ্টা"}
+  days: {en: "{x} days", bn: "{x} দিন"}
+  ratio: {en: "{x}×", bn: "{x} গুণ"}
+
+# Sentences of the template explanation.
+copy:
+  headline:
+    en: "Send runner {runner} to agent {agent} ({territory})."
+    bn: "এজেন্ট {agent} ({territory})-এর কাছে রানার {runner} পাঠানোর সুপারিশ।"
+  risk:
+    en: "{side_title} may run out: the chance of a stock-out within 24 h is {p} (a prediction, not a certainty)."
+    bn: "{side} ফুরিয়ে যেতে পারে: আগামী ২৪ ঘণ্টায় স্টক-আউটের সম্ভাবনা {p} (পূর্বাভাস, নিশ্চিত নয়)।"
+  balances:
+    en: "Now the agent holds {cash} in cash and {efloat} in e-float."
+    bn: "এখন এজেন্টের কাছে ক্যাশ {cash} এবং ই-ফ্লোট {efloat}।"
+  drain:
+    en: "Over the next 24 h the {side} balance could fall by up to {q90} (90% quantile; median {q50})."
+    bn: "আগামী ২৪ ঘণ্টায় {side} সর্বোচ্চ {q90} পর্যন্ত কমতে পারে (৯০% কোয়ান্টাইল; মধ্যমা {q50})।"
+  target:
+    en: "The visit brings cash to {target}; it avoids about {value} in expected losses and extra trips."
+    bn: "ভিজিটের পর ক্যাশ হবে {target}; এতে আনুমানিক {value} সম্ভাব্য ক্ষতি ও বাড়তি ট্রিপ এড়ানো যায়।"
+  drivers:
+    en: "What moved that 90% quantile most, compared with an average agent: {items}."
+    bn: "গড় এজেন্টের তুলনায় ওই ৯০% কোয়ান্টাইলকে সবচেয়ে বেশি প্রভাবিত করেছে: {items}।"
+  driver_up:
+    en: "{label} ({value}) raised it by about {pct}"
+    bn: "{label} ({value}) এটিকে প্রায় {pct} বাড়িয়েছে"
+  driver_down:
+    en: "{label} ({value}) lowered it by about {pct}"
+    bn: "{label} ({value}) এটিকে প্রায় {pct} কমিয়েছে"
+  review:
+    en: "Manual review needed: {reasons}."
+    bn: "ম্যানুয়াল যাচাই দরকার: {reasons}।"
+  no_review:
+    en: "No guardrail fired."
+    bn: "কোনো সতর্কতা নেই।"
+  list_sep: {en: "; ", bn: "; "}
+
+# Why a recommendation goes to manual review.
+reasons:
+  out_of_range:
+    en: "{label} ({value}) is outside what the model saw in training"
+    bn: "{label} ({value}) প্রশিক্ষণে দেখা সীমার বাইরে"
+  wide_interval:
+    en: "the forecast is uncertain (its 90% quantile is {ratio} its median)"
+    bn: "পূর্বাভাস অনিশ্চিত (৯০% কোয়ান্টাইল মধ্যমার {ratio})"
+  data_gap:
+    en: "only {arrived} of the last 24 hourly records had arrived"
+    bn: "গত ২৪ ঘণ্টার মাত্র {arrived}টি রেকর্ড এসেছে"
+  short_history:
+    en: "only {windows} past days on record"
+    bn: "রেকর্ডে মাত্র {windows} দিনের ইতিহাস"
+  anomaly:
+    en: "unusual activity on {date}: {items}"
+    bn: "{date} তারিখে অস্বাভাবিক লেনদেন: {items}"
