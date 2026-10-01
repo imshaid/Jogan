@@ -45,16 +45,17 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - 42 tests, about 1.4 s: determinism, pattern recovery (pooled seeds), calibration, sanity, leakage split
   - decisions D-013 (Eid calibration; Fitr shares Azha's because of the Nagad data gap), D-014 (public/truth split, one RNG stream per component), D-015 (profiles)
 - **M3 · Operations environment, baseline policies, status-quo history log**
-  - configs: `configs/ops/{costs,env,policies}.yaml` (typed loader `jogan/ops/config.py`, sensitivity ranges for commission and goodwill)
+  - configs: `configs/ops/{costs,env,policies}.yaml` (typed loader `jogan/ops/config.py`)
   - `jogan/ops/`:
     - `env` (event replay of every attempt, hourly policy decisions, retries, agents' bank trips, observation history with gaps)
     - `fleet` (road km, runner shifts, feasibility shared by planners and environment)
     - `dispatch` (first-free runner for calls; prioritised sector rounds in nearest-neighbour order, the greedy baseline for M5)
-    - `policies` (`none`, `reactive`, `fixed_round` = status quo, `threshold`, `safety_stock`, `oracle`), `metrics` (costs, groups, windows), `io`, CLI
+    - `policies` (`fixed_round` = status quo, `threshold`, `safety_stock`; `oracle` as upper bound), `costs` (derived prices, break-even), `metrics` (costs, groups, windows), `io`, CLI
   - **Verified online:** ANA Bangladesh survey (Helix / MicroSave, 2014): runners rebalance 96% of agents at the shop, usually at a predetermined time, plus on demand; about 22 rebalances a month; median zero denials a day. Status quo and runner visit limit (8 → 20) changed accordingly (D-016)
   - `make history PROFILE=… SEED=…` writes the status-quo log; `make baselines` compares all policies. Full profile: about 1.5 s per policy, 4 s with the log (14 MB)
-  - 88 tests in about 3 s (46 new): no negative balances, liquidity conservation, common random numbers, oracle beats every baseline on lost requests, roster and shift limits, bank hours, observation gaps and no leakage, determinism, cost split by window
-  - decisions D-016 (status quo per ANA), D-017 (environment design), D-018 (observation layer)
+  - **Cost model from real inputs (owner decision, D-019):** official 2026 petrol prices by date, a 100 cc motorcycle's claimed mileage, a 2026 bKash DSO job ad (Tk 13,000–17,000), the 48-hour legal week, agent commission Tk 4.10 per 1,000 (2022 source), BB policy rate for idle money, 2026 bank transaction hours. A lost customer's value is not priced; `make baselines` prints the break-even value against the status quo. Every number in `configs/ops/*.yaml` carries a SOURCE / DERIVED / ASSUMPTION tag, enforced by a test
+  - 89 tests in about 3 s: no negative balances, liquidity conservation, common random numbers, oracle beats each baseline on lost requests, roster and shift limits, bank hours, observation gaps and no leakage, determinism, cost derivation and break-even, cost split by window, tags on every ops number
+  - decisions D-016 (status quo per ANA), D-017 (environment design), D-018 (observation layer), D-019 (cost model, break-even, three baselines)
 
 
 ## Next
@@ -66,6 +67,11 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 - **Censoring:** hours with a stock-out under-report demand; mark them (balance near zero, failed side) and handle them explicitly; measure the bias against `truth/hourly.parquet`.
 - **Models:** LightGBM quantile regression (check the current version and API before pinning), conformalized quantile regression on the calibration split, pinball loss and coverage per quantile and agent group; simple statistical baselines; time-based backtest (splits in data assumptions §2).
 - Add `lightgbm` to the dependencies (verify the release first).
+
+**Carried into M5 and M11 (D-019):**
+- Jogan is compared with `fixed_round`, `threshold` and `safety_stock` only; the oracle is the upper bound.
+- Jogan's newsvendor takes the lost-customer value as an operator setting; the evaluation sweeps it and reports the break-even value against each baseline with paired intervals across seeds, plus the salary range.
+- `make eval` lists where Jogan does not win (baseline, agent group, period, cost setting); the report gets a section on it, plus the costs left unpriced (motorcycle wear, phone, agents' own time).
 
 **Inputs from M3:** `simulate(world, make_policy("fixed_round", world))` or the files of `make history`. `Observation`/`History` (`jogan/ops/env.py`) is the in-simulation view a Jogan policy will get in M5; a Jogan policy subclasses `Planned` in `jogan/ops/policies.py` and plans its round with `plan_rounds`.
 
@@ -101,7 +107,6 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 
 - **Organizers:** are fix pushes and redeploys allowed between 4 Oct 10:00 and the on-site start? The owner will ask. Until answered, only critical fixes in that window.
 - All service accounts below must exist before M6 (Friday evening).
-- **Owner: cost balance.** With the default costs (runner Tk 10/km + Tk 100/visit, goodwill Tk 50 per lost request), a runner visit usually costs more than the goodwill and commission it saves, so `none` has the lowest total cost in development runs. Not tuned on purpose. Options: keep the costs (Jogan's cost-aware newsvendor must then earn every visit, and the report says so), or revisit the runner cost or goodwill with a source. Decide before M5.
 
 ## Owner checklist
 
@@ -137,6 +142,6 @@ make setup   # install deps and git hooks
 make check   # lint + tests (same as CI)
 make data PROFILE=dev SEED=0   # simulated world → data/dev/seed0/
 make history PROFILE=dev SEED=0   # status-quo log → data/dev/seed0/ops/fixed_round/
-make baselines PROFILE=dev SEED=0 # compare every baseline policy
+make baselines PROFILE=dev SEED=0 # three baselines + oracle, break-even vs status quo
 make help    # list all targets
 ```
