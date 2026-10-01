@@ -20,7 +20,10 @@ from jogan.ops.fleet import Fleet, Network, Visit
 Target = Callable[[int, int], float]  # (agent, arrival time) -> cash level after the visit
 
 
-def _visit(fleet: Fleet, runner: int, agent: int, now: int, target: Target, reason: str):
+def book_visit(
+    fleet: Fleet, runner: int, agent: int, now: int, target: Target, reason: str
+) -> Visit | None:
+    """Commit ``runner`` to ``agent`` and return the visit, or ``None`` if it does not fit."""
     scheduled = fleet.commit(runner, agent, now)
     if scheduled is None:
         return None
@@ -39,7 +42,7 @@ def send_first_free(
             t = fleet.arrival(r, a, now)
             if t is not None and (best_t is None or t < best_t):
                 best, best_t = r, t
-        if best_t is not None and (v := _visit(fleet, best, a, now, target, reason)):
+        if best_t is not None and (v := book_visit(fleet, best, a, now, target, reason)):
             out.append(v)
     return out
 
@@ -81,5 +84,5 @@ def plan_rounds(
             while route and not fleet.route_fits(r, route, now):
                 sector.remove(max(sector, key=rank.__getitem__))
                 route = nearest_neighbour(net, fleet.loc[r], sector)
-            out += [v for a in route if (v := _visit(fleet, r, a, now, target, reason))]
+            out += [v for a in route if (v := book_visit(fleet, r, a, now, target, reason))]
     return out

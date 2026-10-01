@@ -12,13 +12,11 @@ from jogan.forecast.__main__ import main as forecast_main
 from jogan.forecast.backtest import (
     Dataset,
     Forecaster,
-    build_dataset,
     censoring_report,
     evaluate,
     fit_forecaster,
     predict_all,
     split_of_origins,
-    truth_panels,
 )
 from jogan.forecast.config import SPLITS, load_forecast_config
 from jogan.forecast.features import build_features, nan_quantiles, origin_grid
@@ -27,45 +25,11 @@ from jogan.forecast.panel import NEVER, Panel, panel_from_frame, panel_from_hist
 from jogan.forecast.targets import drain_path, peak_drains
 from jogan.ops.__main__ import main as ops_main
 from jogan.ops.env import Episode
-from jogan.ops.io import observed_hourly, truth_hourly_frame
-from jogan.ops.policies import STATUS_QUO
+from jogan.ops.io import observed_hourly
 from jogan.sim.__main__ import main as sim_main
 from jogan.sim.config import CONFIG_DIR
 from jogan.sim.world import World
 from tests.test_ops_costs import _untagged
-
-FAST = {"lightgbm": {"num_boost_round": 30, "num_threads": 4}}
-
-
-@pytest.fixture(scope="session")
-def tiny_episode(tiny_episodes: dict[str, Episode]) -> Episode:
-    return tiny_episodes[STATUS_QUO]
-
-
-@pytest.fixture(scope="session")
-def tiny_panel(tiny_episode: Episode) -> Panel:
-    ep = tiny_episode
-    ids = ep.ctx.agents["agent_id"].tolist()
-    return panel_from_frame(observed_hourly(ep), ids, ep.world.config.start, ep.n_hours)
-
-
-@pytest.fixture(scope="session")
-def tiny_truth(tiny_episode: Episode) -> dict:
-    ep = tiny_episode
-    ids = ep.ctx.agents["agent_id"].tolist()
-    return truth_panels(truth_hourly_frame(ep), ids, ep.world.config.start, ep.n_hours)
-
-
-@pytest.fixture(scope="session")
-def tiny_dataset(tiny_world: World, tiny_panel: Panel) -> Dataset:
-    cfg = load_forecast_config(FAST)
-    w = tiny_world
-    return build_dataset(tiny_panel, w.calendar, w.agents, cfg, cfg.splits["tiny"], w.config.start)
-
-
-@pytest.fixture(scope="session")
-def tiny_forecaster(tiny_dataset: Dataset) -> Forecaster:
-    return fit_forecaster(tiny_dataset)
 
 
 def test_forecast_config_loads_and_validates() -> None:
