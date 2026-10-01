@@ -1,7 +1,7 @@
 # Jogan API image for Cloud Run (DECISIONS.md D-022).
 # The demo bundle (world, forecaster, every test day's plan) is rebuilt from its seed during
 # the build, so no data or model file is ever committed (D-002 #7).
-FROM python:3.12-slim-trixie
+FROM python:3.14-slim-trixie
 
 # LightGBM needs the OpenMP runtime
 RUN apt-get update \
