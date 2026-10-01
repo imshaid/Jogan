@@ -5,7 +5,7 @@ UV ?= uv
 PROFILE ?= dev
 SEED ?= 0
 
-.PHONY: help setup lint format test check data history baselines forecast eval bundle api clean
+.PHONY: help setup lint format test check data history baselines forecast eval bundle api test-db clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -24,6 +24,9 @@ format: ## Auto-format and apply safe lint fixes
 
 test: ## Run the test suite
 	$(UV) run pytest
+
+test-db: ## Apply the Supabase migrations to a throwaway Postgres and check RLS and audit (Docker)
+	bash scripts/test-db.sh
 
 check: lint test ## Lint and tests (same as CI)
 
