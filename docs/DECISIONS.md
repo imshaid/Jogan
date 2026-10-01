@@ -61,3 +61,15 @@ Sources: <https://github.com/gitleaks/gitleaks-action>, <https://docs.github.com
 
 Use the new `sb_publishable_…` key (browser, RLS applies) and `sb_secret_…` key (server only, bypasses RLS). Supabase documents the legacy `anon` and `service_role` keys as deprecated by the end of 2026.
 Source: <https://supabase.com/docs/guides/api/api-keys>.
+
+## D-010 · 2026-10-01 · Simulation calendar, splits and seeds
+
+The simulator runs on the real 2026 Bangladesh calendar. In the `full` profile (5 Jan → 3 Jun 2026), training includes Eid-ul-Fitr and the held-out test window includes Eid-ul-Azha. This is an honest test of whether festival effects generalise, and it is partly out of distribution by design (cattle markets). Development uses seeds 0–9 and the final evaluation uses seeds 1000–1009, so the method is never tuned to the worlds it is scored on. Details: [`02-data-assumptions.md`](02-data-assumptions.md) §2.
+
+## D-011 · 2026-10-01 · Calibrate the simulator to official aggregates
+
+Mean ticket sizes, the cash-out/cash-in count ratio and the Eid-month uplift are tuned to Bangladesh Bank's MFS transaction table (`tab9`, monthly, "Amount in million Tk"). The targets are stored with their source in `configs/calibration/` and recomputed in code, not typed by hand. Hub coordinates and Bangla district names come from `nuhil/bangladesh-geocode` (MIT).
+
+## D-012 · 2026-10-01 · Six territories
+
+The territories are Dhaka (urban), Gazipur (industrial payday), Cumilla and Sylhet (top remittance districts per BB data for March 2026), Rangpur (rural hat economy) and Kurigram (remote, flood-prone). Together they cover the demand patterns that make rebalancing hard. Reasons per territory: [`02-data-assumptions.md`](02-data-assumptions.md) §3.
