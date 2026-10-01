@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-01, end of M3._
+_Last updated: 2026-10-01, end of M4._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -57,23 +57,37 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - 89 tests in about 3 s: no negative balances, liquidity conservation, common random numbers, oracle beats each baseline on lost requests, roster and shift limits, bank hours, observation gaps and no leakage, determinism, cost derivation and break-even, cost split by window, tags on every ops number
   - decisions D-016 (status quo per ANA), D-017 (environment design), D-018 (observation layer), D-019 (cost model, break-even, three baselines)
 
+- **M4 · Features (leakage test), quantile forecast, CQR, backtest, censoring**
+  - config: `configs/forecast/base.yaml` (typed loader `jogan/forecast/config.py`; origins, horizons, quantile levels, splits per profile, censoring, conformal groups, LightGBM settings; every number tagged, enforced by a test)
+  - `jogan/forecast/`:
+    - `panel` (observed log as agents × hours arrays with each record's arrival hour; from the parquet log or from a running simulation's `History`, identical by test)
+    - `targets` (peak cumulative drain per side, stock-out flags, estimated demand with `impute`/`ignore`/`drop`)
+    - `features` (41 features from records usable at each origin; the empirical and naive baselines on the way)
+    - `model` (one LightGBM quantile booster per horizon, side and level on `log1p`; asymmetric CQR per setting × size class; P(stock-out) from the grid)
+    - `backtest` (time-based splits, fit, scores against estimated labels and true demand), CLI
+  - **Verified online:** LightGBM 4.7.0 (PyPI, 18 Jul 2026, MIT; pandas 3 support in its release notes; quantile objective, `deterministic`, `force_row_wise` in the parameter docs); CQR Theorem 2 (Romano, Patterson and Candès, arXiv:1905.03222)
+  - `make forecast PROFILE=… SEED=…` (after `make history`) writes `data/<p>/seed<n>/forecast/metrics_<strategy>.json`; `--censoring ignore|drop` for the ablations. Full profile: about 70 s per seed (fit about 60 s)
+  - **Censoring:** served flows understate the true 24-hour peak drain by about a quarter to a third on development seeds; estimated-demand labels bring that to a few percent. Thresholds chosen on development seed 0 only. Ablation (full, seed 0): `impute` keeps the 90% interval near nominal against true demand, `ignore` under-covers at 24 h, `drop` is worst (selection bias) (D-020)
+  - 106 tests in about 8 s (17 new): leakage by perturbing every record that arrives after the origin, no truth columns, log panel = in-simulation panel, splits, hand-checked peak drain, censoring flags and bias, conformal coverage on synthetic data with group fallback, monotone quantiles, P(stock-out), determinism, CLI
+  - decision D-020 (labels from estimated demand, leak-free features, liquidity total only, asymmetric CQR in log space, hourly resolution, runtime)
+
 
 ## Next
 
-**M4 · Features (leakage test), quantile forecast, CQR, backtest, censoring** (budget 4 h)
+**M5 · Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval`** (budget 3.5 h)
 
-- **Features** from `ops/fixed_round/obs/` only, respecting `available_at`: recent served flows per side, balances, calendar (weekday, payday, days to Eid, bank-open, Ramadan), agent master data, hat days. A leakage test (no feature uses a record after the forecast origin, no truth column).
-- **Target:** peak cumulative drain of cash and of e-float over 6/12/24 h from the forecast origin (D-002 #3), from served flows.
-- **Censoring:** hours with a stock-out under-report demand; mark them (balance near zero, failed side) and handle them explicitly; measure the bias against `truth/hourly.parquet`.
-- **Models:** LightGBM quantile regression (check the current version and API before pinning), conformalized quantile regression on the calibration split, pinball loss and coverage per quantile and agent group; simple statistical baselines; time-based backtest (splits in data assumptions §2).
-- Add `lightgbm` to the dependencies (verify the release first).
+- **Jogan policy** (subclass of `Planned` in `jogan/ops/policies.py`): at the plan hour, build features with `build_features(panel_from_history(obs.history), ctx.calendar, ctx.agents, cfg, np.array([obs.hour]))`, predict calibrated quantiles with `Forecaster.models[h, side].predict(x, groups)`, pick the newsvendor level from the critical ratio, and plan the round.
+- **Newsvendor:** the underage cost includes the lost-customer value as an operator setting (D-019); the quantile grid is 0.05–0.99, so interpolate between levels for the critical ratio.
+- **Training per seed:** fit on the status-quo log's training split, calibrate on its calibration split, compare policies on the test split only (D-010). Evaluation seeds 1000–1009 are never used for tuning.
+- **Dispatch:** MILP runner assignment (HiGHS; verify the current release and API first) against the greedy `plan_rounds` baseline; ablation: Jogan forecast + greedy dispatch.
+- **`make eval`** writes `artifacts/metrics.json`: the forecast metrics (from `jogan.forecast.backtest.evaluate`) and the policy comparison, with paired intervals across seeds, the break-even value against each baseline and the salary range, a fairness table, and the list of cases where Jogan does not win.
 
 **Carried into M5 and M11 (D-019):**
 - Jogan is compared with `fixed_round`, `threshold` and `safety_stock` only; the oracle is the upper bound.
 - Jogan's newsvendor takes the lost-customer value as an operator setting; the evaluation sweeps it and reports the break-even value against each baseline with paired intervals across seeds, plus the salary range.
 - `make eval` lists where Jogan does not win (baseline, agent group, period, cost setting); the report gets a section on it, plus the costs left unpriced (motorcycle wear, phone, agents' own time).
 
-**Inputs from M3:** `simulate(world, make_policy("fixed_round", world))` or the files of `make history`. `Observation`/`History` (`jogan/ops/env.py`) is the in-simulation view a Jogan policy will get in M5; a Jogan policy subclasses `Planned` in `jogan/ops/policies.py` and plans its round with `plan_rounds`.
+**Inputs from M4:** `jogan.forecast.backtest.build_dataset` / `fit_forecaster` / `evaluate`; `jogan.forecast.model.stockout_probability`; the forecast is hourly-resolution and of demand, with live balances entering only in P(stock-out) and the newsvendor (D-020). The Eid-ul-Azha test window is scored separately (`periods.eid`).
 
 ## Milestone plan
 
@@ -83,8 +97,8 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M1 | Logic chain, requirements checklist, data assumptions | 1.5 h | Thu 20:30 | done |
 | M2 | World simulator, data profiles, tests | 3.5 h | Fri 2 Oct 00:30 | done |
 | M3 | Operations environment, baseline policies, status-quo history log | 3.5 h | Fri 11:30 | done |
-| M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | next |
-| M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | |
+| M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | done |
+| M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | next |
 | M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | |
 | M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | |
 | M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | |
@@ -143,5 +157,6 @@ make check   # lint + tests (same as CI)
 make data PROFILE=dev SEED=0   # simulated world → data/dev/seed0/
 make history PROFILE=dev SEED=0   # status-quo log → data/dev/seed0/ops/fixed_round/
 make baselines PROFILE=dev SEED=0 # three baselines + oracle, break-even vs status quo
+make forecast PROFILE=dev SEED=0  # drain forecast backtest → data/dev/seed0/forecast/
 make help    # list all targets
 ```
