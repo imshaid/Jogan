@@ -7,7 +7,7 @@ Layout of ``data/<profile>/seed<seed>/ops/<policy>/``::
                              ``available_at``; agent-hours lost by the data feed are absent
     obs/visits.parquet       runner visits as the distributor logs them
     obs/refills.parquet      agents' own bank trips, seen by upay as e-float transfers
-    obs/runner_days.parquet  runner duty, visits and km per day
+    obs/runner_days.parquet  runner duty, visits, km and busy minutes per day
     truth/hourly.parquet     every request and lost request, true balances
 
 Feature code reads ``obs/`` only; ``truth/`` is for evaluation (D-014).
@@ -119,6 +119,7 @@ def runner_days_frame(ep: Episode) -> pd.DataFrame:
             "on_duty": d["on_duty"].to_numpy(dtype=bool),
             "visits": d["visits"].to_numpy(dtype=np.int16),
             "km": d["km"].to_numpy(dtype=float).round(3),
+            "busy_min": d["busy_min"].to_numpy(dtype=float).round(2),
         }
     )
 

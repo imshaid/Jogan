@@ -280,7 +280,7 @@ def simulate(world: World, policy: Policy, ops: OpsConfig | None = None) -> Epis
     trips = [0] * n
     visits: list[dict] = []
     refills: list[dict] = []
-    runner_days: list[tuple[int, int, bool, int, float]] = []
+    runner_days: list[tuple[int, int, bool, int, float, float]] = []
     rejected = 0
     co_n = co_tk = ci_n = ci_tk = [0] * n
 
@@ -351,8 +351,8 @@ def simulate(world: World, policy: Policy, ops: OpsConfig | None = None) -> Epis
         check_refill(a, t)
 
     def close_day(day: int) -> None:
-        for r, km in enumerate(fleet.end_day()):
-            runner_days.append((r, day, fleet.on_duty[r], fleet.visits[r], km))
+        for r, (km, busy_s) in enumerate(fleet.end_day()):
+            runner_days.append((r, day, fleet.on_duty[r], fleet.visits[r], km, busy_s / 60))
 
     policy.reset(ctx)
     for h in range(n_hours):
@@ -445,6 +445,8 @@ def simulate(world: World, policy: Policy, ops: OpsConfig | None = None) -> Epis
             ],
         ),
         refills=pd.DataFrame(refills, columns=["t", "agent", "cash_delta"]),
-        runner_days=pd.DataFrame(runner_days, columns=["runner", "day", "on_duty", "visits", "km"]),
+        runner_days=pd.DataFrame(
+            runner_days, columns=["runner", "day", "on_duty", "visits", "km", "busy_min"]
+        ),
         rejected=rejected,
     )

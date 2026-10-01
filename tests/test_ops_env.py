@@ -7,10 +7,11 @@ import pytest
 from pydantic import ValidationError
 
 from jogan.ops.config import load_ops_config
+from jogan.ops.costs import commission_rate
 from jogan.ops.env import LOST, SERVED, SERVED_ON_RETRY, Episode, simulate
 from jogan.ops.io import observed_hourly, visits_frame
 from jogan.ops.metrics import summarize, truth_hourly
-from jogan.ops.policies import BASELINES, make_policy
+from jogan.ops.policies import POLICIES, STATUS_QUO, make_policy
 from jogan.sim.world import World
 
 
@@ -19,19 +20,22 @@ def test_ops_config_loads_and_validates() -> None:
     assert ops.config_hash() == load_ops_config().config_hash()
     assert ops.env.retry.prob == 0.0
     with pytest.raises(ValidationError):
-        load_ops_config({"costs": {"goodwill_per_lost_tk": -1}})
+        load_ops_config({"costs": {"agent_commission_per_1000_tk": {"CO": -1}}})
     with pytest.raises(ValidationError):
-        load_ops_config({"costs": {"sensitivity": {"goodwill_per_lost_tk": [200, 0]}}})
+        load_ops_config({"costs": {"runner": {"salary_tk_per_month": [17000, 13000]}}})
+    unordered = [["2026-02-01", 116], ["2026-01-01", 118]]
+    with pytest.raises(ValidationError):
+        load_ops_config({"costs": {"runner": {"petrol_tk_per_litre": unordered}}})
 
 
-@pytest.mark.parametrize("policy", BASELINES)
+@pytest.mark.parametrize("policy", POLICIES)
 def test_balances_never_go_negative(tiny_episodes: dict[str, Episode], policy: str) -> None:
     ep = tiny_episodes[policy]
     assert ep.cash.min() >= 0
     assert ep.efloat.min() >= 0
 
 
-@pytest.mark.parametrize("policy", BASELINES)
+@pytest.mark.parametrize("policy", POLICIES)
 def test_liquidity_is_conserved(tiny_episodes: dict[str, Episode], policy: str) -> None:
     """Customers, visits and bank trips only move money between cash and e-float."""
     ep = tiny_episodes[policy]
@@ -45,7 +49,7 @@ def test_liquidity_is_conserved(tiny_episodes: dict[str, Episode], policy: str) 
 def test_every_policy_faces_the_same_customers(
     tiny_world: World, tiny_episodes: dict[str, Episode]
 ) -> None:
-    first = tiny_episodes["none"]
+    first = tiny_episodes[STATUS_QUO]
     assert np.array_equal(np.sort(first.row), np.arange(len(tiny_world.demand)))
     requests = {k: v for k, v in truth_hourly(first).items() if k.startswith("req")}
     for ep in tiny_episodes.values():
@@ -55,7 +59,7 @@ def test_every_policy_faces_the_same_customers(
             assert np.array_equal(truth_hourly(ep)[name], panel), name
 
 
-@pytest.mark.parametrize("policy", BASELINES)
+@pytest.mark.parametrize("policy", POLICIES)
 def test_outcomes_match_the_observed_ledger(tiny_episodes: dict[str, Episode], policy: str) -> None:
     ep = tiny_episodes[policy]
     assert set(np.unique(ep.outcome)) <= {LOST, SERVED, SERVED_ON_RETRY}
@@ -71,7 +75,7 @@ def test_outcomes_match_the_observed_ledger(tiny_episodes: dict[str, Episode], p
     assert s["lost"] == (ep.outcome == LOST).sum()
 
 
-@pytest.mark.parametrize("policy", BASELINES)
+@pytest.mark.parametrize("policy", POLICIES)
 def test_runner_visits_respect_the_roster_and_shift(
     tiny_world: World, tiny_episodes: dict[str, Episode], policy: str
 ) -> None:
@@ -90,13 +94,7 @@ def test_runner_visits_respect_the_roster_and_shift(
     assert (codes[terr[v["agent"].to_numpy(dtype=int)]] == runner_terr[v["runner"]]).all()
 
 
-def test_no_runner_policy_sends_nobody(tiny_episodes: dict[str, Episode]) -> None:
-    ep = tiny_episodes["none"]
-    assert ep.visits.empty
-    assert summarize(ep)["cost_tk"]["runner"] == 0
-
-
-@pytest.mark.parametrize("policy", BASELINES)
+@pytest.mark.parametrize("policy", POLICIES)
 def test_self_refills_only_in_bank_hours(
     tiny_world: World, tiny_episodes: dict[str, Episode], policy: str
 ) -> None:
@@ -131,7 +129,7 @@ def test_observation_log_hides_failures_and_has_gaps(tiny_episodes: dict[str, Ep
 
 
 def test_history_never_shows_the_future(tiny_episodes: dict[str, Episode]) -> None:
-    hist = tiny_episodes["none"].history
+    hist = tiny_episodes[STATUS_QUO].history
     now = 30 * 24 // 2
     visible = hist.available(now, 0, hist.missing.shape[1])
     assert not visible[:, now:].any()
@@ -163,9 +161,9 @@ def test_costs_add_up_and_split_by_window(tiny_episodes: dict[str, Episode]) -> 
     ep = tiny_episodes["fixed_round"]
     whole = summarize(ep)
     cost = whole["cost_tk"]
-    parts = ("lost_commission", "goodwill", "runner", "idle_liquidity")
-    assert cost["total"] == pytest.approx(sum(cost[p] for p in parts), abs=0.05)
-    rates = ep.ctx.ops.costs.commission_rate
+    parts = ("lost_commission", "runner_fuel", "runner_time", "idle_liquidity")
+    assert cost["known_total"] == pytest.approx(sum(cost[p] for p in parts), abs=0.05)
+    rates = commission_rate(ep.ctx.ops.costs)
     lost_tk = whole["service"]["lost_tk"]
     assert cost["lost_commission"] == pytest.approx(
         lost_tk["CO"] * rates["CO"] + lost_tk["CI"] * rates["CI"], abs=0.01

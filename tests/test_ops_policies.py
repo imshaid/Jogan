@@ -11,7 +11,7 @@ from jogan.ops.__main__ import main
 from jogan.ops.env import Context, Episode, Observation, simulate
 from jogan.ops.fleet import Visit
 from jogan.ops.metrics import summarize
-from jogan.ops.policies import BASELINES, STATUS_QUO, Reactive, make_policy
+from jogan.ops.policies import BASELINES, POLICIES, STATUS_QUO, UPPER_BOUND, Planned, make_policy
 from jogan.sim.config import load_config
 from jogan.sim.world import World, build_world
 
@@ -21,15 +21,11 @@ def test_oracle_loses_fewer_requests_than_every_baseline(seed: int) -> None:
     world = build_world(load_config("tiny"), seed)
     lost = {
         name: summarize(simulate(world, make_policy(name, world)))["service"]["lost"]
-        for name in BASELINES
+        for name in POLICIES
     }
-    oracle = lost.pop("oracle")
+    oracle = lost.pop(UPPER_BOUND)
+    assert set(lost) == set(BASELINES)
     assert oracle < min(lost.values())
-
-
-def test_runners_reduce_lost_requests(tiny_episodes: dict[str, Episode]) -> None:
-    lost = {name: summarize(ep)["service"]["lost"] for name, ep in tiny_episodes.items()}
-    assert all(lost[name] < lost["none"] for name in BASELINES if name != "none")
 
 
 def test_status_quo_rarely_turns_customers_away(tiny_episodes: dict[str, Episode]) -> None:
@@ -46,7 +42,7 @@ def test_fixed_round_reaches_every_agent(tiny_episodes: dict[str, Episode]) -> N
     assert {"round", "call"} <= set(v["reason"])
 
 
-class _Spy(Reactive):
+class _Spy(Planned):
     """Records what the environment hands a policy."""
 
     name = "spy"
@@ -79,8 +75,9 @@ def test_policies_see_no_ground_truth_or_future(tiny_world: World) -> None:
 
 
 def test_unknown_policy_is_rejected(tiny_world: World) -> None:
-    with pytest.raises(ValueError, match="unknown policy"):
-        make_policy("jogan", tiny_world)
+    for name in ("jogan", "none", "reactive"):
+        with pytest.raises(ValueError, match="unknown policy"):
+            make_policy(name, tiny_world)
 
 
 def test_cli_writes_the_status_quo_log(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:

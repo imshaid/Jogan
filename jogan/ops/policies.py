@@ -1,26 +1,27 @@
 """Baseline runner-dispatch policies and the perfect-foresight oracle.
 
-Every policy works with the same runners, the same agents' own bank trips and the same
-dispatch helpers; they differ only in which agents get a visit and what cash level it aims for:
+Jogan is compared with three baselines (D-019); the oracle is an upper bound, not a rival.
+Every policy works with the same runners, the same agents' own bank trips, the same call
+handling and the same dispatch helpers; they differ only in the morning round:
 
-- ``none``: no runners; agents refill only by themselves at banks.
-- ``reactive``: an agent calls when a side falls below ``call_days`` of a typical day, and the
-  runner that can arrive first goes, aiming for a balanced split.
 - ``fixed_round`` (the status quo): each runner visits its own agents on a fixed cycle at a
-  predetermined time and answers calls, as the ANA Bangladesh survey describes (D-016).
-- ``threshold``: a morning round to agents below ``min_days`` of cover, plus calls.
-- ``safety_stock``: a morning round to agents whose balance is below the mean + k·sd of their
-  past peak 24-hour drain, plus calls.
-- ``oracle``: a morning round planned with perfect knowledge of every customer attempt, plus
-  calls. An upper bound for the forecast, never deployable.
+  predetermined time, as the ANA Bangladesh survey describes (D-016).
+- ``threshold``: a round to agents below ``min_days`` of cover on either side.
+- ``safety_stock``: a round to agents whose balance is below the mean + k·sd of their past
+  peak 24-hour drain.
+- ``oracle``: a round planned with perfect knowledge of every customer attempt. Never
+  deployable.
 
-Morning rounds keep ``call_reserve_visits`` per runner free for calls.
+Calls: an agent whose cover falls below ``call_days`` of its typical day calls, and the runner
+that can arrive first goes. Morning rounds keep ``call_reserve_visits`` per runner free for them.
 
 Policies read only the :class:`~jogan.ops.env.Observation` (served transactions, balances,
 runner state). The oracle alone is handed the true demand, on purpose.
 """
 
 from __future__ import annotations
+
+from statistics import NormalDist
 
 import numpy as np
 
@@ -29,8 +30,10 @@ from jogan.ops.env import Context, Observation
 from jogan.ops.fleet import HUB, Visit, route_seconds
 from jogan.sim.world import World
 
-BASELINES = ("none", "reactive", "fixed_round", "threshold", "safety_stock", "oracle")
+BASELINES = ("fixed_round", "threshold", "safety_stock")
 STATUS_QUO = "fixed_round"
+UPPER_BOUND = "oracle"
+POLICIES = (*BASELINES, UPPER_BOUND)
 
 
 def _by_priority(mask: np.ndarray, score: np.ndarray) -> np.ndarray:
@@ -86,10 +89,10 @@ def balanced_target(obs: Observation, typ_co: np.ndarray, typ_ci: np.ndarray) ->
     return total * typ_co / (typ_co + typ_ci)
 
 
-class NoRunners:
-    """No runner dispatch: agents only refill themselves at banks."""
+class Planned:
+    """A morning round at ``plan_hour`` (:meth:`plan`), then calls answered with what is left."""
 
-    name = "none"
+    name = "planned"
 
     def reset(self, ctx: Context) -> None:
         self.ctx = ctx
@@ -97,37 +100,21 @@ class NoRunners:
         self.typical = Typical(ctx)
 
     def decide(self, obs: Observation) -> list[Visit]:
+        visits = self.plan(obs) if obs.hour_of_day == self.params.plan_hour else []
+        return visits + self.calls(obs, {v.agent for v in visits})
+
+    def plan(self, obs: Observation) -> list[Visit]:
         return []
-
-
-class Reactive(NoRunners):
-    """Status quo: the agent calls when nearly out, and the first runner that can make it goes."""
-
-    name = "reactive"
-
-    def decide(self, obs: Observation) -> list[Visit]:
-        return self.calls(obs, set())
 
     def calls(self, obs: Observation, booked: set[int]) -> list[Visit]:
         if not self.params.plan_hour <= obs.hour_of_day < obs.fleet.shift[1]:
             return []
         typ_co, typ_ci = self.typical(obs)
         cover = np.minimum(obs.cash_est / typ_co, obs.efloat / typ_ci)
-        low = cover < self.params.reactive.call_days
+        low = cover < self.params.calls.call_days
         due = [a for a in _by_priority(low & ~obs.pending, cover) if a not in booked]
         target = balanced_target(obs, typ_co, typ_ci)
         return send_first_free(due, obs.fleet, obs.t, lambda a, _: target[a])
-
-
-class Planned(Reactive):
-    """A morning round at ``plan_hour``, then calls answered with the capacity left."""
-
-    def decide(self, obs: Observation) -> list[Visit]:
-        visits = self.plan(obs) if obs.hour_of_day == self.params.plan_hour else []
-        return visits + self.calls(obs, {v.agent for v in visits})
-
-    def plan(self, obs: Observation) -> list[Visit]:
-        raise NotImplementedError
 
     def rounds(self, obs: Observation, agents, target) -> list[Visit]:
         reserve = self.params.call_reserve_visits
@@ -232,7 +219,7 @@ class SafetyStock(Planned):
                 k = np.maximum(days, 1)
                 mean = (peak * complete).sum(axis=1) / k
                 var = (((peak - mean[:, None]) ** 2) * complete).sum(axis=1) / np.maximum(k - 1, 1)
-                need[:] = mean + p.k * np.sqrt(var)
+                need[:] = mean + NormalDist().inv_cdf(p.service_level) * np.sqrt(var)
 
         typ_co, typ_ci = self.typical(obs)
         cover = np.minimum(cash / typ_co, ef / typ_ci)
@@ -256,9 +243,9 @@ class SafetyStock(Planned):
 class Oracle(Planned):
     """Perfect foresight of every customer attempt over ``horizon_hours``.
 
-    An agent is visited when its true balance would fail some attempt in the horizon, highest
-    avoidable loss first. The visit aims for the middle of the band of cash levels that serve
-    every attempt from the runner's arrival onwards (or the best split when no level can).
+    An agent is visited when its true balance would fail some attempt in the horizon, most lost
+    requests first (then most Tk). The visit aims for the middle of the band of cash levels that
+    serve every attempt from the runner's arrival onwards (or the best split when none can).
     """
 
     name = "oracle"
@@ -289,11 +276,9 @@ class Oracle(Planned):
         drain = self._p[i0 + 1 : i1 + 1] - self._p[i0]
         return max(0, int(drain.max())), max(0, -int(drain.min()))
 
-    def _loss(self, a: int, cash: int, ef: int, t0: int, t1: int) -> float:
-        """Commission and goodwill lost between ``t0`` and ``t1`` without any visit."""
-        costs = self.ctx.ops.costs
-        rate_co, rate_ci = costs.commission_rate["CO"], costs.commission_rate["CI"]
-        loss = 0.0
+    def _loss(self, a: int, cash: int, ef: int, t0: int, t1: int) -> tuple[int, int]:
+        """Requests and Tk lost between ``t0`` and ``t1`` if no runner comes."""
+        lost, lost_tk = 0, 0
         i0, i1 = self._span(a, t0, t1)
         for x, co in zip(self._x[i0:i1].tolist(), self._co[i0:i1].tolist(), strict=True):
             if co and cash >= x:
@@ -301,8 +286,8 @@ class Oracle(Planned):
             elif not co and ef >= x:
                 cash, ef = cash + x, ef - x
             else:
-                loss += x * (rate_co if co else rate_ci) + costs.goodwill_per_lost_tk
-        return loss
+                lost, lost_tk = lost + 1, lost_tk + x
+        return lost, lost_tk
 
     def plan(self, obs: Observation) -> list[Visit]:
         horizon = self.params.oracle.horizon_hours * 3600
@@ -313,7 +298,8 @@ class Oracle(Planned):
             cash, ef = int(obs.cash_est[a]), int(obs.efloat[a])
             need_c, need_e = self._peaks(a, t0, t0 + horizon)
             if cash < need_c or ef < need_e:
-                scored.append((-self._loss(a, cash, ef, t0, t0 + horizon), a))
+                lost, lost_tk = self._loss(a, cash, ef, t0, t0 + horizon)
+                scored.append((-lost, -lost_tk, a))
         scored.sort()
 
         def target(a: int, arrive: int) -> float:
@@ -323,21 +309,14 @@ class Oracle(Planned):
                 return (need_c + liquidity - need_e) / 2
             return liquidity * need_c / (need_c + need_e)
 
-        return self.rounds(obs, [a for _, a in scored], target)
+        return self.rounds(obs, [a for *_, a in scored], target)
 
 
-def make_policy(name: str, world: World) -> NoRunners:
-    """A fresh baseline policy by name (see ``BASELINES``)."""
-    simple = {
-        "none": NoRunners,
-        "reactive": Reactive,
-        "fixed_round": FixedRound,
-        "threshold": Threshold,
-    }
-    if name in simple:
-        return simple[name]()
-    if name == "safety_stock":
-        return SafetyStock()
-    if name == "oracle":
+def make_policy(name: str, world: World) -> Planned:
+    """A fresh policy by name (see ``POLICIES``)."""
+    policies = {"fixed_round": FixedRound, "threshold": Threshold, "safety_stock": SafetyStock}
+    if name in policies:
+        return policies[name]()
+    if name == UPPER_BOUND:
         return Oracle(world)
-    raise ValueError(f"unknown policy {name!r}; choose from {BASELINES}")
+    raise ValueError(f"unknown policy {name!r}; choose from {POLICIES}")

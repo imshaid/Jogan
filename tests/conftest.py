@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from jogan.ops.env import Episode, simulate
-from jogan.ops.policies import BASELINES, make_policy
+from jogan.ops.policies import POLICIES, make_policy
 from jogan.sim.config import load_config
 from jogan.sim.world import World, build_world
 
@@ -41,5 +41,5 @@ def normal_demand(world: World | list[World]) -> pd.DataFrame:
 
 @pytest.fixture(scope="session")
 def tiny_episodes(tiny_world: World) -> dict[str, Episode]:
-    """Every baseline policy run once on the tiny world (seed 0)."""
-    return {name: simulate(tiny_world, make_policy(name, tiny_world)) for name in BASELINES}
+    """Every baseline and the oracle, run once on the tiny world (seed 0)."""
+    return {name: simulate(tiny_world, make_policy(name, tiny_world)) for name in POLICIES}

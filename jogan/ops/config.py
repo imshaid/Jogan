@@ -7,6 +7,7 @@ simulator config (``configs/sim/base.yaml``), because the world's roster depends
 
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 from pathlib import Path
 from typing import Annotated, Any, Self
@@ -15,8 +16,10 @@ from pydantic import Field, model_validator
 
 from jogan.sim.config import (
     CONFIG_DIR,
+    SETTINGS,
     Positive,
     Prob,
+    Setting,
     Strict,
     TxType,
     _merge,
@@ -31,8 +34,20 @@ NonNeg = Annotated[float, Field(ge=0.0)]
 
 
 class RunnerCost(Strict):
-    per_km_tk: NonNeg
-    per_visit_tk: NonNeg
+    petrol_tk_per_litre: list[tuple[dt.date, Positive]]
+    km_per_litre: dict[Setting, Positive]
+    salary_tk_per_month: tuple[Positive, Positive]
+    hours_per_week: Positive
+
+    @model_validator(mode="after")
+    def _valid(self) -> Self:
+        dates = [d for d, _ in self.petrol_tk_per_litre]
+        if not dates or dates != sorted(set(dates)):
+            raise ValueError("petrol prices need strictly increasing dates")
+        if set(self.km_per_litre) != set(SETTINGS):
+            raise ValueError(f"km_per_litre must cover {SETTINGS}")
+        _ordered_pair(self.salary_tk_per_month, "salary_tk_per_month")
+        return self
 
 
 class IdleCost(Strict):
@@ -40,24 +55,13 @@ class IdleCost(Strict):
     need_days: NonNeg
 
 
-class Sensitivity(Strict):
-    commission_rate: dict[TxType, tuple[float, float]]
-    goodwill_per_lost_tk: tuple[float, float]
-
-    @model_validator(mode="after")
-    def _ranges(self) -> Self:
-        for side, pair in self.commission_rate.items():
-            _ordered_pair(pair, f"commission_rate.{side}")
-        _ordered_pair(self.goodwill_per_lost_tk, "goodwill_per_lost_tk")
-        return self
-
-
 class Costs(Strict):
-    commission_rate: dict[TxType, Prob]
-    goodwill_per_lost_tk: NonNeg
+    """Prices behind the total liquidity cost; each value is tagged in ``costs.yaml``."""
+
+    sources: dict[str, str]
+    agent_commission_per_1000_tk: dict[TxType, NonNeg]
     runner: RunnerCost
     idle: IdleCost
-    sensitivity: Sensitivity
 
 
 # --- Environment ----------------------------------------------------------------------------
@@ -102,7 +106,7 @@ class Typical(Strict):
     cold_start_balance_days: Positive
 
 
-class Reactive(Strict):
+class Calls(Strict):
     call_days: Positive
 
 
@@ -111,7 +115,7 @@ class Threshold(Strict):
 
 
 class SafetyStock(Strict):
-    k: NonNeg
+    service_level: float = Field(gt=0.5, lt=1.0)
     history_days: int = Field(ge=1)
     min_days: int = Field(ge=1)
 
@@ -124,7 +128,7 @@ class PolicyParams(Strict):
     plan_hour: int = Field(ge=0, le=23)
     call_reserve_visits: int = Field(ge=0)
     typical: Typical
-    reactive: Reactive
+    calls: Calls
     threshold: Threshold
     safety_stock: SafetyStock
     oracle: Oracle

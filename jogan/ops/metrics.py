@@ -1,8 +1,10 @@
 """Outcomes and costs of an episode, from ground truth (evaluation code only).
 
-Total liquidity cost = lost agent commission + goodwill on lost requests + runner km and
-visits + idle liquidity (docs/02-data-assumptions.md §6). Every cost is counted after the run,
-so a different cost setting re-prices the same episode.
+Known cost = lost agent commission + runner fuel + runner time + idle liquidity, priced from
+the sourced inputs in ``configs/ops/costs.yaml`` (D-019). The value of a customer lost after a
+failed request is unknown and not priced; compare policies with
+:func:`jogan.ops.costs.break_even`. Every cost is counted after the run, so a different cost
+setting re-prices the same episode.
 """
 
 from __future__ import annotations
@@ -13,10 +15,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from jogan.ops import costs as pricing
 from jogan.ops.config import Costs
 from jogan.ops.env import LOST, SERVED_ON_RETRY, Episode
 
-HOURS_PER_YEAR = 365 * 24
+HOURS_PER_YEAR = 365 * 24  # 2026 is not a leap year
 
 
 def hour_window(ep: Episode, start: dt.date | None, end: dt.date | None) -> tuple[int, int]:
@@ -63,13 +66,24 @@ def summarize(
     lost = inside & (ep.outcome == LOST)
 
     lost_tk = {s: int(ep.amount[lost & (ep.side == i)].sum()) for i, s in enumerate(("CO", "CI"))}
-    commission = sum(lost_tk[s] * costs.commission_rate[s] for s in lost_tk)
-    goodwill = int(lost.sum()) * costs.goodwill_per_lost_tk
+    rate = pricing.commission_rate(costs)
+    commission = sum(lost_tk[s] * rate[s] for s in lost_tk)
 
     days = ep.runner_days
     days = days[(days["day"] >= h0 // 24) & (days["day"] < h1 // 24)]
     km, n_visits = float(days["km"].sum()), int(days["visits"].sum())
-    runner = km * costs.runner.per_km_tk + n_visits * costs.runner.per_visit_tk
+    busy_min = float(days["busy_min"].sum())
+    dates = ep.ctx.calendar["date"].dt.date.to_numpy()[days["day"].to_numpy(dtype=int)]
+    setting_of = dict(
+        zip(ep.ctx.territories["territory"], ep.ctx.territories["setting"], strict=True)
+    )
+    runner_setting = ep.ctx.runners["territory"].map(setting_of).to_numpy()
+    fuel = 0.0
+    for setting in np.unique(runner_setting):
+        mine = runner_setting[days["runner"].to_numpy(dtype=int)] == setting
+        tk_per_km = pricing.fuel_tk_per_km(costs, list(dates[mine]), setting)
+        fuel += float((days["km"].to_numpy()[mine] * tk_per_km).sum())
+    labour = busy_min * pricing.labour_tk_per_minute(costs)
 
     truth = ep.world.agent_truth
     need_c = costs.idle.need_days * truth["typical_co_tk"].to_numpy()[:, None]
@@ -99,7 +113,7 @@ def summarize(
     per_agent_day = np.bincount(cell, minlength=n_agents * n_days)
 
     requests = int(inside.sum())
-    total = commission + goodwill + runner + idle
+    known = commission + fuel + labour + idle
     return {
         "policy": ep.policy,
         "window": {
@@ -120,15 +134,16 @@ def summarize(
         "operations": {
             "runner_visits": n_visits,
             "runner_km": round(km, 1),
+            "runner_busy_hours": round(busy_min / 60, 1),
             "rejected_requests": ep.rejected,
             "self_refills": int(((refill_t >= h0) & (refill_t < h1)).sum()),
         },
         "cost_tk": {
             "lost_commission": round(commission, 2),
-            "goodwill": round(goodwill, 2),
-            "runner": round(runner, 2),
+            "runner_fuel": round(fuel, 2),
+            "runner_time": round(labour, 2),
             "idle_liquidity": round(idle, 2),
-            "total": round(total, 2),
+            "known_total": round(known, 2),
         },
         "groups": groups,
     }
