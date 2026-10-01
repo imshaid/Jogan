@@ -1,9 +1,20 @@
 "use client";
 
 import type { Session } from "@supabase/supabase-js";
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 
-import { ApiError, api, supabase, type AuditEntry, type Meta, type Recommendation, type Role } from "@/lib/api";
+import {
+  ApiError,
+  api,
+  supabase,
+  type AnomalyFlag,
+  type AuditEntry,
+  type Explanation,
+  type Lang,
+  type Meta,
+  type Recommendation,
+  type Role,
+} from "@/lib/api";
 import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/config";
 import { pct, riskLevel, tk, when } from "@/lib/format";
 
@@ -118,7 +129,14 @@ function Queue({ session }: { session: Session }) {
   const [day, setDay] = useState("");
   const [items, setItems] = useState<Recommendation[] | null>(null);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
+  const [flags, setFlags] = useState<AnomalyFlag[]>([]);
   const [error, setError] = useState("");
+  const [lang, setLang] = useState<Lang>("en");
+  const [open, setOpen] = useState<Record<number, boolean>>({});
+  const [reworded, setReworded] = useState<Record<string, Explanation>>({});
+  const [busy, setBusy] = useState<number | null>(null);
+  const [noteFor, setNoteFor] = useState<number | null>(null);
+  const [note, setNote] = useState("");
 
   const fail = (e: unknown) => setError(e instanceof ApiError ? e.message : String(e));
 
@@ -152,21 +170,42 @@ function Queue({ session }: { session: Session }) {
         refreshAudit();
       })
       .catch(fail);
+    api
+      .anomalies(token, day)
+      .then((r) => setFlags(r.items))
+      .catch(fail);
   }, [token, day, role, refreshAudit]);
 
-  async function decide(id: number, decision: "approved" | "rejected") {
+  async function decide(id: number, decision: "approved" | "rejected", withNote?: string) {
     setError("");
     try {
-      const updated = await api.decide(token, id, decision);
-      setItems((xs) => xs?.map((x) => (x.id === id ? updated : x)) ?? null);
+      const updated = await api.decide(token, id, decision, withNote);
+      // the queue row keeps its explanation; the decision endpoint returns the bare row
+      setItems((xs) => xs?.map((x) => (x.id === id ? { ...updated, explanation: x.explanation } : x)) ?? null);
+      setNoteFor(null);
+      setNote("");
       refreshAudit();
     } catch (e) {
       fail(e);
     }
   }
 
+  async function reword(id: number) {
+    setBusy(id);
+    setError("");
+    try {
+      const r = await api.explanation(token, id, lang);
+      setReworded((m) => ({ ...m, [`${id}:${lang}`]: r }));
+    } catch (e) {
+      fail(e);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const counts = { pending: 0, approved: 0, rejected: 0 };
   items?.forEach((x) => counts[x.status]++);
+  const flagged = items?.filter((x) => x.evidence.review?.flag).length ?? 0;
 
   return (
     <div className="space-y-4">
@@ -192,8 +231,25 @@ function Queue({ session }: { session: Session }) {
         </label>
         <span className="text-sm text-muted">
           planned at {meta ? `${String(meta.plan_hour).padStart(2, "0")}:00` : "…"} · {items?.length ?? "…"} visits ·{" "}
-          {counts.pending} pending · {counts.approved} approved · {counts.rejected} rejected
+          {counts.pending} pending · {counts.approved} approved · {counts.rejected} rejected · {flagged} for manual
+          review
         </span>
+        <div
+          role="group"
+          aria-label="Explanation language"
+          className="flex overflow-hidden rounded border border-line text-sm"
+        >
+          {(["en", "bn"] as const).map((l) => (
+            <button
+              key={l}
+              aria-pressed={lang === l}
+              className={`px-2 py-1 ${lang === l ? "bg-brand font-semibold text-white" : "bg-white"}`}
+              onClick={() => setLang(l)}
+            >
+              {l === "en" ? "English" : <span lang="bn">বাংলা</span>}
+            </button>
+          ))}
+        </div>
         <span className="ml-auto text-sm">
           {session.user.email} ·{" "}
           <strong className="rounded bg-brand-tint px-2 py-0.5 text-brand">{role ?? "no role"}</strong>{" "}
@@ -241,47 +297,145 @@ function Queue({ session }: { session: Session }) {
               </tr>
             )}
             {items?.map((r) => (
-              <tr key={r.id} className="border-t border-line">
-                <td className="px-3 py-2 font-medium">
-                  {r.agent_id}
-                  <div className="text-xs text-muted">{r.territory}</div>
-                </td>
-                <td className="px-3 py-2">{r.runner_id}</td>
-                <td className="px-3 py-2 text-right tabular-nums">
-                  {tk(r.evidence.cash_tk)}
-                  <div className="text-xs text-muted">{tk(r.evidence.efloat_tk)}</div>
-                </td>
-                <td className="px-3 py-2">
-                  <Risk label="cash" p={r.evidence.p_stockout_cash} />
-                  <Risk label="e-float" p={r.evidence.p_stockout_efloat} />
-                </td>
-                <td className="px-3 py-2 text-right tabular-nums">{tk(r.target_cash_tk)}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{tk(r.value_tk)}</td>
-                <td className="px-3 py-2">
-                  {r.status === "pending" && role === "approver" ? (
-                    <div className="flex gap-2">
-                      <button
-                        className="rounded bg-brand px-2 py-1 text-xs font-semibold text-white"
-                        onClick={() => decide(r.id, "approved")}
-                      >
-                        ✓ Approve
-                      </button>
-                      <button
-                        className="rounded border border-line px-2 py-1 text-xs font-semibold"
-                        onClick={() => decide(r.id, "rejected")}
-                      >
-                        ✕ Reject
-                      </button>
-                    </div>
-                  ) : (
-                    <StatusTag status={r.status} />
-                  )}
-                </td>
-              </tr>
+              <Fragment key={r.id}>
+                <tr className="border-t border-line">
+                  <td className="px-3 py-2 font-medium">
+                    {r.agent_id}
+                    <div className="text-xs text-muted">{r.territory}</div>
+                    {r.evidence.review?.flag && <ReviewTag />}
+                    <button
+                      className="mt-1 block text-xs text-brand underline"
+                      aria-expanded={!!open[r.id]}
+                      aria-controls={`why-${r.id}`}
+                      onClick={() => setOpen((o) => ({ ...o, [r.id]: !o[r.id] }))}
+                    >
+                      {open[r.id] ? "▾ Hide why" : "▸ Why?"}
+                    </button>
+                  </td>
+                  <td className="px-3 py-2">{r.runner_id}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {tk(r.evidence.cash_tk)}
+                    <div className="text-xs text-muted">{tk(r.evidence.efloat_tk)}</div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <Risk label="cash" p={r.evidence.p_stockout_cash} />
+                    <Risk label="e-float" p={r.evidence.p_stockout_efloat} />
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">{tk(r.target_cash_tk)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{tk(r.value_tk)}</td>
+                  <td className="px-3 py-2">
+                    {r.status === "pending" && role === "approver" ? (
+                      noteFor === r.id ? (
+                        <form
+                          className="flex min-w-48 flex-col gap-1"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            decide(r.id, "approved", note);
+                          }}
+                        >
+                          <label className="text-xs font-medium" htmlFor={`note-${r.id}`}>
+                            Note (required: flagged for manual review)
+                          </label>
+                          <input
+                            id={`note-${r.id}`}
+                            className="rounded border border-line px-2 py-1 text-xs"
+                            maxLength={500}
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            required
+                            autoFocus
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              className="rounded bg-brand px-2 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                              disabled={!note.trim()}
+                            >
+                              ✓ Approve with note
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded border border-line px-2 py-1 text-xs"
+                              onClick={() => setNoteFor(null)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            className="rounded bg-brand px-2 py-1 text-xs font-semibold text-white"
+                            onClick={() => {
+                              if (r.evidence.review?.flag) {
+                                setNote("");
+                                setNoteFor(r.id);
+                              } else decide(r.id, "approved");
+                            }}
+                          >
+                            ✓ Approve
+                          </button>
+                          <button
+                            className="rounded border border-line px-2 py-1 text-xs font-semibold"
+                            onClick={() => decide(r.id, "rejected")}
+                          >
+                            ✕ Reject
+                          </button>
+                        </div>
+                      )
+                    ) : (
+                      <StatusTag status={r.status} />
+                    )}
+                  </td>
+                </tr>
+                {open[r.id] && (
+                  <tr id={`why-${r.id}`} className="bg-page">
+                    <td colSpan={7} className="px-3 py-3">
+                      <Why
+                        rec={r}
+                        lang={lang}
+                        reworded={reworded[`${r.id}:${lang}`]}
+                        busy={busy === r.id}
+                        onReword={() => reword(r.id)}
+                        onTemplate={() =>
+                          setReworded((m) => {
+                            const next = { ...m };
+                            delete next[`${r.id}:${lang}`];
+                            return next;
+                          })
+                        }
+                      />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>
       </div>
+
+      <section className="rounded-lg border border-line bg-white p-4" aria-labelledby="flags-title">
+        <h2 id="flags-title" className="font-semibold">
+          Advisory anomaly flags <span className="text-sm font-normal text-muted">({flags.length})</span>
+        </h2>
+        <p className="text-xs text-muted">
+          Unusual activity on the agent&apos;s previous day, found by a model for a person to look at. A flag never
+          blocks or changes a visit; a flagged agent&apos;s visit needs a note to be approved.
+        </p>
+        <ul className="mt-2 divide-y divide-line text-sm">
+          {flags.length === 0 && <li className="py-2 text-muted">No flags this morning.</li>}
+          {flags.map((f) => (
+            <li key={f.agent_id} className="flex flex-wrap gap-x-3 py-2">
+              <span className="font-medium">
+                <span aria-hidden>⚑</span> {f.agent_id}
+              </span>
+              <span className="text-muted">
+                {f.territory} · {f.date}
+              </span>
+              <span lang={lang}>{f.text[lang]}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="rounded-lg border border-line bg-white p-4">
         <h2 className="font-semibold">Audit log</h2>
@@ -300,6 +454,64 @@ function Queue({ session }: { session: Session }) {
           ))}
         </ul>
       </section>
+    </div>
+  );
+}
+
+function ReviewTag() {
+  return (
+    <span
+      className="mt-1 inline-block rounded border border-ink bg-accent-tint px-1.5 py-0.5 text-xs font-semibold text-ink"
+      title="A guardrail fired: weak evidence or an anomaly flag. Approving needs a note."
+    >
+      <span aria-hidden>⚑</span> Manual review
+    </span>
+  );
+}
+
+function Why({
+  rec,
+  lang,
+  reworded,
+  busy,
+  onReword,
+  onTemplate,
+}: {
+  rec: Recommendation;
+  lang: Lang;
+  reworded?: Explanation;
+  busy: boolean;
+  onReword: () => void;
+  onTemplate: () => void;
+}) {
+  const ai = reworded?.source === "gemini";
+  return (
+    <div className="max-w-4xl space-y-2 text-sm">
+      <p lang={lang} className="leading-relaxed">
+        {reworded ? reworded.text : rec.explanation[lang]}
+      </p>
+      <p className="text-xs text-muted">
+        {ai ? (
+          <>
+            <span aria-hidden>✦</span> Reworded by AI ({reworded.model}) from the same evidence. Every number was
+            checked against the evidence; the recommendation is unchanged.{" "}
+            <button className="underline" onClick={onTemplate}>
+              Show the template
+            </button>
+          </>
+        ) : (
+          <>
+            {reworded
+              ? `AI rewording not shown (${reworded.note ?? "no reason given"}). This is the template, written from the stored evidence.`
+              : "Template explanation, written from the stored evidence. The chance of a stock-out is a prediction."}{" "}
+            {!reworded && (
+              <button className="underline disabled:opacity-60" disabled={busy} onClick={onReword}>
+                {busy ? "Asking the AI…" : "Reword with AI"}
+              </button>
+            )}
+          </>
+        )}
+      </p>
     </div>
   );
 }
