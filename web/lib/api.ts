@@ -7,6 +7,19 @@ export const supabase = createClient(SUPABASE_URL || "http://localhost", SUPABAS
 export type Role = "analyst" | "approver";
 export type Status = "pending" | "approved" | "rejected";
 
+export type Lang = "en" | "bn";
+
+export type Driver = {
+  feature: string;
+  value: number | string | null;
+  effect_pct: number;
+};
+
+export type Review = {
+  flag: boolean;
+  reasons: ({ code: string } & Record<string, unknown>)[];
+};
+
 export type Evidence = {
   cash_tk: number;
   efloat_tk: number;
@@ -21,6 +34,9 @@ export type Evidence = {
   need_cash_tk: number;
   need_efloat_tk: number;
   needs_fit: boolean;
+  side: "cash" | "efloat";
+  drivers: Driver[];
+  review: Review;
 };
 
 export type Recommendation = {
@@ -39,6 +55,27 @@ export type Recommendation = {
   decided_by: string | null;
   decided_at: string | null;
   decision_note: string | null;
+  explanation: Record<Lang, string>;
+};
+
+// The template explanation, or Gemini's rewording of it when that passed every check.
+export type Explanation = {
+  recommendation_id: number;
+  lang: Lang;
+  text: string;
+  template: string;
+  source: "gemini" | "template";
+  model: string | null;
+  note: string | null;
+};
+
+export type AnomalyFlag = {
+  agent_id: string;
+  territory: string;
+  date: string;
+  score: number;
+  items: { feature: string; value: number }[];
+  text: Record<Lang, string>;
 };
 
 export type AuditEntry = {
@@ -65,7 +102,14 @@ export type Meta = {
   test_window: [string, string];
   plan_dates: string[];
   plan_hour: number;
-  counts: { agents: number; runners: number; territories: number; recommendations: number };
+  counts: {
+    agents: number;
+    runners: number;
+    territories: number;
+    recommendations: number;
+    manual_review: number;
+    anomaly_flags: number;
+  };
   lost_customer_value_tk: number;
   territories: Territory[];
   simulated: true;
@@ -108,4 +152,8 @@ export const api = {
       body: JSON.stringify({ decision, note: note || null }),
     }),
   audit: (token: string, limit = 20) => call<{ items: AuditEntry[] }>(`/v1/audit?limit=${limit}`, token),
+  explanation: (token: string, id: number, lang: Lang) =>
+    call<Explanation>(`/v1/recommendations/${id}/explanation?lang=${lang}`, token),
+  anomalies: (token: string, day: string) =>
+    call<{ plan_date: string; advisory: true; items: AnomalyFlag[] }>(`/v1/anomalies/${day}`, token),
 };
