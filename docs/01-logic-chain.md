@@ -22,15 +22,14 @@ The one-page argument for Jogan, in the format of the Student Guideline §10. Ex
 
 An agent needs **physical cash** for cash-out and **e-float** for cash-in. A cash-out drains cash and adds e-float; a cash-in does the opposite. When either side runs out, the request fails: the customer leaves, the agent loses the commission, and trust suffers.
 
-**Baseline (status quo, `ASSUMPTION` to validate with upay):**
-- Rebalancing is mostly reactive: the agent calls, or a runner visits on a fixed round.
-- Refill amounts follow simple rules of thumb.
+**Baseline (status quo).** In Bangladesh, 96% of agents rebalance at their shop through visits by the distributor's runners, "usually at a predetermined time", and some distributors also rebalance on demand. Agents deny a median of zero transactions a day for lack of liquidity, but 34% deny at least one a day ([ANA Bangladesh survey, Helix Institute / MicroSave, 2014](https://www.microsave.net/wp-content/uploads/2014/11/Agent-Network-Accelerator-Bangladesh-Country-Report-2014.pdf)). So today's rebalancing works on a fixed rhythm plus calls, not on a forecast. Refill amounts follow simple rules of thumb (`ASSUMPTION` to validate with upay).
 
-Jogan is compared against four policies, all simulated:
-1. **reactive**: refill after the agent runs low
-2. **static threshold**: min/max levels per agent
-3. **safety stock**: historical mean + kσ
-4. **oracle**: perfect foresight, as an upper bound
+Jogan is compared against these policies, all simulated on the same customers:
+1. **fixed round** (status quo): each runner visits its agents on a fixed cycle and answers calls
+2. **reactive**: a runner comes only after the agent calls because it runs low
+3. **static threshold**: min/max levels per agent
+4. **safety stock**: historical mean + kσ
+5. **oracle**: perfect foresight, as an upper bound
 
 ## 3. Why now
 

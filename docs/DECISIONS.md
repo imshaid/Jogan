@@ -85,3 +85,25 @@ BB table 9 shows agent cash-out amounts rising faster than counts from April to 
 ## D-015 · 2026-10-01 · Simulator profiles
 
 `tiny` moved to 1–28 March (GZP and RNG) so a single month covers payday, hat days, Ramadan, Eid-ul-Fitr and the post-Eid drop for CI tests. `dev` uses DHK, CUM and KUR (urban, remittance, remote rural). `stress` replicates each of the six hubs as 10 distributor areas (60 territories, 10,000 agents), because the optimizer decomposes by territory and one 1,667-agent territory would not reflect real distributor sizes. Runners scale with agents per territory.
+
+## D-016 · 2026-10-01 · Status quo is a fixed runner round plus calls (ANA Bangladesh)
+
+The first environment run used agents' own bank trips as the status quo and lost far more requests than Bangladeshi agents report. A check against the Agent Network Accelerator survey of 2,800 Bangladeshi agents ([Helix Institute / MicroSave, 2014](https://www.microsave.net/wp-content/uploads/2014/11/Agent-Network-Accelerator-Bangladesh-Country-Report-2014.pdf)) showed that this is not how Bangladesh works: 96% of agents rebalance at their shop through distributor runners who visit "usually at a predetermined time", some distributors also rebalance on demand, and the median agent rebalances about 22 times a month.
+
+- The status quo (`fixed_round`) is now a fixed cycle per runner plus calls; the bank trip stays as every agent's fallback under every policy.
+- `runners.max_visits` goes from 8 to 20 so the status quo can reach that rebalancing frequency (the count is still an ASSUMPTION).
+- `reactive` (calls only) and `none` (no runners) stay as reference policies.
+- The survey's "median of zero denials a day" is used as a plausibility test of the status quo, not as a calibration target: it is from 2014 and self-reported.
+
+## D-017 · 2026-10-01 · Operations environment design
+
+- **Event replay, not hourly buckets.** Attempts are replayed one by one in time order, with runner arrivals, bank trips and retries as timed events. A stock-out is decided by the exact balance at the moment of each attempt, which the peak-drain forecast target (D-002 #3) depends on. Policies decide at the start of every hour.
+- **Common random numbers.** Retry, bank-trip delay and data-gap draws are keyed by the world seed and the customer or agent, never by the policy, so policy differences are not noise.
+- **A visit sets a cash level, not an amount.** The runner swaps cash and e-float until the agent's cash reaches the target, within the agent's balances and the runner's bag. Total liquidity per agent never changes, which a test checks.
+- **One dispatch code path.** Planners schedule on a copy of the fleet with the same feasibility code the environment uses, so a plan never fails in execution. Morning rounds are prioritised, split into sectors and ordered by nearest neighbour (the greedy baseline for M5's optimizer); calls go to the runner that arrives first.
+- **Costs after the run.** Outcomes and runner km are logged; costs are computed afterwards, so goodwill and commission ranges re-price the same run.
+- **The oracle** knows every future attempt and plans the same morning round. It bounds lost requests, not total cost, because it is not cost-aware; the cost-aware comparison comes with the newsvendor in M5.
+
+## D-018 · 2026-10-01 · Observation layer
+
+Jogan sees served transactions only, exact e-float, a cash estimate (exact until the shared drawer exists), runner visits and agents' bank trips as e-float transfers. The hourly feed loses 1% of agent-hour records and delivers 1% of agent-days a day late (ASSUMPTION); every record carries `available_at`, and features must respect it. Live balances at decision time are not affected. The status-quo log under `ops/fixed_round/obs/` is the only training input of M4; `ops/<policy>/truth/` is for evaluation.

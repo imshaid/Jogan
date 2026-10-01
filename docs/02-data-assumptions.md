@@ -144,19 +144,50 @@ rate(agent, hour) = base(agent) × area_mix(type) × hour_profile(area, hour) ×
 
 ## 6. Operations, money and costs
 
+The operations environment (`jogan/ops/`, parameters in `configs/ops/` and the `runners` block of `configs/sim/base.yaml`) replays every customer attempt of a world in time order against each agent's cash and e-float. Every policy faces exactly the same customers.
+
+**How agents rebalance in Bangladesh (SOURCE).** The Agent Network Accelerator survey of 2,800 agents ([Helix Institute / MicroSave, Bangladesh country report, November 2014](https://www.microsave.net/wp-content/uploads/2014/11/Agent-Network-Accelerator-Bangladesh-Country-Report-2014.pdf)) found that:
+- 96% of agents rebalance at their shop, through visits by the provider or the aggregator (distributor);
+- runners, the distributor's staff, visit "usually at a predetermined time", and some aggregators also rebalance on demand;
+- the median agent makes 12 cash deposits and 10 cash withdrawals a month to manage liquidity;
+- agents deny a median of zero transactions a day for lack of liquidity, while 34% report denying at least one a day.
+
+The survey is from 2014 and self-reported. It sets the form of the status quo and serves as a plausibility check, not as a calibration target (D-016).
+
 | Item | Default | Basis |
 |---|---|---|
 | Runners per territory | 3 urban/peri-urban, 2 rural per 100 agents (at least 1) | ASSUMPTION |
 | Runner roster | Off on Eid day; 2% random absence per runner-day | ASSUMPTION |
-| Runner shift | 09:00–18:00, at most 8 visits, cash bag up to Tk 300,000, 10 min per visit | ASSUMPTION |
-| What a visit does | Swaps cash for e-float with the distributor; the agent's total liquidity is unchanged | Problem framing |
-| Status-quo self-refill | When cash or e-float falls below 15% of a typical day, the agent goes to the distributor or bank after a 2–6 h delay; no bank refills on Fri/Sat | ASSUMPTION; weekend SOURCE |
+| Runner shift | 09:00–18:00, at most 20 visits of 10 min, cash bag up to Tk 300,000 with Tk 150,000 loaded each morning | visit count sized to the ANA rebalancing frequency (SOURCE above); values ASSUMPTION |
+| Travel | road km between agents (§3) at the runner's speed, halved on disruption days; the runner must be back at the hub when the shift ends | ASSUMPTION |
+| What a visit does | Brings the agent's cash to a target level by swapping cash and e-float with the distributor; the agent's total liquidity is unchanged. The swap is limited by the agent's balances and the runner's bag, in Tk 100 steps | Problem framing |
+| Status quo (`fixed_round`) | Each runner serves a compact sector of agents. Its route is cut into daily groups of at most 16 stops that fit a shift, visited in turn. At each stop the agent asks for a balanced split. 4 visits per runner stay free for calls | form SOURCE (ANA); sizes ASSUMPTION |
+| Agent call | When cash or e-float drops below 0.25 of the agent's typical day, the runner who can arrive first goes | ASSUMPTION |
+| Agent self-refill (fallback under every policy) | Below 15% of a typical day, the agent goes to a bank after 2–6 h, only on bank-open days between 10:00 and 17:00; called off if a runner fixed it first | ASSUMPTION; Fri/Sat bank weekend SOURCE |
 | Customer cash-out fee | 1.4% (Tk 14 per 1,000) at agent points | Reported at upay's 2021 launch ([TBS](https://www.tbsnews.net/node/234661)); the 2026 value is an ASSUMPTION |
 | Agent commission | CO 0.40%, CI 0.30% of amount; sensitivity CO 0.3–0.5%, CI 0.2–0.4% | ASSUMPTION |
 | Goodwill cost per failed request | Tk 50; sensitivity Tk 0–200 (stands for the value lost if a customer switches provider) | ASSUMPTION |
 | Runner cost | Tk 10 per km + Tk 100 per visit | ASSUMPTION |
-| Idle-liquidity cost | 10% per year on cash and e-float held above need | ASSUMPTION |
-| Failed request | Lost, no retry; sensitivity: 30% retry within 2 h | ASSUMPTION |
+| Idle-liquidity cost | 10% per year on cash or e-float above one typical day of outflow on that side | ASSUMPTION |
+| Failed request | Lost, no retry; sensitivity: 30% retry within 2 h, with the same retry draws under every policy | ASSUMPTION |
+
+**Total liquidity cost** = lost commission (failed amount × rate) + goodwill per lost request + runner km and visits + idle liquidity. Costs are counted after a run from the logged outcomes, so the sensitivity ranges re-price the same run.
+
+**Policies compared** (`configs/ops/policies.yaml`, all **ASSUMPTION**). Every policy uses the same runners, the same call handling and the same agents' self-refill; they differ only in the 08:00 morning round.
+
+| Policy | Morning round | Calls |
+|---|---|---|
+| `none` | none (agents' self-refill only) | no |
+| `reactive` | none | yes |
+| `fixed_round` (status quo) | the runner's next fixed group | yes |
+| `threshold` | agents below 0.75 typical days of cover on either side | yes |
+| `safety_stock` | agents below mean + 1.65·sd of their observed peak 24-hour drain on either side | yes |
+| `oracle` | agents whose true balance would fail within 26 h, highest avoidable loss first; target in the middle of the cash band that serves every attempt | yes |
+| Jogan (M5) | forecast, newsvendor target and optimizer | yes |
+
+- **Typical day** (policy side): mean served outflow per side over the last 28 complete observed days, or the opening balance ÷ 1.25 before 3 such days exist. Served flows are censored by stock-outs, as in reality.
+- **Rounds:** the top-priority agents that fit the runners' remaining capacity, split into sectors around the hub, each in nearest-neighbour order. Stops that do not fit the shift are dropped, lowest priority first.
+- **Oracle:** never deployable; an upper bound for the forecast. It is not cost-aware, so it bounds lost requests, not total cost.
 
 The results are reported across the goodwill and commission ranges. Jogan's advantage, or the lack of it, depends on these values and is shown honestly.
 
@@ -165,11 +196,16 @@ The results are reported across the goodwill and commission ranges. Jogan's adva
 | Field | Ground truth in the simulator | What Jogan sees (like real upay) |
 |---|---|---|
 | Customer demand | every attempt | only served transactions; failed attempts are invisible, so demand is **censored** |
-| E-float balance | exact | exact, hourly |
-| Physical cash | exact | estimated from the start value and net flows, plus noise when the shared drawer is on |
-| Runner visits | exact | logged |
+| E-float balance | exact | exact; live at decision time and hourly in the log |
+| Physical cash | exact | an estimate from the opening balance and logged flows; it equals true cash until the optional shared drawer is built (cut-line item 4) |
+| Runner visits | exact | logged (time, runner, amount) |
+| Agents' own bank trips | exact | seen as e-float transfers |
 | Anomaly labels | known | hidden; used only to evaluate the detector |
-| Data gaps | none | about 1% of hourly records missing, and occasional late days (**ASSUMPTION**; applied by the observation layer in M3) |
+| Data gaps | none | 1% of agent-hour records never arrive, and 1% of agent-days arrive only at the end of the next day (**ASSUMPTION**). Each record carries `available_at`; features may only use records available at the forecast time |
+
+The gaps affect the history only: live balances at decision time come from the ledger.
+
+**Status-quo history log.** `make history PROFILE=<p> SEED=<n>` runs the status quo and writes `data/<p>/seed<n>/ops/fixed_round/`: `obs/` (hourly served flows and balances, visits, bank trips, runner days) is what M4 trains on; `truth/hourly.parquet` (every request and lost request, true balances) is for evaluation only.
 
 ## 8. Injected anomalous agents
 
@@ -196,10 +232,23 @@ Run with `make test`; they use the `tiny` profile (the ticket check uses `dev` f
   - agents inside their territory's radius; size classes follow the quantiles
   - runners off on Eid day
   - each anomaly pattern present and visible
-  - no negative balances (checked in the operations environment, M3)
 - **Leakage guard:** public tables (`calendar`, `territories`, `agents`, `runners`, `roster`) and truth tables (`truth/demand`, `truth/agents`, `truth/anomalies`, `truth/disruptions`) are written to separate folders. A test checks that no truth column appears in a public table, and the reader returns truth tables only on request.
 
-## 10. Mapping to real upay data (future)
+## 10. Operations tests (M3)
+
+Run with `make test`, on the `tiny` profile with every baseline policy:
+
+- **Balances:** cash and e-float never go negative, and their sum per agent never changes (customers, visits and bank trips only move money between the two sides).
+- **Common random numbers:** every policy replays the same attempts, and the hourly requests are identical.
+- **Ledger:** served flows in the observation log equal the served attempts; requests = served + lost.
+- **Runners:** on-duty only, inside the shift, at most the daily visit limit, inside their own territory; plans made on the fleet copy are never rejected.
+- **Self-refill:** only on bank-open days in bank hours.
+- **Observation:** no failed attempts or truth columns; about 1% of agent-hours missing; some late days; a policy never sees a record before its `available_at` or any ground truth.
+- **Oracle** loses fewer requests than every other policy (two seeds), and every runner policy loses fewer than `none`.
+- **Status quo plausibility:** the median agent-day has zero lost requests, the shape of the ANA finding.
+- **Determinism and costs:** the same run gives identical outcomes and byte-identical logs; costs add up and split exactly across date windows.
+
+## 11. Mapping to real upay data (future)
 
 | Simulated table | Expected real source |
 |---|---|
