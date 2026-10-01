@@ -20,4 +20,5 @@ Environment variables (all public, baked in at build time):
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key (browser-safe, RLS applies) |
 | `NEXT_PUBLIC_DEMO_PASSWORD` | Optional: shows one-click demo sign-in buttons |
 
-On Vercel the project's root directory is `web/`.
+On Vercel the project's root directory is `web/`; production is <https://jogan-bd.vercel.app>, the
+only origin the deployed API accepts.

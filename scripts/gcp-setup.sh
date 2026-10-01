@@ -19,6 +19,7 @@ REGION=asia-southeast1
 SERVICE=jogan-api
 GITHUB_REPO=imshaid/Jogan
 IMAGE=${IMAGE:-$REGION-docker.pkg.dev/$PROJECT/jogan/api:bootstrap}
+WEB_ORIGIN=https://jogan-bd.vercel.app
 RUNTIME_SA=jogan-api@$PROJECT.iam.gserviceaccount.com
 DEPLOY_SA=jogan-deployer@$PROJECT.iam.gserviceaccount.com
 POOL=github
@@ -93,7 +94,7 @@ gcloud run deploy "$SERVICE" --project "$PROJECT" --region "$REGION" --image "$I
   --service-account "$RUNTIME_SA" --allow-unauthenticated \
   --cpu 1 --memory 1Gi --min-instances 0 --max-instances 2 --cpu-boost \
   --set-secrets "SUPABASE_URL=supabase-url:latest,SUPABASE_PUBLISHABLE_KEY=supabase-publishable-key:latest,SUPABASE_SECRET_KEY=supabase-secret-key:latest" \
-  --set-env-vars "JOGAN_CORS_ORIGIN_REGEX=https://jogan[a-z0-9-]*\.vercel\.app" \
+  --set-env-vars "JOGAN_CORS_ORIGINS=$WEB_ORIGIN" \
   --format=none
 URL=$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" --format='value(status.url)')
 
