@@ -5,7 +5,7 @@ UV ?= uv
 PROFILE ?= dev
 SEED ?= 0
 
-.PHONY: help setup lint format test check data history baselines forecast clean
+.PHONY: help setup lint format test check data history baselines forecast eval clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -38,6 +38,9 @@ baselines: ## Compare every baseline policy on one world (PROFILE, SEED)
 
 forecast: ## Backtest the drain forecast on the status-quo log (PROFILE, SEED; after history)
 	$(UV) run python -m jogan.forecast --profile $(PROFILE) --seed $(SEED)
+
+eval: ## Final policy comparison over the evaluation seeds → artifacts/metrics.json (ARGS for dev runs)
+	$(UV) run python -m jogan.eval $(ARGS)
 
 clean: ## Remove caches and build outputs
 	rm -rf .pytest_cache .ruff_cache build dist
