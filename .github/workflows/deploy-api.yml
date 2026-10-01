@@ -24,6 +24,7 @@ env:
   REGION: asia-southeast1
   SERVICE: jogan-api
   IMAGE: asia-southeast1-docker.pkg.dev/jogan-510317/jogan/api
+  WEB_ORIGIN: https://jogan-bd.vercel.app # the only browser origin the API answers (CORS)
 
 jobs:
   deploy:
@@ -59,6 +60,7 @@ jobs:
       - name: Deploy
         run: >
           gcloud run deploy "$SERVICE" --image "$IMAGE:$SHA"
+          --update-env-vars "JOGAN_CORS_ORIGINS=$WEB_ORIGIN"
           --project "$PROJECT" --region "$REGION" --quiet
       - name: Smoke test
         run: |
