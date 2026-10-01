@@ -148,24 +148,10 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
     - precision at 5 / 10 / 20 (per seed, averaged): 0.30 / 0.36 / 0.22
     - injected windows with at least one flag: night 6 of 6, spike 3 of 6, split (structuring) 1 of 9
     - **the flag is weak on structuring**, which goes into the report's "where Jogan does not win"
-  - **Checks:** 160 Python tests (28 new: drivers add up to the raw prediction, every feature has both labels, lakh grouping and Bangla digits, guardrail reasons, the narrator with a mocked Gemini (fallback, refusals, rate limit, cache, no user text in the prompt), the anomaly flag on a synthetic log (patterns found, a territory-wide payday ignored, no leak from late or future records), API explanation, anomaly and review-note endpoints); `make test-db` checks the note rule; `scripts/live_check.py` now covers "Why?", Bangla, the AI rewording and a flagged approval
+  - **Checks:** 160 Python tests (28 new: drivers add up to the raw prediction, every feature has both labels, lakh grouping and Bangla digits, guardrail reasons, the narrator with a mocked Gemini (fallback, refusals, rate limit, cache, no user text in the prompt), the anomaly flag on a synthetic log (patterns found, a territory-wide payday ignored, no leak from late or future records), API explanation, anomaly and review-note endpoints); `make test-db` checks the note rule; `scripts/live_check.py` now covers "Why?", Bangla, the AI rewording and a flagged approval. Passed on the live site after the owner applied the migration and mounted the Gemini key: the Bangla rewording came from `gemini-3.5-flash-lite`, and a flagged visit was refused without a note (422) and approved with one
   - decision D-023
 
 ## Next
-
-**Owner, once, then run the live check** (`uv run --with playwright python scripts/live_check.py`):
-
-1. Apply the new migration to live Supabase. Until then the live database still lets an approver approve a flagged visit without a note, and the live check fails on that:
-
-   ```fish
-   npx supabase@2.119.0 db push
-   ```
-
-2. Mount the Gemini key on Cloud Run. Until then "Reword with AI" shows the template with "narrator is off":
-
-   ```fish
-   gcloud run services update jogan-api --region asia-southeast1 --project jogan-510317 --update-secrets GEMINI_API_KEY=gemini-api-key:latest
-   ```
 
 **M8 · Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace** (budget 2.5 h)
 
