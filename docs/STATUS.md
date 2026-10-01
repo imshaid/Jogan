@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-01, end of M5._
+_Last updated: 2026-10-02, end of M6._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -97,16 +97,42 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - 123 tests in about 18 s (17 new): newsvendor maths exact on a uniform drain, dispatch feasibility and value against greedy, switch-over equals the status quo, Jogan in the environment (trace, candidates only, no rejected visits, deterministic), t- and Fieller intervals, break-even verdicts, the eval CLI on two tiny seeds
   - decision D-021
 
+- **M6 · Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit**
+  - **Live:**
+    - web <https://jogan-bd.vercel.app> (one-click demo analyst and approver)
+    - API <https://jogan-api-gt7msysppq-as.a.run.app> (`/health`, `/docs`)
+    - Supabase, Cloud Run and Artifact Registry all in Singapore
+  - `jogan/api/`:
+    - `bundle`: the served demo world (`full`, seed 42). Status quo → forecaster → Jogan over the test window, keeping every morning's evidence: 28 plan days, 6,559 visits. Built inside `docker build` in about 75 s; the bundle id comes from the config hashes
+    - `store`: Supabase over PostgREST with the user's token, or `MemoryStore` with the same rules
+    - `app`: FastAPI with `/health`, `/v1/meta`, `/v1/me`, `/v1/plans/{date}` (publishes a day on first request), `/v1/recommendations/{id}/decision` and `/v1/audit`
+  - `supabase/migrations/`:
+    - `user_roles`, `recommendations` and `audit_log`, with explicit grants and RLS
+    - `publish_plan` (secret key only) and `decide_recommendation` (approvers only, decision and audit row in one transaction)
+    - triggers make the audit log append-only and a recommendation decidable once, even for the table owner
+  - **Deploy:**
+    - `Dockerfile` (python 3.12-slim-trixie, uv 0.12.21, non-root)
+    - `scripts/gcp-setup.sh`, run once by the owner: Secret Manager, keyless Workload Identity Federation for this repo's `main` only, a least-privilege deployer, the first deploy
+    - `.github/workflows/deploy-api.yml` builds, pushes and deploys after CI passes, and pins CORS to `https://jogan-bd.vercel.app`
+    - Vercel deploys `web/` on push
+  - `web/` (Next.js 16.3.8, Tailwind 4, supabase-js 2.117.2): sign-in, the day's queue with P(stock-out) labelled as a prediction (word + symbol, not colour alone), approve/reject for approvers, the audit log, an always-visible "Simulated data" badge
+  - **Checks:**
+    - 132 Python tests (9 new, API on the tiny bundle)
+    - `make test-db`: the migration on Postgres 17 with RLS, grants and append-only rules checked for every role
+    - CI jobs for Python, database and web
+    - `scripts/live_check.py` passed on the live site in Chrome: analyst sees 254 visits and is refused a decision (403); approver approves and rejects on 3 Jun, both audited; CORS and the missing-token 401
+    - probed as anonymous on live Supabase: sign-up disabled, every table and function refused (42501)
+  - decision D-022
+
 ## Next
 
-**M6 · Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit** (budget 3 h)
+**M7 · Explanations, guardrails, Gemini narrator, anomaly flag** (budget 2.5 h)
 
-- The service accounts in the owner checklist must exist first (Supabase, GCP with a budget alert, Vercel).
-- Minimal end-to-end path: the API serves one day's recommendations, the UI shows them, an approver approves or rejects, and every action writes an append-only audit row (RLS by role).
-- **Inputs from M5:**
-  - `Jogan.last` (one row per agent at each plan): balances, P(stock-out) per side, drain quantiles q50/q90/q99, needs, target cash, value in Tk, candidate flag, assigned runner. It is the evidence for the queue and, in M7, for explanations.
-  - `artifacts/metrics.json` for the impact page.
-  - The live demo needs a trained forecaster per demo world: train it once on the status-quo log and ship it with the API (to decide in M6).
+- Drivers per recommendation from LightGBM TreeSHAP (`pred_contrib`, D-002 #5), computed when the bundle is built and stored with each day's evidence, so the API never loads a model.
+- Template explanation in English and Bangla from structured evidence. Gemini (model ids verified in the official docs; primary + fallback on HTTP 429, secret `gemini-api-key` already in Secret Manager, not yet mounted on Cloud Run) only rewords it; every number in its output must appear in the evidence, otherwise the template is used. LLM mocked in tests.
+- Guardrails: low confidence or out-of-range evidence → manual review flag.
+- Anomaly flag (first on the cut-line).
+- **Inputs from M6:** `Bundle.plans` (every agent, every plan day), `Bundle.trace(day)`, the evidence JSON stored with every recommendation.
 
 **Carried into M7 and M11:**
 - The report gets a section on **where Jogan does not win**: H4 (DHK/urban vs `threshold`), H3 (group coverage of the forecast), the oracle gap, and the costs left unpriced (motorcycle wear, phone, agents' own time).
@@ -123,8 +149,8 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M3 | Operations environment, baseline policies, status-quo history log | 3.5 h | Fri 11:30 | done |
 | M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | done |
 | M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | done |
-| M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | next |
-| M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | |
+| M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | done |
+| M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | next |
 | M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | |
 | M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | |
 | M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | |
@@ -144,7 +170,7 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 ## Open decisions and questions
 
 - **Organizers:** are fix pushes and redeploys allowed between 4 Oct 10:00 and the on-site start? The owner will ask. Until answered, only critical fixes in that window.
-- All service accounts below must exist before M6 (Friday evening).
+- Dependabot: during the competition merge only security fixes after CI passes. Python stays on 3.12, and major web bumps are skipped (TypeScript 7 breaks typescript-eslint). PR #3 (React 19.3.0) is green but not a security fix, so leave it open.
 
 ## Owner checklist
 
@@ -152,11 +178,12 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 - [x] `gh` logged in as `imshaid`; push works
 - [x] Working copy moved to `~/code/Jogan`
 - [ ] `claude update`, check `/model` and `/usage`
-- [ ] Supabase project (Mumbai, `ap-south-1`). Keep the DB password. Put the `sb_publishable_…` and `sb_secret_…` keys only in the local `.env`
-- [ ] Google AI Studio API key (do not enable billing)
+- [x] Supabase project (Singapore, D-022), migration pushed, demo users seeded, public sign-up off
+- [x] Google AI Studio API key (do not enable billing)
 - [ ] MapTiler key
-- [ ] GCP project with billing and a budget alert
-- [ ] Vercel (log in with GitHub) and UptimeRobot accounts
+- [x] GCP project with billing and a budget alert; `scripts/gcp-setup.sh` run
+- [x] Vercel project `jogan-bd` (root `web/`)
+- [ ] UptimeRobot account (M10: `/health` monitor and Supabase keep-alive)
 - [ ] Teammates added as collaborators
 - [ ] Repo secret scanning and push protection enabled
 - [ ] Commit email verified on the GitHub account
@@ -184,5 +211,10 @@ make baselines PROFILE=dev SEED=0 # three baselines + oracle, break-even vs stat
 make forecast PROFILE=dev SEED=0  # drain forecast backtest → data/dev/seed0/forecast/
 make eval    # final comparison, seeds 1000–1009 → artifacts/metrics.json (about 17 min)
 make eval ARGS="--seeds 0 1 2 3"  # development run → artifacts/eval/metrics_dev.json
+make bundle PROFILE=tiny SEED=0  # served demo bundle → bundle/ (deployed: PROFILE=full SEED=42)
+make api     # API on :8000 with the in-memory store (tokens "analyst", "approver")
+make test-db # migration + RLS/audit checks on a throwaway Postgres 17 (Docker)
+cd web && npm ci && npm run dev  # web app on :3000 (NEXT_PUBLIC_* in web/.env.local)
+uv run --with playwright python scripts/live_check.py  # live end-to-end check (decides 2 visits)
 make help    # list all targets
 ```
