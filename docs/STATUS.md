@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-01, end of M4._
+_Last updated: 2026-10-01, end of M5._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -71,23 +71,47 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - 106 tests in about 8 s (17 new): leakage by perturbing every record that arrives after the origin, no truth columns, log panel = in-simulation panel, splits, hand-checked peak drain, censoring flags and bias, conformal coverage on synthetic data with group fallback, monotone quantiles, P(stock-out), determinism, CLI
   - decision D-020 (labels from estimated demand, leak-free features, liquidity total only, asymmetric CQR in log space, hourly resolution, runtime)
 
+- **M5 · Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval`**
+  - configs: `configs/plan/base.yaml` (policy), `configs/eval/base.yaml` (seeds, value sweep, intervals); every number tagged, enforced by a test
+  - `jogan/plan/`:
+    - `newsvendor` (quantile function from the grid, expected shortfall, critical ratio, target level)
+    - `dispatch` (Fisher–Jaikumar generalized-assignment MILP per territory with optional visits, HiGHS via `scipy.optimize.milp`; route check, fill step, greedy fallback)
+    - `policy` (`Jogan`: in-simulation forecast at 08:00, newsvendor needs, value of a visit including the call it saves, decision trace in `Jogan.last`)
+  - `Deployed` in `jogan/ops/policies.py`: every policy switched on at the test start from the status quo's state
+  - `jogan/eval/`: `run` (one seed: status-quo log → forecaster → every policy), `stats` (paired t-intervals, Fieller break-even), `report`, CLI
+  - **`make eval`** writes `artifacts/metrics.json` (`full`, seeds 1000–1009, about 17 min on this laptop with 2 workers). Per-seed records go to `artifacts/eval/` (git-ignored). Development runs (`make eval ARGS="--seeds 0 1 2 3"`) write `artifacts/eval/metrics_dev.json`
+  - **Verified:** scipy 1.18.1 bundles HiGHS 1.12.0, read from the installed package; `milp` options from its docstring. scipy is now a direct dependency (already installed through LightGBM). Fisher and Jaikumar (1981, *Networks* 11(2), 109–124); Fieller (1954, *JRSS B* 16(2), 175–185)
+  - **Design found on development seeds 0–3 only** (D-021):
+    - the two-sided newsvendor split lost more requests than a split by typical outflow;
+    - without the saved call in a visit's value, and without the fill step, the MILP used less capacity than the greedy round
+  - **Result (`artifacts/metrics.json`, Jogan at Tk 20 per lost customer, test window, 10 evaluation seeds):**
+    - Jogan loses fewer requests than every baseline: −9.5 per 1,000 vs `fixed_round`, −2.2 vs `threshold`, −2.6 vs `safety_stock`, all significant
+    - it also has lower known cost and fewer runner km, so it is cheaper at every lost-customer value, at all three salaries, in the Eid window too
+    - H2 holds
+    - ablations: the MILP beats the greedy round (fewer lost requests, fewer km); the typical split beats the two-sided split
+    - the oracle still loses about 20 per 1,000 fewer than Jogan
+  - **Where Jogan does not win** (`does_not_win`, H3/H4):
+    - **H4 fails.** Urban agents (DHK, the only urban territory) are served slightly worse than under `threshold` (+1.0 per 1,000, interval just above zero). Small agents do better under `safety_stock` (not significant)
+    - **H3 fails** on 45 coverage cells of the M4 forecast (side × horizon × interval × group), mostly the 50% and 80% intervals, urban the most; 4 of them are overall, not per group
+    - no period (test window, Eid) and no cost setting at any swept value is a loss; all 62 cases are agent groups
+  - 123 tests in about 18 s (17 new): newsvendor maths exact on a uniform drain, dispatch feasibility and value against greedy, switch-over equals the status quo, Jogan in the environment (trace, candidates only, no rejected visits, deterministic), t- and Fieller intervals, break-even verdicts, the eval CLI on two tiny seeds
+  - decision D-021
 
 ## Next
 
-**M5 · Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval`** (budget 3.5 h)
+**M6 · Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit** (budget 3 h)
 
-- **Jogan policy** (subclass of `Planned` in `jogan/ops/policies.py`): at the plan hour, build features with `build_features(panel_from_history(obs.history), ctx.calendar, ctx.agents, cfg, np.array([obs.hour]))`, predict calibrated quantiles with `Forecaster.models[h, side].predict(x, groups)`, pick the newsvendor level from the critical ratio, and plan the round.
-- **Newsvendor:** the underage cost includes the lost-customer value as an operator setting (D-019); the quantile grid is 0.05–0.99, so interpolate between levels for the critical ratio.
-- **Training per seed:** fit on the status-quo log's training split, calibrate on its calibration split, compare policies on the test split only (D-010). Evaluation seeds 1000–1009 are never used for tuning.
-- **Dispatch:** MILP runner assignment (HiGHS; verify the current release and API first) against the greedy `plan_rounds` baseline; ablation: Jogan forecast + greedy dispatch.
-- **`make eval`** writes `artifacts/metrics.json`: the forecast metrics (from `jogan.forecast.backtest.evaluate`) and the policy comparison, with paired intervals across seeds, the break-even value against each baseline and the salary range, a fairness table, and the list of cases where Jogan does not win.
+- The service accounts in the owner checklist must exist first (Supabase, GCP with a budget alert, Vercel).
+- Minimal end-to-end path: the API serves one day's recommendations, the UI shows them, an approver approves or rejects, and every action writes an append-only audit row (RLS by role).
+- **Inputs from M5:**
+  - `Jogan.last` (one row per agent at each plan): balances, P(stock-out) per side, drain quantiles q50/q90/q99, needs, target cash, value in Tk, candidate flag, assigned runner. It is the evidence for the queue and, in M7, for explanations.
+  - `artifacts/metrics.json` for the impact page.
+  - The live demo needs a trained forecaster per demo world: train it once on the status-quo log and ship it with the API (to decide in M6).
 
-**Carried into M5 and M11 (D-019):**
-- Jogan is compared with `fixed_round`, `threshold` and `safety_stock` only; the oracle is the upper bound.
-- Jogan's newsvendor takes the lost-customer value as an operator setting; the evaluation sweeps it and reports the break-even value against each baseline with paired intervals across seeds, plus the salary range.
-- `make eval` lists where Jogan does not win (baseline, agent group, period, cost setting); the report gets a section on it, plus the costs left unpriced (motorcycle wear, phone, agents' own time).
-
-**Inputs from M4:** `jogan.forecast.backtest.build_dataset` / `fit_forecaster` / `evaluate`; `jogan.forecast.model.stockout_probability`; the forecast is hourly-resolution and of demand, with live balances entering only in P(stock-out) and the newsvendor (D-020). The Eid-ul-Azha test window is scored separately (`periods.eid`).
+**Carried into M7 and M11:**
+- The report gets a section on **where Jogan does not win**: H4 (DHK/urban vs `threshold`), H3 (group coverage of the forecast), the oracle gap, and the costs left unpriced (motorcycle wear, phone, agents' own time).
+- Not modelled in the policy: the runner's bag in the program, the hours between the forecast and the runner's arrival, and a call rescuing an agent who was not visited (D-021).
+- Every number in README, report, UI and video comes from `artifacts/metrics.json`. Re-run `make eval` after any change to sim, ops, forecast or plan code or configs; its `meta.config_hashes` records the versions.
 
 ## Milestone plan
 
@@ -98,8 +122,8 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M2 | World simulator, data profiles, tests | 3.5 h | Fri 2 Oct 00:30 | done |
 | M3 | Operations environment, baseline policies, status-quo history log | 3.5 h | Fri 11:30 | done |
 | M4 | Features (leakage test), quantile forecast, CQR, backtest, censoring | 4 h | Fri 16:00 | done |
-| M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | next |
-| M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | |
+| M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | done |
+| M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | next |
 | M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | |
 | M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | |
 | M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | |
@@ -158,5 +182,7 @@ make data PROFILE=dev SEED=0   # simulated world → data/dev/seed0/
 make history PROFILE=dev SEED=0   # status-quo log → data/dev/seed0/ops/fixed_round/
 make baselines PROFILE=dev SEED=0 # three baselines + oracle, break-even vs status quo
 make forecast PROFILE=dev SEED=0  # drain forecast backtest → data/dev/seed0/forecast/
+make eval    # final comparison, seeds 1000–1009 → artifacts/metrics.json (about 17 min)
+make eval ARGS="--seeds 0 1 2 3"  # development run → artifacts/eval/metrics_dev.json
 make help    # list all targets
 ```
