@@ -194,7 +194,7 @@ Motorcycle wear, depreciation and the runner's phone are not priced (no source f
 | `threshold` | agents below 0.75 typical days of cover on either side | yes |
 | `safety_stock` | agents below mean + k·sd of their observed peak 24-hour drain on either side; k is the standard normal quantile of a 95% service level (DERIVED) | yes |
 | `oracle` (upper bound) | agents whose true balance would fail within 26 h, most lost requests first; target in the middle of the cash band that serves every attempt | yes |
-| Jogan (M5) | forecast, newsvendor target and optimizer | yes |
+| Jogan (M5) | agents whose visit avoids more expected shortage and call cost than a stop's runner time, from the 24-hour drain forecast; newsvendor target (§14); runners assigned by a mixed-integer program | yes |
 
 - **Typical day** (policy side): mean served outflow per side over the last 28 complete observed days, or the opening balance ÷ 1.25 before 3 such days exist. Served flows are censored by stock-outs, as in reality.
 - **Rounds:** the top-priority agents that fit the runners' remaining capacity, split into sectors around the hub, each in nearest-neighbour order. Stops that do not fit the shift are dropped, lowest priority first.
@@ -352,3 +352,34 @@ Run with `make test` on the `tiny` profile:
 - **Calibration:** on synthetic, miscalibrated predictions, the conformal shifts reach nominal coverage per group, and small groups fall back to the pooled shift. On the calibration split, the upper levels are covered at least nominally.
 - **Outputs:** quantiles are non-negative and monotone; P(stock-out) reads the grid exactly and falls as the balance rises; every method, interval and group is scored.
 - **Determinism:** training twice gives identical predictions; the CLI writes the metrics file.
+
+## 14. Jogan's policy and the evaluation (M5)
+
+Configs: `configs/plan/base.yaml` (policy) and `configs/eval/base.yaml` (evaluation); every number is tagged, enforced by a test. Decision: D-021.
+
+**At 08:00 each day** Jogan builds the forecast features from the observed history (the same code as training), predicts calibrated quantiles of the 24-hour peak drain per side, and plans the round. Calls are answered as under every policy.
+
+| Quantity | Rule | Tag |
+|---|---|---|
+| Underage cost per Tk short | agent commission per Tk + lost-customer value ÷ the agent's mean served ticket on that side | commission SOURCE; one lost request per mean ticket ASSUMPTION |
+| Lost-customer value | operator setting, Tk 20 per lost request in the demo; the evaluation sweeps 0, 5, 20, 50, 100, 200 | ASSUMPTION (unknown, D-019) |
+| Overage cost per Tk held | policy rate × 24 h ÷ hours in a year | DERIVED |
+| Need per side | forecast quantile at the critical ratio cu ÷ (cu + co), linear between grid levels, extended linearly above 0.99 | DERIVED; tail extension ASSUMPTION |
+| Target cash level | middle of the band that meets both needs; when the liquidity cannot (most agent-mornings), the split in proportion to typical served outflow | ASSUMPTION, chosen on development seeds (D-021) |
+| Value of a visit | expected shortage cost at today's balances minus at the target, plus the call trip it saves: change in P(falling below the call level) × the known cost of a round trip from the hub | DERIVED |
+| Candidate | value above the runner time of one stop | DERIVED |
+| Runner assignment | Fisher–Jaikumar generalized assignment with optional visits, one program per territory (HiGHS); then a route check and a fill step | D-021 |
+
+**Not modelled:** the runner's bag in the program (the environment still limits each swap by it); the time between the 08:00 forecast and the runner's arrival; that a call can rescue an agent who was not visited.
+
+**Evaluation.** The `full` profile, evaluation seeds 1000–1009 (D-010). The status quo runs over the whole period and its log trains the forecaster; every other policy is switched on at the start of the test window from the same state. Each policy is scored on the test window and on the Eid-ul-Azha days in it (ten days before to three after), with the known cost at the low, middle and high runner salary. Differences are paired over seeds with 95% t-intervals; the break-even value per lost request gets Fieller's interval. `make eval` writes `artifacts/metrics.json`; a run with other seeds or settings writes `artifacts/eval/metrics_dev.json` instead.
+
+## 15. Policy and evaluation tests (M5)
+
+Run with `make test` on the `tiny` profile:
+
+- **Newsvendor:** for a uniform drain, the interpolated quantiles, exceedance probabilities and expected shortfalls are exact; the need is the critical quantile, the target the middle of the band, the two-sided split equalises the stock-out probabilities at equal costs, and the typical split is clipped to the liquidity.
+- **Dispatch program:** every agent at most once, within the territory, the call reserve and the shift, every visit committed on the fleet; no visits when nothing has value; with near-zero costs it collects at least the greedy round's value.
+- **Switch-over:** the status quo switched to itself equals the status quo; a switched baseline equals it before the switch.
+- **Jogan in the environment:** a decision trace per agent, targets within the liquidity, probabilities in [0, 1], round visits only to candidates, no fallbacks and no rejected visits; deterministic; a horizon without a forecast is refused.
+- **Evaluation:** the t-interval matches scipy; Fieller's interval covers a known ratio and is unbounded when the denominator is not away from zero; break-even verdicts; the CLI writes every section on two tiny seeds.
