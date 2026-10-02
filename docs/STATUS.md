@@ -178,14 +178,13 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - labels on every output: Prediction, Template, AI-written, Assumption, Evaluation
   - look: upay yellow and blue in our own layout (white sidebar, yellow active marker and top strip, blue actions); derived text colours checked for contrast; lucide-react 1.49.0 icons; security headers on the web app
   - API (`jogan/api/views.py`): `GET /v1/network/{day}`, `GET /v1/agents/{id}`, `days` in `/v1/meta`, bilingual display text for drivers and review reasons, gzip (a day's network: 172 KB → 16 KB)
-  - **Checks:** 186 Python tests (6 new: meta day counts, the network's agents and visits, display text, one agent's days and flags, the impact copy matches `metrics.json`); web lint, types and build. Checked locally in headless Chrome against the in-memory API on the demo bundle: analyst without buttons, approve, reject, approve with a note, "Why?", AI rewording, the trace after a decision, audit, pagination, Bangla and a 390 px phone width. `scripts/live_check.py` rewritten for the new pages
+  - **Checks:** 186 Python tests (6 new: meta day counts, the network's agents and visits, display text, one agent's days and flags, the impact copy matches `metrics.json`); web lint, types and build. Checked locally in headless Chrome against the in-memory API on the demo bundle: analyst without buttons, approve, reject, approve with a note, "Why?", AI rewording, the trace after a decision, audit, pagination, Bangla and a 390 px phone width. `scripts/live_check.py` rewritten for the new pages and passed on the live site after the deploy: public impact page, the map, the analyst refused (403), the whole interface in Bangla with Gemini's rewording (`gemini-3.5-flash-lite`), an approval and a rejection on 3 Jun audited, the 8-step trace, the rate limit. No flagged visit was pending on the first page of 3 Jun this run, so the note step was skipped (it passed in M7–M8)
   - decision D-025
 
 ## Next
 
 **M10 · Final eval and stress test, monitoring, keep-alive** (budget 1.5 h)
 
-- Run `scripts/live_check.py` on the live site after the M9 deploy if it has not passed yet.
 - `make eval` only if sim, ops, forecast or plan code or configs changed (they did not in M9); then `make impact`.
 - Stress profile (10k agents) timing, if time allows (first on the cut-line).
 - UptimeRobot: `/health` monitor and a Supabase keep-alive (owner checklist).
