@@ -17,6 +17,8 @@ export const DEMO_ACCOUNTS = [
 
 // The chosen UI language, read by the server layout so the first paint is in that language.
 export const LANG_COOKIE = "jogan-lang";
+// The sidebar's width on wide screens ("rail" = icons only), read by the server layout too.
+export const SIDEBAR_COOKIE = "jogan-sidebar";
 
 // Base map style. OpenFreeMap needs no key or account (openfreemap.org, checked 2026-10-02);
 // any MapLibre style URL, such as a keyed MapTiler style, can replace it.

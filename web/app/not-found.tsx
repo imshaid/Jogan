@@ -10,9 +10,12 @@ export default function NotFound() {
   return (
     <Public>
       <div className="mx-auto max-w-md py-24 text-center">
-        <p className="num text-sm font-semibold text-brand">404</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{t.notFound.title}</h1>
-        <Link href="/" className="mt-6 inline-block text-sm font-medium text-brand hover:underline">
+        <p className="num text-5xl font-medium tracking-tight text-fg-3">404</p>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t.notFound.title}</h1>
+        <Link
+          href="/"
+          className="mt-6 inline-flex h-9 items-center rounded-lg bg-ink px-4 text-sm font-medium text-white hover:bg-ink/85"
+        >
           {t.notFound.back} →
         </Link>
       </div>

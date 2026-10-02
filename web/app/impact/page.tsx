@@ -72,27 +72,21 @@ function ImpactView() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-4">
-        <div className="flex flex-col rounded-lg border border-line bg-surface p-5 lg:col-span-2">
-          <div className="text-sm font-medium text-fg-2">{t.impact.hero}</div>
-          <div className="mt-2 flex flex-wrap items-baseline gap-x-3">
-            <span className="text-5xl font-semibold tracking-tight text-brand">{f.signed(vsQuo.mean, 1)}</span>
-            <span className="text-sm text-fg-2">{t.impact.heroUnit}</span>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+        <div className="flex flex-col rounded-2xl border border-line bg-tray p-1 lg:col-span-2">
+          <div className="flex flex-1 flex-col rounded-xl border border-line bg-surface p-5 shadow-card">
+            <div className="eyebrow text-fg-3">{t.impact.hero}</div>
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="text-[56px] leading-none font-semibold tracking-[-0.03em] text-brand tabular-nums">
+                {f.signed(vsQuo.mean, 1)}
+              </span>
+              <span className="text-sm text-fg-2">{t.impact.heroUnit}</span>
+            </div>
+            <HeroBars w={w} />
           </div>
-          <div className="mt-2 mb-4 text-xs text-fg-2">
+          <div className="px-3 pt-2 pb-1.5 text-xs text-fg-2">
             {t.impact.heroVs(t.impact.policiesShort.fixed_round)} ·{" "}
             <span className="num">{t.impact.interval(f.signed(vsQuo.low, 1), f.signed(vsQuo.high, 1))}</span>
-          </div>
-          <div className="mt-auto flex flex-wrap gap-x-6 gap-y-1 border-t border-line pt-3 text-sm">
-            <span>
-              <span className="text-fg-2">{t.impact.policiesShort.jogan}</span>{" "}
-              <span className="num font-semibold">{f.num(impact.policies[impact.jogan as "jogan@20"][w].lost_per_1000.mean, 1)}</span>
-            </span>
-            <span>
-              <span className="text-fg-2">{t.impact.policiesShort.fixed_round}</span>{" "}
-              <span className="num font-semibold">{f.num(impact.policies.fixed_round[w].lost_per_1000.mean, 1)}</span>
-            </span>
-            <span className="text-xs text-fg-3 self-center">{t.impact.heroUnit}</span>
           </div>
         </div>
         <DiffTile
@@ -100,7 +94,7 @@ function ImpactView() {
           iv={vsBest}
           format={fmt.lost_per_1000}
         />
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 gap-3">
           <DiffTile
             label={`${t.impact.metric.runner_km} · ${t.impact.heroVs(t.impact.policiesShort.fixed_round)}`}
             iv={versus.fixed_round[w].runner_km as Interval}
@@ -116,7 +110,7 @@ function ImpactView() {
         </div>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <LostByPolicy w={w} />
         <VersusPanel w={w} fmt={fmt} />
       </div>
@@ -127,26 +121,53 @@ function ImpactView() {
 
       <Fairness />
 
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ForecastQuality />
         <AnomalyQuality />
       </div>
 
       <Ablations />
 
-      <footer className="rounded-lg border border-line bg-surface px-4 py-3 text-xs text-fg-2">
-        <div className="font-semibold text-fg">{t.impact.source}</div>
+      <footer className="rounded-2xl border border-line bg-tray px-4 py-3.5 text-xs text-fg-2">
+        <div className="eyebrow text-fg-3">{t.impact.source}</div>
         <p className="mt-1">{t.impact.sourceNote(impact.source, impact.generated_by)}</p>
         <p className="mt-1">
           {t.impact.configs}:{" "}
           {Object.entries(impact.config_hashes).map(([k, v]) => (
-            <code key={k} className="mr-2 text-fg-3">
+            <code key={k} className="mono mr-2 inline-block text-fg-3">
               {k}@{v}
             </code>
           ))}
         </p>
       </footer>
     </div>
+  );
+}
+
+// Lost requests per 1,000 for Jogan and the status quo, on a scale from zero so the gap is not
+// drawn bigger than it is.
+function HeroBars({ w }: { w: Window }) {
+  const { t, f } = useLang();
+  const rows = [
+    { key: "jogan", label: t.impact.policiesShort.jogan, v: impact.policies[impact.jogan as "jogan@20"][w].lost_per_1000.mean },
+    { key: "fixed_round", label: t.impact.policiesShort.fixed_round, v: impact.policies.fixed_round[w].lost_per_1000.mean },
+  ];
+  const max = Math.max(...rows.map((r) => r.v));
+  return (
+    <dl className="mt-auto space-y-2 pt-6">
+      {rows.map((r) => (
+        <div key={r.key} className="grid grid-cols-[minmax(0,7rem)_1fr_auto] items-center gap-3 text-sm">
+          <dt className={cx("truncate", r.key === "jogan" ? "font-semibold text-fg" : "text-fg-2")}>{r.label}</dt>
+          <span aria-hidden className="h-2.5 rounded-full bg-sunken">
+            <span
+              className={cx("block h-full rounded-full", r.key === "jogan" ? "bg-brand" : "bg-mark-muted")}
+              style={{ width: `${(r.v / max) * 100}%` }}
+            />
+          </span>
+          <dd className="num font-semibold">{f.num(r.v, 1)}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -166,7 +187,7 @@ function Verdict({ iv, lowerIsBetter = true }: { iv: Interval; lowerIsBetter?: b
     same: { Icon: MinusCircle, cls: "text-fg-2", label: t.impact.noDiff },
   }[v];
   return (
-    <span className={cx("inline-flex items-center gap-1 text-xs font-medium", map.cls)}>
+    <span className={cx("inline-flex items-center gap-1 text-xs font-semibold", map.cls)}>
       <map.Icon aria-hidden className="size-3.5" />
       {map.label}
     </span>
@@ -186,11 +207,15 @@ function DiffTile({
 }) {
   const { t } = useLang();
   return (
-    <div className="rounded-lg border border-line bg-surface p-4">
-      <div className="text-xs font-medium text-fg-2">{label}</div>
-      <div className={cx("mt-1 font-semibold tracking-tight", compact ? "text-2xl" : "text-3xl")}>{format(iv.mean)}</div>
-      <div className="num mt-1 text-xs text-fg-3">{t.impact.interval(format(iv.low), format(iv.high))}</div>
-      <div className="mt-2">
+    <div className="flex flex-col rounded-2xl border border-line bg-tray p-1">
+      <div className="flex-1 rounded-xl border border-line bg-surface px-4 py-3.5 shadow-card">
+        <div className="eyebrow text-fg-3">{label}</div>
+        <div className={cx("num mt-2 leading-none font-semibold tracking-[-0.02em]", compact ? "text-[26px]" : "text-[34px]")}>
+          {format(iv.mean)}
+        </div>
+        <div className="num mt-2 text-xs text-fg-3">{t.impact.interval(format(iv.low), format(iv.high))}</div>
+      </div>
+      <div className="px-3 pt-1.5 pb-1">
         <Verdict iv={iv} />
       </div>
     </div>
@@ -237,7 +262,7 @@ function VersusPanel({ w, fmt }: { w: Window; fmt: Record<Metric, (v: number) =>
           }));
           return (
             <div key={m}>
-              <h3 className="mb-1 text-xs font-semibold text-fg">{t.impact.metric[m]}</h3>
+              <h3 className="mb-2 text-xs font-semibold text-fg">{t.impact.metric[m]}</h3>
               <IntervalPlot rows={rows} format={fmt[m]} height={28} zeroLabel="0" />
               {table && (
                 <DataTable
@@ -257,11 +282,11 @@ function VersusPanel({ w, fmt }: { w: Window; fmt: Record<Metric, (v: number) =>
 function HoldsTag({ holds }: { holds: boolean }) {
   const { t } = useLang();
   return holds ? (
-    <span className="inline-flex items-center gap-1 rounded bg-ok-tint px-1.5 py-0.5 text-xs font-semibold text-ok-text">
+    <span className="inline-flex items-center gap-1 rounded-full border border-ok-text/20 bg-ok-tint py-0.5 pr-2 pl-1.5 text-xs font-semibold whitespace-nowrap text-ok-text">
       <CheckCircle2 aria-hidden className="size-3.5" /> {t.impact.holds}
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 rounded bg-danger-tint px-1.5 py-0.5 text-xs font-semibold text-danger-text">
+    <span className="inline-flex items-center gap-1 rounded-full border border-danger/25 bg-danger-tint py-0.5 pr-2 pl-1.5 text-xs font-semibold whitespace-nowrap text-danger-text">
       <XCircle aria-hidden className="size-3.5" /> {t.impact.fails}
     </span>
   );
@@ -274,8 +299,10 @@ function Hypotheses() {
     <Panel title={t.impact.hypotheses} bodyClassName="p-0">
       <ul className="divide-y divide-line">
         {(Object.keys(h) as (keyof typeof h)[]).map((k) => (
-          <li key={k} className="flex flex-wrap items-start gap-x-4 gap-y-2 px-4 py-3">
-            <span className="w-8 shrink-0 text-sm font-semibold text-fg">{k}</span>
+          <li key={k} className="flex flex-wrap items-start gap-x-4 gap-y-2 px-4 py-3.5">
+            <span className="mono flex h-6 w-9 shrink-0 items-center justify-center rounded-md bg-ink text-xs font-semibold text-white">
+              {k}
+            </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm text-fg first-letter:uppercase">{t.impact.hypothesis[k] ?? h[k].statement}</p>
               {k === "H1" && (
@@ -311,17 +338,19 @@ function NotWin() {
     t.impact.notWinCosts,
   ];
   return (
-    <section id="not-win" className="rounded-lg border border-warn-mark/50 bg-warn-tint/60" aria-labelledby="not-win-title">
-      <div className="border-b border-warn-mark/40 px-4 py-2.5">
+    <section id="not-win" className="rounded-2xl border border-warn-mark/50 bg-warn-tint p-1" aria-labelledby="not-win-title">
+      <div className="px-3 py-2">
         <h2 id="not-win-title" className="flex items-center gap-2 text-sm font-semibold text-ink">
           <CircleSlash aria-hidden className="size-4" /> {t.impact.notWin}
         </h2>
         <p className="mt-0.5 text-xs text-warn-text">{t.impact.notWinLead}</p>
       </div>
-      <ul className="space-y-2 px-4 py-3 text-sm text-fg">
+      <ul className="divide-y divide-line rounded-xl border border-warn-mark/30 bg-surface text-sm text-fg shadow-card">
         {items.map((x, i) => (
-          <li key={i} className="flex gap-2">
-            <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-ink" />
+          <li key={i} className="flex gap-3 px-4 py-2.5">
+            <span aria-hidden className="mono mt-px text-xs text-warn-text">
+              {String(i + 1).padStart(2, "0")}
+            </span>
             <span>{x}</span>
           </li>
         ))}
@@ -347,7 +376,7 @@ function Fairness() {
       aside={<TableToggle open={table} onToggle={() => setTable((x) => !x)} />}
     >
       <p className="mb-4 text-xs text-fg-2">{t.impact.fairnessNote(t.impact.policiesShort[best])}</p>
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {(Object.keys(groups) as (keyof typeof groups)[]).map((col) => {
           const entries = Object.entries(groups[col]) as [string, { difference: Interval }][];
           const rows: IntervalRow[] = entries.map(([g, v]) => {
@@ -366,7 +395,7 @@ function Fairness() {
           });
           return (
             <div key={col}>
-              <h3 className="mb-1 text-xs font-semibold text-fg">{t.impact.group[col]}</h3>
+              <h3 className="mb-2 text-xs font-semibold text-fg">{t.impact.group[col]}</h3>
               <IntervalPlot rows={rows} format={(v) => f.signed(v, 1)} height={30} zeroLabel="0" />
               {table && (
                 <DataTable
@@ -445,9 +474,9 @@ function AnomalyQuality() {
                 {f.num(v.detected)} / {f.num(v.windows)}
               </span>
             </div>
-            <div aria-hidden className="mt-1 flex h-1.5 gap-[2px]">
+            <div aria-hidden className="mt-1.5 flex h-2 gap-[3px]">
               {Array.from({ length: v.windows }, (_, i) => (
-                <span key={i} className={cx("flex-1 rounded-[1px]", i < v.detected ? "bg-brand" : "bg-sunken")} />
+                <span key={i} className={cx("flex-1 rounded-[2px]", i < v.detected ? "bg-brand" : "bg-sunken")} />
               ))}
             </div>
           </li>
@@ -459,9 +488,9 @@ function AnomalyQuality() {
 
 function Mini({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-page px-3 py-2">
-      <dt className="text-[11px] text-fg-2">{label}</dt>
-      <dd className="mt-0.5 text-lg font-semibold">{value}</dd>
+    <div className="rounded-lg border border-line bg-tray px-3 py-2.5">
+      <dt className="text-[11px] text-fg-3">{label}</dt>
+      <dd className="num mt-1 text-lg font-semibold">{value}</dd>
     </div>
   );
 }
@@ -472,10 +501,10 @@ function Ablations() {
   const keys = Object.keys(ab) as (keyof typeof ab)[];
   return (
     <Panel title={t.impact.ablations}>
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {(["lost_per_1000", "runner_km"] as const).map((m) => (
           <div key={m}>
-            <h3 className="mb-1 text-xs font-semibold text-fg">{t.impact.metric[m]}</h3>
+            <h3 className="mb-2 text-xs font-semibold text-fg">{t.impact.metric[m]}</h3>
             <IntervalPlot
               rows={keys.map((k) => ({ key: k, label: t.impact.ablation[k] ?? k, ...(ab[k][m] as Interval), emphasis: true }))}
               format={(v) => f.signed(v, m === "runner_km" ? 0 : 1)}

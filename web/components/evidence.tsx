@@ -17,7 +17,7 @@ export function DriverList({ drivers }: { drivers: Driver[] }) {
   if (!drivers.length) return null;
   const max = Math.max(...drivers.map((d) => Math.abs(d.effect_pct)), 1);
   return (
-    <ul className="space-y-2.5">
+    <ul className="space-y-3">
       {drivers.map((d) => {
         const up = d.effect_pct >= 0;
         const w = (Math.abs(d.effect_pct) / max) * 50;
@@ -32,7 +32,7 @@ export function DriverList({ drivers }: { drivers: Driver[] }) {
                 {f.signed(d.effect_pct, 0)}%
               </span>
             </div>
-            <div aria-hidden className="relative mt-1 h-1.5 rounded-full bg-sunken">
+            <div aria-hidden className="relative mt-1.5 h-1.5 rounded-full bg-sunken">
               <span className="absolute inset-y-[-2px] left-1/2 w-px bg-line-strong" />
               <span
                 className={cx("absolute inset-y-0 rounded-full", up ? "left-1/2 bg-warn-mark" : "right-1/2 bg-brand")}
@@ -53,7 +53,7 @@ export function ReasonList({ review }: { review?: Review }) {
     <ul className="space-y-1.5">
       {review.reasons.map((r, i) => (
         <li key={`${r.code}-${i}`} className="flex gap-2 text-sm" lang={lang}>
-          <span aria-hidden className="mt-0.5 text-xs text-ink">
+          <span aria-hidden className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-accent text-[10px] text-ink">
             ⚑
           </span>
           {r.text[lang]}
@@ -187,7 +187,7 @@ export function DecisionControls({
           </label>
           <textarea
             id={`note-${rec.id}`}
-            className="min-h-16 rounded-md border border-line-strong px-2 py-1.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="min-h-16 rounded-lg border border-line-strong bg-surface px-2.5 py-2 text-sm shadow-xs outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
             maxLength={500}
             value={note}
             placeholder={t.queue.notePlaceholder}

@@ -26,35 +26,35 @@ function AboutView() {
     <div className="space-y-6">
       <PageHeader title={a.title} subtitle={a.lead} />
 
-      <section aria-labelledby="steps" className="rounded-lg border border-line bg-surface p-5">
-        <h2 id="steps" className="text-sm font-semibold">
+      <section aria-labelledby="steps" className="rounded-2xl border border-line bg-tray p-1">
+        <h2 id="steps" className="eyebrow px-3 py-2.5 text-fg-2">
           {a.stepsTitle}
         </h2>
-        <ol className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <ol className="grid grid-cols-1 gap-1 md:grid-cols-2 xl:grid-cols-4">
           {a.steps.map((s, i) => (
-            <li key={s.t} className="relative rounded-md border border-line bg-page/60 p-4">
-              <div className="flex items-center gap-2">
+            <li key={s.t} className="relative rounded-xl border border-line bg-surface p-4 shadow-card">
+              <div className="flex items-center gap-2.5">
                 <span
                   className={
                     i === a.steps.length - 1
-                      ? "flex size-6 items-center justify-center rounded-full bg-accent text-xs font-bold text-ink"
-                      : "flex size-6 items-center justify-center rounded-full bg-brand text-xs font-bold text-white"
+                      ? "mono flex h-6 min-w-8 items-center justify-center rounded-md bg-accent text-xs font-semibold text-ink"
+                      : "mono flex h-6 min-w-8 items-center justify-center rounded-md bg-ink text-xs font-semibold text-white"
                   }
                 >
-                  {i + 1}
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 <h3 className="text-sm font-semibold">{s.t}</h3>
                 {i < a.steps.length - 1 && (
                   <ArrowRight aria-hidden className="ml-auto hidden size-4 text-fg-3 xl:block" />
                 )}
               </div>
-              <p className="mt-2 text-sm leading-relaxed text-fg-2">{s.d}</p>
+              <p className="mt-2.5 text-sm leading-relaxed text-fg-2">{s.d}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Panel title={a.aiTitle}>
           <Bullets items={a.aiPoints} />
         </Panel>
@@ -83,11 +83,11 @@ function AboutView() {
         </Panel>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Panel
           title={
             <span className="flex items-center gap-2">
-              <Database aria-hidden className="size-4 text-brand" /> {a.dataTitle}
+              <Database aria-hidden className="size-3.5 text-brand" /> {a.dataTitle}
             </span>
           }
         >
@@ -96,7 +96,7 @@ function AboutView() {
         <Panel
           title={
             <span className="flex items-center gap-2">
-              <KeyRound aria-hidden className="size-4 text-brand" /> {a.securityTitle}
+              <KeyRound aria-hidden className="size-3.5 text-brand" /> {a.securityTitle}
             </span>
           }
         >
@@ -105,7 +105,7 @@ function AboutView() {
         <Panel
           title={
             <span className="flex items-center gap-2">
-              <ShieldCheck aria-hidden className="size-4 text-brand" /> {a.limitsTitle}
+              <ShieldCheck aria-hidden className="size-3.5 text-brand" /> {a.limitsTitle}
             </span>
           }
         >
@@ -132,7 +132,7 @@ function Bullets({ items }: { items: string[] }) {
     <ul className="space-y-2.5 text-sm leading-relaxed text-fg">
       {items.map((x) => (
         <li key={x} className="flex gap-2.5">
-          <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-brand" />
+          <span aria-hidden className="mt-[9px] size-1.5 shrink-0 rounded-[2px] bg-brand" />
           <span>{x}</span>
         </li>
       ))}

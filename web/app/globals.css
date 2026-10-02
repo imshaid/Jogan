@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
+/* The collapsed (icon rail) sidebar on wide screens: html[data-sidebar="rail"], set from a cookie
+   by the server layout so the first paint already has the chosen width. */
+@custom-variant rail (&:where([data-sidebar="rail"], [data-sidebar="rail"] *));
+
 /* Brand tokens measured from the official guideline PDF (DECISIONS.md D-007).
-   Yellow is a fill only (ink text on it); red marks critical states only. */
+   Yellow is a fill only (ink text on it); red marks critical states only.
+   The neutrals are warm greys on white (D-029): trays and the sidebar sit one step below the
+   white canvas, and white cards sit inside the trays. */
 :root {
   color-scheme: light;
   --upay-yellow: #fbd603;
@@ -24,14 +30,17 @@
   --green-50: #eaf6ee;
   --orange: #d9730d; /* e-float series marks only (3.3:1, validated against blue for CVD) */
 
-  --text: #12161c;
-  --text-2: #4a5361; /* 7.8:1 */
-  --text-3: #636b78; /* 5.4:1, never below 12px */
-  --line: #e3e6eb;
-  --line-strong: #cdd2d9;
+  --text: #111113;
+  --text-2: #4b4c52; /* 8.6:1 */
+  --text-3: #66676d; /* 5.6:1 on white, 5.2:1 on the tray; never below 11px */
+  --line: #e9e8e4;
+  --line-strong: #d7d6d1;
   --surface: #ffffff;
-  --bg: #f4f5f7;
-  --bg-sunken: #eceef2;
+  --bg: #ffffff;
+  --tray: #f6f6f4;
+  --side: #f8f8f6;
+  --bg-sunken: #efefec;
+  --mark-muted: #86857f; /* unselected data marks (bars, blocks): 3.7:1 on white, 3.2:1 on sunken */
 }
 
 @theme inline {
@@ -60,9 +69,33 @@
   --color-line-strong: var(--line-strong);
   --color-surface: var(--surface);
   --color-page: var(--bg);
+  --color-tray: var(--tray);
+  --color-side: var(--side);
   --color-sunken: var(--bg-sunken);
+  --color-mark-muted: var(--mark-muted);
   --font-sans: var(--font-inter), var(--font-bengali), system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  --font-mono: var(--font-geist-mono), var(--font-bengali), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --shadow-xs: 0 1px 2px rgb(17 17 19 / 0.05);
+  --shadow-card: 0 1px 2px rgb(17 17 19 / 0.04), 0 1px 1px rgb(17 17 19 / 0.02);
+  --shadow-pop: 0 16px 40px -12px rgb(17 17 19 / 0.22), 0 4px 10px -2px rgb(17 17 19 / 0.08);
+}
+
+/* Small mono caps for section labels and table heads. Bangla has no case, and letter spacing
+   breaks its conjuncts, so both are off there. */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-feature-settings: normal;
+  &:lang(bn) {
+    font-family: var(--font-bengali), sans-serif;
+    font-size: 12px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
 }
 
 html {
@@ -80,9 +113,12 @@ body {
   line-height: 1.6;
 }
 
-:focus-visible {
-  outline: 2px solid var(--upay-blue);
-  outline-offset: 2px;
+/* in the base layer, so a utility can replace it where a control draws its own focus state */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--upay-blue);
+    outline-offset: 2px;
+  }
 }
 
 ::selection {
@@ -90,15 +126,23 @@ body {
   color: var(--upay-ink);
 }
 
+/* quantities: tabular figures in the text face (a plain zero) */
 .num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ids, codes and hashes: mono, where the slashed zero tells 0 from O */
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: normal;
   font-variant-numeric: tabular-nums;
 }
 
 /* MapLibre: popups and controls in the app's type and colours */
 .maplibregl-popup-content {
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0;
-  box-shadow: 0 6px 24px rgb(5 6 8 / 0.14);
+  box-shadow: var(--shadow-pop);
   font-family: var(--font-inter), var(--font-bengali), system-ui, sans-serif;
 }
 .maplibregl-popup-close-button {
@@ -109,6 +153,12 @@ body {
 }
 .maplibregl-ctrl-attrib {
   font-size: 11px;
+}
+.maplibregl-ctrl-group:not(:empty) {
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgb(17 17 19 / 0.08);
+  border: 1px solid var(--line);
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
