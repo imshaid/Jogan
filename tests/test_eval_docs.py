@@ -29,3 +29,8 @@ def test_every_renderer_writes_text_without_blocks_of_its_own() -> None:
         out = render(s)
         assert out.strip(), name
         assert "<!-- numbers" not in out, name
+
+
+def test_every_renderer_is_used_in_some_file() -> None:
+    used = {m["name"] for path in files() for m in BLOCK.finditer(path.read_text())}
+    assert set(RENDERERS) <= used, sorted(set(RENDERERS) - used)
