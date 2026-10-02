@@ -57,3 +57,7 @@ desktop.ini
 # --- Logs ---
 *.log
 logs/
+
+# Written by `next dev` when it detects an AI coding agent (Next.js agentRules)
+web/AGENTS.md
+web/CLAUDE.md

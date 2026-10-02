@@ -191,7 +191,12 @@ def test_the_deployed_app_checks_supabase_tokens(
     app = from_env()
     assert isinstance(app.state.verifier, JwksVerifier)
     assert app.state.verifier.jwks_url == f"{ISSUER}/.well-known/jwks.json"
+    # the local run's tokens are role names, never a valid JWT here
+    assert TestClient(app).get("/v1/me", headers=auth("approver")).status_code == 401
     monkeypatch.setenv("JOGAN_STORE", "memory")
+    monkeypatch.setenv("JOGAN_ENV", "production")
+    with pytest.raises(RuntimeError, match="development only"):
+        from_env()
     monkeypatch.setenv("JOGAN_ENV", "development")
     client = TestClient(from_env())
     assert client.get("/v1/me", headers=auth("approver")).json()["role"] == "approver"

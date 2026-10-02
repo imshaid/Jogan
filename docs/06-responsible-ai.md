@@ -67,6 +67,7 @@ Tests mock the HTTP layer and cover the fallback, every refusal, the rate limit,
 | Threat | Mitigation | Tested |
 |---|---|---|
 | Forged or tampered token (`none`, HS256, another key, expired, wrong issuer or audience, anon or service-role token) | API token verification; PostgREST re-verifies | twelve kinds of forged token in pytest; a forged token in `live_check.py` |
+| The local run's fixed tokens (`analyst`, `approver`) used against the live system | the in-memory store refuses to start unless `JOGAN_ENV=development`; the deployed API verifies every token as a Supabase JWT, so a role name is a 401; the web app offers local sign-in only with `NEXT_PUBLIC_LOCAL_AUTH=1` and an API on `localhost` | pytest (`from_env` in both store modes, forged tokens) |
 | Analyst tries to approve | API role check, then `decide_recommendation` refuses (42501 → 403) | pytest, `make test-db`, live check |
 | Editing or deleting history | append-only triggers on the audit log; a decided recommendation cannot change | `make test-db` for every role, including the table owner |
 | Brute force or flooding | token buckets per address, per user, for decisions and for AI rewording; 429 with `Retry-After` | pytest with a fake clock; live check |
