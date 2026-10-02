@@ -10,3 +10,11 @@ export const DEMO_ACCOUNTS = [
   { email: "jogan.analyst@example.com", role: "analyst" },
   { email: "jogan.approver@example.com", role: "approver" },
 ] as const;
+
+// The chosen UI language, read by the server layout so the first paint is in that language.
+export const LANG_COOKIE = "jogan-lang";
+
+// Base map style. OpenFreeMap needs no key or account (openfreemap.org, checked 2026-10-02);
+// any MapLibre style URL, such as a keyed MapTiler style, can replace it.
+export const MAP_STYLE_URL =
+  process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/positron";

@@ -1,39 +1,31 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Bengali } from "next/font/google";
-import Image from "next/image";
+import { cookies } from "next/headers";
 
+import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
+
+import { LANG_COOKIE } from "@/lib/config";
+
+import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const bengali = Noto_Sans_Bengali({ subsets: ["bengali"], variable: "--font-bengali" });
 
 export const metadata: Metadata = {
-  title: "Jogan · যোগান",
-  description: "Agent liquidity copilot prototype. All data is simulated.",
+  title: { default: "Jogan · যোগান", template: "%s · Jogan" },
+  description: "Agent liquidity copilot prototype for upay agents. All data is simulated.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export const viewport: Viewport = { themeColor: "#0c55a4" };
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // the language is a cookie, so the server renders the chosen language and nothing flashes
+  const lang = (await cookies()).get(LANG_COOKIE)?.value === "bn" ? "bn" : "en";
   return (
-    <html lang="en" className={`${inter.variable} ${bengali.variable}`}>
+    <html lang={lang} className={`${inter.variable} ${bengali.variable}`}>
       <body className="min-h-screen font-sans antialiased">
-        <header className="border-b border-line bg-white">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
-            <span className="flex items-center gap-2 text-lg font-bold text-brand">
-              <Image src="/brand/jogan-mark.png" alt="" width={32} height={32} loading="eager" />
-              <span>
-                Jogan <span aria-hidden>·</span> <span lang="bn">যোগান</span>
-              </span>
-            </span>
-            <span className="text-sm text-muted">Agent liquidity copilot</span>
-            <span
-              className="ml-auto rounded-full bg-accent px-3 py-1 text-xs font-semibold text-ink"
-              title="Every agent, transaction and runner here comes from a simulator. No real customer data."
-            >
-              Simulated data · <span lang="bn">সিমুলেটেড ডেটা</span>
-            </span>
-          </div>
-        </header>
-        {children}
+        <Providers lang={lang}>{children}</Providers>
       </body>
     </html>
   );
