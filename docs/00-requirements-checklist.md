@@ -6,13 +6,13 @@ Every official requirement and owner decision, as a list we can tick. "Where" po
 - the organizers' Rulebook and Student Guideline (AI Dev Fest 2026, DIU CPC × upay)
 - the owner's binding decisions
 
-Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsible-ai`, `07-product-readiness`, `09-deployment`, `10-demo-script`.
+Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-model-card.md), [`05-evaluation`](05-evaluation.md), [`06-responsible-ai`](06-responsible-ai.md), [`07-product-readiness`](07-product-readiness.md), [`09-deployment`](09-deployment.md), [`10-demo-script`](10-demo-script.md); report draft in [`report/report.md`](../report/report.md).
 
 ## A. Deadlines and submission
 
 - [ ] Initial code pushed before **4 Oct 2026 10:00 BST**, tag `submission-initial` (M12)
-- [ ] Demo video of **at least 5 minutes** covering the project, its development, what it does, how it works and its real-world impact (script in `docs/10-demo-script.md`, M11; recorded by teammates)
-- [ ] Project report on the approach, the implementation process and other details (`report/`, M11)
+- [ ] Demo video of **at least 5 minutes** covering the project, its development, what it does, how it works and its real-world impact (script done: [`10-demo-script.md`](10-demo-script.md); recording by teammate 2)
+- [ ] Project report on the approach, the implementation process and other details (draft done: [`report/report.md`](../report/report.md); team review, roles and final format before submission)
 - [ ] Public GitHub link submitted through the organizers' form
 - [ ] On-site, 7 Oct: new requirements implemented and pushed as small commits, logged in `docs/ONSITE_LOG.md`
 
@@ -22,20 +22,20 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
 - [x] Clear, continuous, step-by-step commit history in the initial phase (ongoing)
 - [ ] Continuous commit history in the on-site phase
 - [x] No single final upload
-- [ ] Source code, prototype files and a complete `README.md` in the repo (M11)
+- [x] Source code, prototype files and a complete `README.md` in the repo (M11)
 
-## C. Mandatory README items (Rulebook §6), all due in M11
+## C. Mandatory README items (Rulebook §6), done in M11
 
-- [ ] Project overview: problem, solution, purpose
-- [ ] Features and how the AI components are used
-- [ ] Technology stack: languages, frameworks, AI models, APIs, libraries, services
-- [ ] Requirements: software, dependencies, hardware, prerequisites
-- [ ] Installation and setup, step by step
-- [ ] Environment variables: names, purpose, configuration, **placeholders only** (`.env.example` exists)
-- [ ] Exact run and build commands
-- [ ] **Live deployment URL**
-- [ ] Testing instructions
-- [ ] Other configuration
+- [x] Project overview: problem, solution, purpose
+- [x] Features and how the AI components are used
+- [x] Technology stack: languages, frameworks, AI models, APIs, libraries, services
+- [x] Requirements: software, dependencies, hardware, prerequisites
+- [x] Installation and setup, step by step
+- [x] Environment variables: names, purpose, configuration, **placeholders only** (`.env.example` exists)
+- [x] Exact run and build commands
+- [x] **Live deployment URL**
+- [x] Testing instructions
+- [x] Other configuration
 
 ## D. Development rules
 
@@ -43,26 +43,26 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
 - [x] AI tools and models disclosed in [`08-ai-usage.md`](08-ai-usage.md)
 - [x] Participants use their own accounts
 - [x] Prompt and development history available on request (local brief, Claude Code transcripts)
-- [ ] Significant external datasets, APIs and services listed (partly in [`02-data-assumptions.md`](02-data-assumptions.md); full list in the README, M11)
-- [ ] Every teammate can explain the design, the implementation and the AI (architecture doc and model card, plus a walkthrough, M11)
+- [x] Significant external datasets, APIs and services listed (README "Data and external sources"; sources in [`02-data-assumptions.md`](02-data-assumptions.md))
+- [ ] Every teammate can explain the design, the implementation and the AI (architecture doc, model card and evaluation written in M11; a walkthrough with both teammates is still due)
 - [x] No copying from other teams
 
 ## E. Branding
 
-- [ ] No upay logo; an original simple mark; wordmark "Jogan · যোগান" (M9)
+- [x] No upay logo; an original simple mark; wordmark "Jogan · যোগান" (M7, M9)
 - [x] Not presented as upay's product (README disclaimer; UI disclaimer in M9)
 
 ## F. Judging criteria and our evidence
 
 | Criterion | Weight | Evidence | Where |
 |---|---|---|---|
-| Problem relevance | 20% | Official BB figures on MFS scale and Eid peaks; agent stock-outs as a real operational pain | [`01-logic-chain.md`](01-logic-chain.md) |
-| AI/ML depth | 20% | Peak-drain quantile forecasts, CQR calibration, newsvendor + MILP dispatch, TreeSHAP drivers, ablations | M4–M5, `04-model-card` |
-| Business/customer impact | 20% | Failed requests and known cost vs. three baselines (fixed round, threshold, safety stock) over several seeds; break-even value of a lost customer; salary sensitivity; where Jogan does not win | M5, `05-evaluation` |
+| Problem relevance | 20% | Official BB figures on MFS scale and Eid peaks; agent stock-outs as a real operational pain | [`01-logic-chain.md`](01-logic-chain.md), [`07-product-readiness.md`](07-product-readiness.md) |
+| AI/ML depth | 20% | Peak-drain quantile forecasts, CQR calibration, newsvendor + MILP dispatch, TreeSHAP drivers, ablations | M4–M5, [`04-model-card.md`](04-model-card.md) |
+| Business/customer impact | 20% | Failed requests and known cost vs. three baselines (fixed round, threshold, safety stock) over several seeds; break-even value of a lost customer; salary sensitivity; where Jogan does not win | M5, [`05-evaluation.md`](05-evaluation.md) |
 | Prototype quality | 15% | Live web app: map, agent detail, queue, approvals, impact page, bilingual | M6–M9 |
-| Innovation | 10% | Forecasting the *peak* drain, censoring-aware training, an equity knob in the optimizer | `03-architecture`, `04-model-card` |
-| Scalability & integration | 10% | `DataSource` adapter, stateless API, territory decomposition, stress test | M8, M10, `07-product-readiness` |
-| Responsible AI & security | 5% | RLS roles, append-only audit, human approval, fairness table, grounded LLM, guardrails | M6–M8, `06-responsible-ai` |
+| Innovation | 10% | Forecasting the *peak* drain, censoring-aware training (the equity knob in the optimizer was not built, D-027) | [`03-architecture.md`](03-architecture.md), [`04-model-card.md`](04-model-card.md) |
+| Scalability & integration | 10% | Documented observed-log table and `Store` protocol as the integration seam (D-027), stateless API, territory decomposition, stress test | M8, M10, [`03-architecture.md`](03-architecture.md) §9–10, [`07-product-readiness.md`](07-product-readiness.md) |
+| Responsible AI & security | 5% | RLS roles, append-only audit, human approval, fairness table, grounded LLM, guardrails | M6–M8, [`06-responsible-ai.md`](06-responsible-ai.md) |
 
 ## G. Guideline expectations
 
@@ -72,13 +72,13 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
   - known patterns injected (normal, anomalies, seasonality)
   - every assumption documented
   - clean test set never used to train
-- [ ] **Architecture** (`03-architecture`):
+- [x] **Architecture** ([`03-architecture.md`](03-architecture.md)):
   - data preparation separate from model inference
   - business rules separate from ML predictions
   - traceable, explainable outputs
   - API ready for a real backend
   - no sensitive decision logic inside a free-form LLM prompt
-- [ ] **Product readiness** (`07-product-readiness`):
+- [x] **Product readiness** ([`07-product-readiness.md`](07-product-readiness.md)):
   - a frequent, economically meaningful problem
   - AI beats simple rules (honest baselines)
   - a clear action after each prediction
@@ -86,7 +86,7 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
   - can be validated with real data
   - privacy, fairness, explainability and security addressed
   - fits a real workflow
-- [ ] **Responsible AI minimums** (`06-responsible-ai`):
+- [x] **Responsible AI minimums** ([`06-responsible-ai.md`](06-responsible-ai.md)):
   - privacy: synthetic only
   - explainability: main reasons per important prediction
   - fairness across groups
@@ -98,7 +98,7 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
 ## H. Owner decisions (binding)
 
 - [x] Supabase Postgres and Supabase Auth with roles (analyst, approver) and row-level security (M6, M8; D-022, D-024)
-- [ ] **Deployment:**
+- [ ] **Deployment** (all done except the owner's UptimeRobot monitors):
   - Vercel (web)
   - Google Cloud Run (API, Docker, continuous deploy from GitHub)
   - Supabase free tier
@@ -111,22 +111,22 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
   - mocked in tests and CI
   - synthetic data only
   - billing off (M7)
-- [ ] **UI** (M9):
+- [x] **UI** (M9):
   - full Bangla/English toggle, Noto Sans Bengali, ৳
   - an always-visible "Simulated data" badge
   - outputs labelled prediction, assumption or AI-written explanation
   - a reliable interactive map (MapLibre)
-- [ ] Brand colours with WCAG AA checks; risk never shown by colour alone ([`DECISIONS.md`](DECISIONS.md) D-007, M9)
-- [ ] Small data while developing; the large final dataset generated from a seed (M2, M10)
+- [x] Brand colours with WCAG AA checks; risk never shown by colour alone ([`DECISIONS.md`](DECISIONS.md) D-007, D-025)
+- [x] Small data while developing; the large final dataset generated from a seed (M2, M5, M10)
 
 ## I. Quality bar
 
-- [ ] `make setup`, `make test`, `make eval` (writes `artifacts/metrics.json`), `make run`; a clean clone works by following the README
+- [ ] `make setup`, `make test`, `make eval` (writes `artifacts/metrics.json`), `make run`; a clean clone works by following the README (`make run` does not exist yet: today `make api` plus `npm run dev`; clean-clone test in M12)
   - setup and test exist since M0
   - eval: M5
   - run: M6
 - [x] CI runs lint and tests; gitleaks secret scanning; Dependabot updates
-- [ ] **Honest evaluation** (M4–M5, M10):
+- [x] **Honest evaluation** (M4–M5, M10; [`05-evaluation.md`](05-evaluation.md)):
   - leakage-free time splits and a held-out test window
   - interval coverage vs. nominal
   - baselines over several seeds with uncertainty
@@ -140,7 +140,7 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
   - rate limiting and input validation
   - structured-input-only LLM
   - low confidence routed to manual review
-- [ ] **Docs:**
+- [ ] **Docs** (all written except `ONSITE_LOG.md`, which starts on site):
   - README
   - logic chain
   - architecture

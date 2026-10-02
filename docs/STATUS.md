@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02, end of M10._
+_Last updated: 2026-10-02, end of M11._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -193,19 +193,35 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - **Checks:** 193 Python tests (7 new: stress config and tags, hub mapping, a stress run on a replicated tiny world with a different agent count, refusal of unseen hubs, `/health/db` caching and 503, `HEAD` on both health routes, the Supabase ping request)
   - decision D-026
 
+- **M11 · Full README, docs pack, report draft, video script**
+  - **numbers in docs are generated:** `make docs` (`jogan/eval/docs.py`) rewrites every `<!-- numbers:NAME -->` block in `README.md`, `docs/*.md` and `report/*.md` from `artifacts/metrics.json` and `artifacts/stress.json` (16 block types: headline, limits, stress, runtime, forecast, calibration, censoring, anomaly, costs, by_value, break_even, hypotheses, fairness, ablations, eid, does_not_win). Tests fail on a stale copy, an unknown block or an unused renderer
+  - **README** rewritten for every Rulebook §6 item: overview, live URLs and demo accounts, results (generated), features and how AI is used, architecture diagram, stack, requirements, setup, environment variables, run and build, testing, configuration, deployment, data and external sources, responsible AI, docs index, team, AI usage
+  - **docs pack:** [`03-architecture`](03-architecture.md) (components, the 8-step morning, the five separations, data contracts, routes, database, security layers, scale, path to a real backend), [`04-model-card`](04-model-card.md) (forecast, drivers, guardrails, anomaly flag, limits), [`05-evaluation`](05-evaluation.md) (method, headline, cost split, lost-customer value sweep, break-even, H1–H4, fairness, Eid, ablations, where Jogan does not win), [`06-responsible-ai`](06-responsible-ai.md) (minimums table, oversight, LLM safeguards, threat table, accessibility, known gaps), [`07-product-readiness`](07-product-readiness.md) (validation plan: backtest → shadow mode → randomised pilot by territory; workflow; gaps before a pilot), [`09-deployment`](09-deployment.md) (topology, CI/CD, secrets, rebuild in own accounts, monitoring, rollback, end of life), [`10-demo-script`](10-demo-script.md) (10 scenes, about 7 min, narration points to a generated numbers sheet)
+  - **report draft:** [`report/report.md`](../report/report.md): cover with the team, abstract, approach, implementation process (milestones and the decisions that changed the design), results (generated), where Jogan does not win, responsible AI, path to product, references
+  - **found while writing:**
+    - `scripts/gcp-setup.sh` assumes the Cloud APIs, the Artifact Registry repository, both service accounts and a `bootstrap` image already exist; `09-deployment` lists them
+    - the checklist's `DataSource` adapter does not exist; the integration seam is the observed-log table plus the `Store` protocol (checklist and `03-architecture` §10 corrected)
+    - H3 fails both ways: short-horizon intervals too wide over all agents; 24-hour coverage low on Eid days and in some groups
+    - at a lost-customer value of ৳200, Jogan's known cost is above the threshold rule's; it is cheaper once a lost request is worth more than the break-even value (`05-evaluation` §3)
+    - the equity weight or service floor (D-002 #9) was never built; listed as the first gap before a pilot
+  - **Checks:** 198 Python tests (5 new for `make docs`); `make check` passes
+  - decision D-027
+
 ## Next
 
-**M11 · Full README, docs pack, report draft, video script** (budget 3 h)
+**M12 · Clean-clone test, live check, fixes, tag `submission-initial`** (budget 3 h)
 
-- README with the live URLs, demo accounts, `make` targets and the headline numbers from `artifacts/metrics.json` (and timings from `artifacts/stress.json`).
-- Docs pack named in the requirements checklist: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsible-ai`, `07-product-readiness`.
-- Report draft (with teammate 1's skeleton in `report/`) and the video script (teammate 2's storyboard).
+- Clean clone on a fresh directory following only the README: `make setup`, `make check`, `make bundle PROFILE=tiny SEED=0`, `make api`, the web app against it. Fix whatever the README gets wrong.
+- Requirements I asks for `make run`: add it (the API plus the web app, or the API alone with a clear message), or change the checklist and README.
+- `uv run --with playwright python scripts/live_check.py` on the live site; `make test-db`; web lint, types and build.
+- Check every README and docs link resolves (the docs pack is new).
+- Tag `submission-initial` and push the tag before about 09:00 on 4 Oct.
 
-**Carried into M11:**
-- The report gets a section on **where Jogan does not win**: H4 (DHK/urban vs `threshold`), H3 (group coverage of the forecast), the oracle gap, the anomaly flag's weakness on structuring (split cash-outs, 1 of 9 windows), and the costs left unpriced (motorcycle wear, phone, agents' own time).
-- Not modelled in the policy: the runner's bag in the program, the hours between the forecast and the runner's arrival, and a call rescuing an agent who was not visited (D-021).
-- Every number in README, report, UI and video comes from `artifacts/metrics.json`. Re-run `make eval` after any change to sim, ops, forecast or plan code or configs; its `meta.config_hashes` records the versions.
-- Timings (stress check) come from `artifacts/stress.json` (`make stress`), never typed by hand (D-026).
+**Carried into M12:**
+- Report: team review of [`report/report.md`](../report/report.md), confirm the roles on its cover, add the team's emails only if the owner wants them public, and export to the format the organizers ask for (PDF if needed).
+- Video: teammate 2 records it from [`10-demo-script.md`](10-demo-script.md), then its link goes into the submission form and the README.
+- A walkthrough of the docs pack with both teammates, so everyone can explain the design (checklist D).
+- Every number in README, report, UI and video comes from `artifacts/metrics.json` and `artifacts/stress.json` through `make impact` and `make docs`. Re-run `make eval`, then both, after any change to sim, ops, forecast or plan code or configs.
 
 ## Milestone plan
 
@@ -222,8 +238,8 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | done |
 | M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | done |
 | M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | done |
-| M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | next |
-| M12 | Clean-clone test, live check, fixes, tag `submission-initial` | 3 h | Sun 4 Oct 08:00 | |
+| M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | done |
+| M12 | Clean-clone test, live check, fixes, tag `submission-initial` | 3 h | Sun 4 Oct 08:00 | next |
 | – | Buffer and submission form (submit by about 09:00) | 2 h | Sun 10:00 | |
 
 **Cut-line if behind schedule** (drop in this order; the anomaly flag and Gemini narration are done in M7):
@@ -260,14 +276,14 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 
 ## Teammate tasks
 
-- **Teammate 1**
-  - Report skeleton in `report/`.
+- **Teammate 1: Md. Fazle Rabbi (241-15-364)**
+  - Review the report draft [`report/report.md`](../report/report.md) and confirm the roles on its cover.
   - Collect official public sources on upay and MFS agents (links only, no guessing).
-  - Later, review the Bangla UI strings.
-- **Teammate 2**
-  - Storyboard the video (5 minutes or more) and set up OBS.
-  - Saturday afternoon: manual QA on the live URL.
-  - Saturday night: clean-clone test following the README.
+  - Review the Bangla UI strings (`web/lib/i18n.tsx`, `configs/explain/labels.yaml`).
+- **Teammate 2: Md. Afsahul Arefin Talukder (241-15-377)**
+  - Record the video (at least 5 minutes) from [`10-demo-script.md`](10-demo-script.md); rehearse and record on different plan days, never 3 Jun.
+  - Manual QA on the live URL.
+  - Clean-clone test following the README.
 
 ## How to run
 
@@ -281,6 +297,7 @@ make forecast PROFILE=dev SEED=0  # drain forecast backtest → data/dev/seed0/f
 make eval    # final comparison, seeds 1000–1009 → artifacts/metrics.json (about 17 min)
 make eval ARGS="--seeds 0 1 2 3"  # development run → artifacts/eval/metrics_dev.json
 make impact  # copy the impact page's numbers from artifacts/metrics.json → web/lib/impact.json
+make docs    # write the numbers blocks in README.md, docs/ and report/ from artifacts/*.json
 make stress  # time Jogan's mornings for 10,000 agents → artifacts/stress.json (about 2 min)
 make bundle PROFILE=tiny SEED=0  # served demo bundle → bundle/ (deployed: PROFILE=full SEED=42)
 make api     # API on :8000 with the in-memory store (tokens "analyst", "approver")
