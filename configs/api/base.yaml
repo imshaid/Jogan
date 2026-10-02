@@ -36,6 +36,13 @@ rate_limit:
     burst: 10 # ASSUMPTION
   max_keys: 10000 # buckets kept; full buckets are dropped first (ASSUMPTION)
 
+# GET /health/db runs one small query on Supabase. The uptime monitor calls it every 5 minutes,
+# which also keeps the free project from being paused after a week without database activity
+# (SOURCE: https://supabase.com/docs/guides/platform/free-project-pausing). The answer is
+# reused for this long, so callers cannot turn the endpoint into a stream of database queries.
+health:
+  db_cache_s: 60 # ASSUMPTION
+
 request:
   max_body_bytes: 8192 # a decision with a 500-character Bangla note is under 4 KB (ASSUMPTION)
   gzip_min_bytes: 1024 # smaller answers gain little from compression (ASSUMPTION)

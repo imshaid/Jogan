@@ -34,6 +34,10 @@ class RateLimit(Strict):
     max_keys: int = Field(ge=100)
 
 
+class Health(Strict):
+    db_cache_s: float = Field(ge=0.0)
+
+
 class Request(Strict):
     max_body_bytes: int = Field(ge=1024)
     gzip_min_bytes: int = Field(ge=0)
@@ -42,6 +46,7 @@ class Request(Strict):
 class ApiConfig(Strict):
     auth: Auth
     rate_limit: RateLimit
+    health: Health
     request: Request
 
 
