@@ -8,9 +8,14 @@ Signs in with the one-click demo accounts on the web app and checks:
 - the approver approves one visit and rejects another on the last plan day; a visit flagged for
   manual review is refused without a note and approved with one; every decision appears in the
   append-only audit log;
-- the API answers only the production web origin (CORS) and refuses calls without a token.
+- the API answers only the production web origin (CORS) and refuses calls without a token;
+- the API checks the token's signature itself (a forged token is a 401), refuses a date that is
+  not YYYY-MM-DD, and returns the decision trace of an approved visit with its audit row;
+- many requests with forged X-Forwarded-For values still hit this machine's rate limit (429
+  with Retry-After), so the client address is read from the right of the header.
 
 It changes live data: two or three recommendations get decided, for good, by the demo approver.
+The last step uses up this address's request budget for about half a minute.
 Run:
 
     uv run --with playwright python scripts/live_check.py
@@ -23,6 +28,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
 import httpx2 as httpx
 from playwright.sync_api import Page, expect, sync_playwright
@@ -61,6 +67,25 @@ def sign_out(page: Page) -> None:
     expect(page.get_by_role("heading", name="Sign in")).to_be_visible()
 
 
+def rate_limit(api: str, attempts: int = 4000, batch: int = 64) -> httpx.Response:
+    """Health checks with a different forged X-Forwarded-For each; the first 429 answer.
+
+    Each instance keeps its own buckets, and a carrier-grade NAT may send this machine's
+    requests from several public addresses, so it can take a few hundred requests.
+    """
+
+    def one(i: int) -> httpx.Response:
+        forged = f"10.{i // 65536 % 256}.{i // 256 % 256}.{i % 256}"
+        return http.get(f"{api}/health", headers={"X-Forwarded-For": forged})
+
+    with httpx.Client(timeout=30) as http, ThreadPoolExecutor(32) as pool:
+        for start in range(0, attempts, batch):
+            for r in pool.map(one, range(start, start + batch)):
+                if r.status_code == 429:
+                    return r
+    raise AssertionError(f"no 429 in {attempts} requests with forged X-Forwarded-For")
+
+
 def main() -> int:
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome", headless=True)
@@ -86,6 +111,19 @@ def main() -> int:
         assert rows.count() > 0
         assert page.get_by_role("button", name="✓ Approve").count() == 0, "analyst cannot approve"
         token = access_token(page)
+        analyst = {"Authorization": f"Bearer {token}"}
+        me = httpx.get(f"{api}/v1/me", headers=analyst).json()
+        assert me["role"] == "analyst", me
+        assert me["user_id"], me
+        head, payload, sig = token.split(".")
+        forged = {"Authorization": f"Bearer {head}.{payload}.{sig[::-1]}"}
+        r = httpx.get(f"{api}/v1/me", headers=forged)
+        assert r.status_code == 401, r.text
+        assert r.json()["code"] == "unauthenticated", r.text
+        r = httpx.get(f"{api}/v1/plans/1717372800", headers=analyst)
+        assert r.status_code == 422, r.text
+        assert r.json()["code"] == "invalid_input", r.text
+        print("forged token refused by the API (401); a Unix time as a date refused (422)")
         plan = httpx.get(
             f"{api}/v1/plans/{day}", headers={"Authorization": f"Bearer {token}"}, timeout=60
         ).json()
@@ -159,7 +197,22 @@ def main() -> int:
             expect(entry).to_contain_text(agent)
             expect(entry).to_contain_text("approver")
         print(f"approver decided {', '.join(a for _, a in decided)} on {day}; all audited")
+        approver = {"Authorization": f"Bearer {access_token(page)}"}
+        trace = httpx.get(
+            f"{api}/v1/recommendations/{rec_id[agent_a]}/trace", headers=approver, timeout=30
+        ).json()
+        assert trace["status"] == "approved", trace
+        assert trace["served_bundle"], trace
+        assert trace["steps"][-1]["by"] == "human", trace["steps"][-1]
+        assert [a["action"] for a in trace["audit"]] == ["recommendation.approved"], trace
+        print(f"decision trace of {agent_a}: {' → '.join(s['by'] for s in trace['steps'])}")
         browser.close()
+
+    r = rate_limit(api)
+    assert r.json()["code"] == "rate_limited", r.text
+    retry = r.headers["retry-after"]
+    assert int(retry) >= 1, retry
+    print(f"forged X-Forwarded-For values still rate-limited: 429, Retry-After {retry} s")
     print("live check passed")
     return 0
 
