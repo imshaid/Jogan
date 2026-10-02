@@ -1,0 +1,40 @@
+# API guards: sign-in token checks, rate limits and request limits (DECISIONS.md D-024).
+# Every number is tagged SOURCE (verified, link), DERIVED (computed in code) or ASSUMPTION.
+# Deployment settings (Supabase URL, proxy hops) come from the environment, not from here.
+
+# Supabase access tokens, checked by the API itself before any database call. The project signs
+# them with an asymmetric key; the public keys are at <SUPABASE_URL>/auth/v1/.well-known/jwks.json
+# (SOURCE: https://supabase.com/docs/guides/auth/signing-keys; the live project's set held one
+# ES256 key on 2026-10-02). Claims: https://supabase.com/docs/guides/auth/jwt-fields
+auth:
+  algorithms: [ES256, RS256] # the two asymmetric algorithms Supabase offers (SOURCE)
+  audience: authenticated
+  role: authenticated
+  # Supabase's edge caches the key set for 10 minutes (SOURCE: signing-keys page)
+  jwks_ttl_s: 600
+  jwks_min_refetch_s: 30 # an unknown key id refetches the set at most this often (ASSUMPTION)
+  jwks_timeout_s: 5 # ASSUMPTION
+  leeway_s: 30 # clock skew allowed on exp and iat (ASSUMPTION)
+  max_token_chars: 4096 # longer bearer tokens are refused unread (ASSUMPTION)
+
+# Token buckets, kept in memory per Cloud Run instance (at most 2 instances, D-022). A bucket
+# holds `burst` requests and refills at `per_minute`. The demo accounts are shared by every
+# judge, so the per-user buckets are sized for several people on one account, and the per-IP
+# bucket for a venue where many people share one address.
+rate_limit:
+  ip: # every request, before sign-in
+    per_minute: 240 # ASSUMPTION
+    burst: 120 # ASSUMPTION
+  user: # every signed-in request
+    per_minute: 300 # ASSUMPTION
+    burst: 100 # ASSUMPTION
+  decision: # approve or reject
+    per_minute: 60 # ASSUMPTION
+    burst: 20 # ASSUMPTION
+  explanation: # Gemini rewording; the narrator also keeps its own cap (configs/explain)
+    per_minute: 20 # ASSUMPTION
+    burst: 10 # ASSUMPTION
+  max_keys: 10000 # buckets kept; full buckets are dropped first (ASSUMPTION)
+
+request:
+  max_body_bytes: 8192 # a decision with a 500-character Bangla note is under 4 KB (ASSUMPTION)

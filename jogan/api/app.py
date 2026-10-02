@@ -14,44 +14,94 @@ Each queue row carries its template explanation in English and Bangla, written f
 evidence (:mod:`jogan.explain.template`). ``/explanation`` asks Gemini to reword one of them
 (:mod:`jogan.explain.narrator`) and falls back to the template; the advisory anomaly flags of a
 day come from the bundle (D-023).
+
+Every bearer token is checked by the API itself (:mod:`jogan.api.auth`) before the store sends
+it on to PostgREST, requests are rate-limited per client address and per user
+(:mod:`jogan.api.guard`), every refusal has the same body (:mod:`jogan.api.errors`), and
+``/trace`` returns what each layer produced for one recommendation (:mod:`jogan.api.trace`)
+(D-024).
 """
 
 from __future__ import annotations
 
 import datetime as dt
 import os
+import re
+import unicodedata
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Protocol
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Path as PathParam
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 import jogan
+from jogan.api.auth import AuthError, Caller, JwksVerifier, StaticVerifier
 from jogan.api.bundle import Bundle, load_bundle
+from jogan.api.config import ApiConfig, load_api_config
+from jogan.api.errors import problem, validation_errors
+from jogan.api.guard import Guard, Limiter, RateLimited, limited
 from jogan.api.store import NOTE_MAX, MemoryStore, Store, StoreError, SupabaseConfig, SupabaseStore
+from jogan.api.trace import decision_trace
 from jogan.explain.config import load_explain_config
 from jogan.explain.narrator import Narrator
 from jogan.explain.template import anomaly_items, facts, render, risk_percent
 
 bearer = HTTPBearer(auto_error=False)
 
+BIGINT_MAX = 2**63 - 1  # ids are Postgres bigint
+AUDIT_PER_RECOMMENDATION = 50  # a recommendation has one decision row; room for later actions
+
+
+def _iso_date(v: object) -> object:
+    """Only ``YYYY-MM-DD``: pydantic would also take a Unix time or a datetime as a date."""
+    if isinstance(v, str) and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", v):
+        raise ValueError("use a date as YYYY-MM-DD")
+    return v
+
+
+Day = Annotated[dt.date, BeforeValidator(_iso_date)]
+RecId = Annotated[int, PathParam(ge=1, le=BIGINT_MAX)]
+Lang = Literal["en", "bn"]
+
 
 class DecisionIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     decision: Literal["approved", "rejected"]
     note: str | None = Field(default=None, max_length=NOTE_MAX)
 
+    @field_validator("note")
+    @classmethod
+    def _printable(cls, v: str | None) -> str | None:
+        if v is not None and any(
+            unicodedata.category(ch) == "Cc" and ch not in "\n\r\t" for ch in v
+        ):
+            raise ValueError("the note has control characters")
+        return v
 
-def token_of(creds: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)]) -> str:
+
+class Verifier(Protocol):
+    def verify(self, token: str) -> Caller: ...
+
+
+def signed_in(
+    request: Request, creds: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)]
+) -> Caller:
+    """The verified caller, after spending a token from the user's rate-limit bucket."""
     if creds is None or not creds.credentials:
         raise HTTPException(401, "sign in first", headers={"WWW-Authenticate": "Bearer"})
-    return creds.credentials
+    caller = request.app.state.verifier.verify(creds.credentials)
+    request.app.state.limiter.hit("user", caller.user_id)
+    return caller
 
 
-Token = Annotated[str, Depends(token_of)]
-Lang = Literal["en", "bn"]
+User = Annotated[Caller, Depends(signed_in)]
 
 
 def with_explanation(row: dict) -> dict:
@@ -61,14 +111,25 @@ def with_explanation(row: dict) -> dict:
 def create_app(
     bundle: Bundle,
     store: Store,
+    verifier: Verifier,
     cors_origins: list[str] | None = None,
     cors_origin_regex: str | None = None,
     narrator: Narrator | None = None,
+    config: ApiConfig | None = None,
+    limiter: Limiter | None = None,
+    proxy_hops: int = 0,
 ) -> FastAPI:
+    cfg = config or load_api_config()
+    limiter = limiter or Limiter.from_config(cfg)
     app = FastAPI(
         title="Jogan API",
         version=jogan.__version__,
         description="Agent liquidity copilot. All data is simulated.",
+    )
+    app.state.verifier, app.state.limiter = verifier, limiter
+    # the guard runs inside CORS, so its refusals still carry the CORS headers
+    app.add_middleware(
+        Guard, limiter=limiter, proxy_hops=proxy_hops, max_body=cfg.request.max_body_bytes
     )
     if cors_origins or cors_origin_regex:
         app.add_middleware(
@@ -82,7 +143,30 @@ def create_app(
 
     @app.exception_handler(StoreError)
     def _store_error(_: Request, e: StoreError) -> JSONResponse:
-        return JSONResponse({"detail": e.message}, status_code=e.status)
+        return problem(e.status, e.message)
+
+    @app.exception_handler(AuthError)
+    def _auth_error(_: Request, e: AuthError) -> JSONResponse:
+        headers = {"WWW-Authenticate": 'Bearer error="invalid_token"'} if e.status == 401 else {}
+        return problem(e.status, e.message, headers)
+
+    @app.exception_handler(RateLimited)
+    def _rate_limited(_: Request, e: RateLimited) -> JSONResponse:
+        return limited(e)
+
+    @app.exception_handler(StarletteHTTPException)
+    def _http_error(_: Request, e: StarletteHTTPException) -> JSONResponse:
+        return problem(e.status_code, str(e.detail), e.headers)
+
+    @app.exception_handler(RequestValidationError)
+    def _invalid(_: Request, e: RequestValidationError) -> JSONResponse:
+        detail, errors = validation_errors(list(e.errors()))
+        return problem(422, detail, errors=errors)
+
+    @app.exception_handler(Exception)
+    def _crash(_: Request, e: Exception) -> JSONResponse:
+        # Starlette re-raises after this answer, so the server logs the traceback
+        return problem(500, "internal error")
 
     def staff_role(token: str) -> str:
         role = store.role(token)
@@ -107,11 +191,12 @@ def create_app(
         }
 
     @app.get("/v1/me")
-    def me(token: Token) -> dict:
-        return {"role": store.role(token)}
+    def me(user: User) -> dict:
+        return {"user_id": user.user_id, "role": store.role(user.token)}
 
     @app.get("/v1/plans/{day}")
-    def plan(day: dt.date, token: Token) -> dict:
+    def plan(day: Day, user: User) -> dict:
+        token = user.token
         staff_role(token)
         if day not in bundle.plan_dates:
             raise HTTPException(404, f"no plan for {day.isoformat()}")
@@ -122,10 +207,11 @@ def create_app(
         return {"bundle_id": bundle.bundle_id, "plan_date": day.isoformat(), "items": rows}
 
     @app.get("/v1/recommendations/{rec_id}/explanation")
-    def explanation(rec_id: int, token: Token, lang: Lang = "en") -> dict:
+    def explanation(rec_id: RecId, user: User, lang: Lang = "en") -> dict:
         """The template explanation, reworded by Gemini when it passes every check."""
-        staff_role(token)
-        rec = store.recommendation(token, rec_id)
+        staff_role(user.token)
+        limiter.hit("explanation", user.user_id)
+        rec = store.recommendation(user.token, rec_id)
         if rec is None:
             raise HTTPException(404, f"recommendation {rec_id} not found")
         template = render(rec, lang)
@@ -137,10 +223,20 @@ def create_app(
         n = narrator.narrate(key, template, facts(rec, lang), lang, {risk_percent(rec)})
         return {**out, "text": n.text, "source": n.source, "model": n.model, "note": n.note}
 
+    @app.get("/v1/recommendations/{rec_id}/trace")
+    def trace(rec_id: RecId, user: User) -> dict:
+        """What each layer produced for one recommendation, the stored trace and its audit rows."""
+        staff_role(user.token)
+        rec = store.recommendation(user.token, rec_id)
+        if rec is None:
+            raise HTTPException(404, f"recommendation {rec_id} not found")
+        rows = store.audit(user.token, AUDIT_PER_RECOMMENDATION, recommendation_id=rec_id)
+        return decision_trace(rec, rows, bundle)
+
     @app.get("/v1/anomalies/{day}")
-    def anomalies(day: dt.date, token: Token) -> dict:
+    def anomalies(day: Day, user: User) -> dict:
         """Advisory flags raised on the morning of ``day``, for a person to look at."""
-        staff_role(token)
+        staff_role(user.token)
         if day not in bundle.plan_dates:
             raise HTTPException(404, f"no plan for {day.isoformat()}")
         items = [
@@ -150,13 +246,18 @@ def create_app(
         return {"plan_date": day.isoformat(), "advisory": True, "items": items}
 
     @app.post("/v1/recommendations/{rec_id}/decision")
-    def decide(rec_id: int, body: DecisionIn, token: Token) -> dict:
-        return store.decide(token, rec_id, body.decision, body.note)
+    def decide(rec_id: RecId, body: DecisionIn, user: User) -> dict:
+        limiter.hit("decision", user.user_id)
+        return store.decide(user.token, rec_id, body.decision, body.note)
 
     @app.get("/v1/audit")
-    def audit(token: Token, limit: Annotated[int, Query(ge=1, le=200)] = 50) -> dict:
-        staff_role(token)
-        return {"items": store.audit(token, limit)}
+    def audit(
+        user: User,
+        limit: Annotated[int, Query(ge=1, le=200)] = 50,
+        recommendation_id: Annotated[int | None, Query(ge=1, le=BIGINT_MAX)] = None,
+    ) -> dict:
+        staff_role(user.token)
+        return {"items": store.audit(user.token, limit, recommendation_id)}
 
     return app
 
@@ -170,17 +271,20 @@ def from_env() -> FastAPI:
 
     ``JOGAN_STORE=memory`` (development only) uses :class:`MemoryStore` with the tokens
     ``analyst`` and ``approver``, for running the web app locally without Supabase. Without
-    ``GEMINI_API_KEY`` every explanation is the template.
+    ``GEMINI_API_KEY`` every explanation is the template. ``JOGAN_TRUSTED_PROXY_HOPS`` is the
+    number of proxies that append to ``X-Forwarded-For`` (1 on Cloud Run, 0 locally).
     """
     env = os.environ
     bundle = load_bundle(Path(env.get("JOGAN_BUNDLE_DIR", "bundle")))
+    api_cfg = load_api_config()
     kind = env.get("JOGAN_STORE", "supabase")
+    verifier: Verifier
     if kind == "memory":
         if env.get("JOGAN_ENV", "development") != "development":
             raise RuntimeError("JOGAN_STORE=memory is for development only")
-        store: Store = MemoryStore(
-            {"analyst": ("dev-analyst", "analyst"), "approver": ("dev-approver", "approver")}
-        )
+        users = {"analyst": ("dev-analyst", "analyst"), "approver": ("dev-approver", "approver")}
+        store: Store = MemoryStore(users)
+        verifier = StaticVerifier({token: user for token, (user, _) in users.items()})
     else:
         store = SupabaseStore(
             SupabaseConfig(
@@ -189,6 +293,7 @@ def from_env() -> FastAPI:
                 secret_key=env["SUPABASE_SECRET_KEY"],
             )
         )
+        verifier = JwksVerifier(env["SUPABASE_URL"], api_cfg.auth)
     cfg = load_explain_config().narrator
     models = {
         "primary": env.get("GEMINI_MODEL_PRIMARY") or cfg.primary,
@@ -197,4 +302,7 @@ def from_env() -> FastAPI:
     narrator = Narrator(cfg.model_copy(update=models), env.get("GEMINI_API_KEY") or None)
     origins = _origins(env.get("JOGAN_CORS_ORIGINS", ""))
     regex = env.get("JOGAN_CORS_ORIGIN_REGEX") or None
-    return create_app(bundle, store, origins, regex, narrator)
+    hops = int(env.get("JOGAN_TRUSTED_PROXY_HOPS", "0"))
+    return create_app(
+        bundle, store, verifier, origins, regex, narrator, config=api_cfg, proxy_hops=hops
+    )

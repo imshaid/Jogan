@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 
+from jogan.api.bundle import Bundle, build_bundle
 from jogan.forecast.backtest import Dataset, Forecaster, build_dataset, fit_forecaster, truth_panels
 from jogan.forecast.config import load_forecast_config
 from jogan.forecast.panel import Panel, panel_from_frame
@@ -81,3 +82,9 @@ def tiny_dataset(tiny_world: World, tiny_panel: Panel) -> Dataset:
 @pytest.fixture(scope="session")
 def tiny_forecaster(tiny_dataset: Dataset) -> Forecaster:
     return fit_forecaster(tiny_dataset)
+
+
+@pytest.fixture(scope="session")
+def tiny_bundle() -> Bundle:
+    """The served bundle on the tiny world (seed 0), shared by the API tests."""
+    return build_bundle("tiny", 0, FAST)

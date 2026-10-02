@@ -1,4 +1,8 @@
-"""API on the tiny bundle with the in-memory store: roles, publish once, decide, audit."""
+"""API on the tiny bundle with the in-memory store: roles, publish once, decide, audit.
+
+Tokens are opaque here (:class:`StaticVerifier`); ``test_api_guard.py`` checks real signed
+tokens, rate limits, error bodies, input validation and the decision trace.
+"""
 
 import datetime as dt
 import json
@@ -9,26 +13,27 @@ import pytest
 from fastapi.testclient import TestClient
 
 from jogan.api.app import create_app
-from jogan.api.bundle import Bundle, build_bundle, load_bundle, save_bundle
+from jogan.api.auth import StaticVerifier
+from jogan.api.bundle import Bundle, load_bundle, save_bundle
 from jogan.api.store import REVIEW_NOTE, MemoryStore
 from jogan.explain.config import load_explain_config
 from jogan.explain.narrator import Narrator
 
-FAST = {"lightgbm": {"num_boost_round": 30, "num_threads": 4}}
 USERS = {
     "t-analyst": ("u-analyst", "analyst"),
     "t-approver": ("u-approver", "approver"),
     "t-nobody": ("u-nobody", None),
 }
+VERIFIER = StaticVerifier({token: user for token, (user, _) in USERS.items()})
 
 
 def auth(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-@pytest.fixture(scope="module")
-def bundle() -> Bundle:
-    return build_bundle("tiny", 0, FAST)
+@pytest.fixture
+def bundle(tiny_bundle: Bundle) -> Bundle:
+    return tiny_bundle
 
 
 @pytest.fixture
@@ -38,7 +43,7 @@ def store() -> MemoryStore:
 
 @pytest.fixture
 def client(bundle: Bundle, store: MemoryStore) -> TestClient:
-    return TestClient(create_app(bundle, store))
+    return TestClient(create_app(bundle, store, VERIFIER))
 
 
 def first_day(bundle: Bundle) -> str:
@@ -154,7 +159,11 @@ def test_audit_needs_a_role(client: TestClient) -> None:
 
 def test_cors_allows_only_configured_origins(bundle: Bundle, store: MemoryStore) -> None:
     app = create_app(
-        bundle, store, ["http://localhost:3000"], r"https://jogan[a-z0-9-]*\.vercel\.app"
+        bundle,
+        store,
+        VERIFIER,
+        ["http://localhost:3000"],
+        r"https://jogan[a-z0-9-]*\.vercel\.app",
     )
     client = TestClient(app)
 
@@ -190,7 +199,7 @@ def test_explanation_is_reworded_only_when_it_keeps_the_evidence(
     bundle: Bundle, store: MemoryStore
 ) -> None:
     day = first_day(bundle)
-    plain = TestClient(create_app(bundle, store))
+    plain = TestClient(create_app(bundle, store, VERIFIER))
     items = plain.get(f"/v1/plans/{day}", headers=auth("t-analyst")).json()["items"]
     rec = items[0]
     url = f"/v1/recommendations/{rec['id']}/explanation"
@@ -201,13 +210,14 @@ def test_explanation_is_reworded_only_when_it_keeps_the_evidence(
     side = rec["evidence"]["side"]
     p = round(rec["evidence"][f"p_stockout_{side}"] * 100)
     good = f"Runner {rec['runner_id']} should visit {rec['agent_id']}: a predicted {p}% chance."
-    on = TestClient(create_app(bundle, store, narrator=gemini(good))).get(
+    on = TestClient(create_app(bundle, store, VERIFIER, narrator=gemini(good))).get(
         url, headers=auth("t-analyst")
     )
     assert on.json()["source"] == "gemini"
     assert on.json()["text"] == good
 
-    bad = TestClient(create_app(bundle, store, narrator=gemini(good + " Saves 123457 taka.")))
+    bad_narrator = gemini(good + " Saves 123457 taka.")
+    bad = TestClient(create_app(bundle, store, VERIFIER, narrator=bad_narrator))
     refused = bad.get(url + "?lang=bn", headers=auth("t-approver")).json()
     assert refused["source"] == "template"
     assert refused["text"] == rec["explanation"]["bn"]
