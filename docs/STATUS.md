@@ -188,9 +188,9 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
     - 28 May has no programs: no runner is on duty on Eid (roster)
     - not scored (13 days of history at most), and not covered: publishing and serving a 10,000-agent day
   - `jogan.api.bundle.fit_models` shared by the bundle and the stress check (tiny bundle identical before and after)
-  - **monitoring:** `GET /health/db` runs one PostgREST query with the secret key (`select=id`, `limit=1`), answer reused 60 s under a lock, 503 if the database fails; `scripts/live_check.py` checks it
+  - **monitoring:** `GET /health/db` runs one PostgREST query with the secret key (`select=id`, `limit=1`), answer reused 60 s under a lock, 503 if the database fails; `GET` or `HEAD` (UptimeRobot sends `HEAD`; it got 405 before the fix); `scripts/live_check.py` checks it
   - **keep-alive:** a Free Supabase project pauses after a week without database activity (verified); UptimeRobot's free plan cannot send the `apikey` header (verified), hence `/health/db`. `.github/workflows/keepalive.yml` calls it every 6 hours as a backup; UptimeRobot (every 5 min) is the owner's checklist item
-  - **Checks:** 192 Python tests (6 new: stress config and tags, hub mapping, a stress run on a replicated tiny world with a different agent count, refusal of unseen hubs, `/health/db` caching and 503, the Supabase ping request)
+  - **Checks:** 193 Python tests (7 new: stress config and tags, hub mapping, a stress run on a replicated tiny world with a different agent count, refusal of unseen hubs, `/health/db` caching and 503, `HEAD` on both health routes, the Supabase ping request)
   - decision D-026
 
 ## Next
