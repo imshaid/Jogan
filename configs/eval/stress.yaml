@@ -1,0 +1,14 @@
+# Stress check behind artifacts/stress.json (`make stress`; DECISIONS.md D-015, D-026).
+# Timing only: nothing here is scored. Every number is tagged SOURCE (verified, link), DERIVED
+# (computed in code) or ASSUMPTION.
+
+profile: stress # 10,000 agents in 60 distributor areas, 18 to 31 May 2026 (D-015)
+seed: 0 # ASSUMPTION
+# The status quo runs this many days first, so the features have some history; Jogan then plans
+# every morning from 25 May to 31 May, Eid-ul-Azha (28 May) included (ASSUMPTION).
+warmup_days: 7 # ASSUMPTION
+# The stress world is too short to train on. The models are the demo bundle's (D-022), fitted
+# on this profile and seed exactly as `make bundle` does (ASSUMPTION).
+models:
+  profile: full
+  seed: 42 # ASSUMPTION
