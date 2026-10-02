@@ -24,7 +24,7 @@ The parameter values live in `configs/`: `sim/base.yaml` (shared), `sim/<profile
 ## 2. Calendar
 
 The simulator uses the real 2026 Bangladesh calendar (**SOURCE**):
-- Official 2026 holiday list: [The Daily Star](https://tds-images.thedailystar.net/news/bangladesh/news/govt-announces-official-list-public-holidays-2026-4031596)
+- Official 2026 holiday list: [The Daily Star](https://www.thedailystar.net/news/bangladesh/news/govt-announces-official-list-public-holidays-2026-4031596)
 - Eid-ul-Fitr date: [BSS](https://www.bssnews.net/news/370394)
 - Eid-ul-Azha date: [Ittefaq](https://en.ittefaq.com.bd/16594/bangladesh-to-celebrate-eid-ul-azha-on-may-28)
 
