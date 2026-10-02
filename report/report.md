@@ -334,7 +334,7 @@ Jogan was built with Claude Code (Claude Opus 5.5) under the team's review; comm
 2. Bangladesh Bank, *MFS transaction statistics* (Table 9). <https://www.bb.org.bd/econdata/fin_digitalfstat/tab9.pdf>
 3. BSS, Bangladesh Bank circular of 27 March 2025 on MFS customer limits. <https://www.bssnews.net/business/258749>
 4. Helix Institute of Digital Finance / MicroSave, *Agent Network Accelerator Survey: Bangladesh Country Report*, 2014. <https://www.microsave.net/wp-content/uploads/2014/11/Agent-Network-Accelerator-Bangladesh-Country-Report-2014.pdf>
-5. The Daily Star, official list of public holidays 2026. <https://tds-images.thedailystar.net/news/bangladesh/news/govt-announces-official-list-public-holidays-2026-4031596>
+5. The Daily Star, official list of public holidays 2026. <https://www.thedailystar.net/news/bangladesh/news/govt-announces-official-list-public-holidays-2026-4031596>
 6. BSS (Eid-ul-Fitr 2026) <https://www.bssnews.net/news/370394>; Ittefaq (Eid-ul-Azha 2026) <https://en.ittefaq.com.bd/16594/bangladesh-to-celebrate-eid-ul-azha-on-may-28>
 7. The Financial Express, banks' weekly holidays. <https://thefinancialexpress.com.bd/views/opinions/banking-on-holidays>
 8. nuhil/bangladesh-geocode (MIT). <https://github.com/nuhil/bangladesh-geocode>
