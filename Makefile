@@ -5,7 +5,7 @@ UV ?= uv
 PROFILE ?= dev
 SEED ?= 0
 
-.PHONY: help setup lint format test check data history baselines forecast eval bundle api test-db clean
+.PHONY: help setup lint format test check data history baselines forecast eval impact bundle api test-db clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -44,6 +44,9 @@ forecast: ## Backtest the drain forecast on the status-quo log (PROFILE, SEED; a
 
 eval: ## Final policy comparison over the evaluation seeds → artifacts/metrics.json (ARGS for dev runs)
 	$(UV) run python -m jogan.eval $(ARGS)
+
+impact: ## Copy the impact page's numbers from artifacts/metrics.json → web/lib/impact.json
+	$(UV) run python -m jogan.eval.web
 
 bundle: ## Build the served demo bundle → bundle/ (PROFILE=full SEED=42 for the deployed one)
 	$(UV) run python -m jogan.api.bundle --profile $(PROFILE) --seed $(SEED) --out bundle
