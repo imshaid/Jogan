@@ -34,6 +34,7 @@ data/
 /bundle/
 artifacts/*
 !artifacts/metrics.json
+!artifacts/stress.json
 !artifacts/figures/
 *.parquet
 *.feather

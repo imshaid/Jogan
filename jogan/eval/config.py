@@ -38,3 +38,25 @@ def load_eval_config(
     """Load ``configs/eval/base.yaml``; ``overrides`` merge on top."""
     data = _read_yaml((config_dir or CONFIG_DIR) / "eval" / "base.yaml")
     return EvalConfig.model_validate(_merge(data, overrides or {}))
+
+
+class StressModels(Strict):
+    profile: str
+    seed: int = Field(ge=0)
+
+
+class StressConfig(Strict):
+    """``configs/eval/stress.yaml``: the timing check of one morning's plan at scale (D-026)."""
+
+    profile: str
+    seed: int = Field(ge=0)
+    warmup_days: int = Field(ge=1)
+    models: StressModels
+
+
+def load_stress_config(
+    overrides: dict[str, Any] | None = None, config_dir: Path | None = None
+) -> StressConfig:
+    """Load ``configs/eval/stress.yaml``; ``overrides`` merge on top."""
+    data = _read_yaml((config_dir or CONFIG_DIR) / "eval" / "stress.yaml")
+    return StressConfig.model_validate(_merge(data, overrides or {}))

@@ -36,16 +36,16 @@ from jogan.explain.config import ExplainConfig, load_explain_config
 from jogan.explain.drivers import contributions, top_drivers
 from jogan.explain.guardrails import TrainingRange, arrived_share, review
 from jogan.forecast.backtest import Forecaster, build_dataset, fit_forecaster
-from jogan.forecast.config import load_forecast_config
+from jogan.forecast.config import ForecastConfig, Splits, load_forecast_config
 from jogan.forecast.panel import panel_from_history
-from jogan.ops.config import load_ops_config
+from jogan.ops.config import OpsConfig, load_ops_config
 from jogan.ops.env import Context, Observation, simulate
 from jogan.ops.fleet import Visit
 from jogan.ops.policies import STATUS_QUO, Deployed, make_policy
 from jogan.plan.config import PlanConfig, load_plan_config
 from jogan.plan.policy import Jogan
 from jogan.sim.config import load_config
-from jogan.sim.world import build_world
+from jogan.sim.world import World, build_world
 
 AGENT_COLUMNS = ["agent_id", "territory", "setting", "size_class", "lat", "lon", "hub_road_km"]
 TERRITORY_COLUMNS = ["territory", "district_en", "district_bn", "setting", "lat", "lon"]
@@ -235,6 +235,42 @@ def _bundle_id(profile: str, seed: int, hashes: dict[str, str]) -> str:
     return f"{profile}-s{seed}-{digest}"
 
 
+@dataclasses.dataclass(frozen=True)
+class Models:
+    """What each morning needs besides the observation, fitted on one world's status quo."""
+
+    forecaster: Forecaster
+    ranges: TrainingRange
+    detector: Detector
+
+
+def fit_models(
+    world: World,
+    ops: OpsConfig,
+    fcfg: ForecastConfig,
+    ecfg: ExplainConfig,
+    splits: Splits,
+    horizon_hours: int,
+) -> Models:
+    """Run the status quo over the whole period and fit, on its training days, the forecaster,
+    the guardrails' training range and the anomaly detector, as the evaluation does."""
+    if ecfg.drivers.level not in fcfg.quantiles:
+        raise ValueError(f"drivers.level {ecfg.drivers.level} is not a forecast quantile")
+    start = world.config.start
+    status_quo = simulate(world, make_policy(STATUS_QUO, world), ops)
+    panel = panel_from_history(status_quo.history)
+    ds = build_dataset(panel, world.calendar, world.agents, fcfg, splits, start)
+    forecaster = fit_forecaster(ds)
+    h = horizon_hours
+    ranges = TrainingRange.fit(
+        ds.features.matrix(h)[ds.rows("train", h)], ecfg.guardrails.range_features
+    )
+    train_days = np.arange((splits.train[0] - start).days, (splits.train[1] - start).days + 1)
+    feats = day_features(panel, world.agents, ecfg.anomaly)
+    detector = fit_detector(feats, world.agents, train_days, ecfg.anomaly)
+    return Models(forecaster, ranges, detector)
+
+
 def build_bundle(profile: str, seed: int, forecast_overrides: dict | None = None) -> Bundle:
     """Simulate, train and replay Jogan over the test window of one world (see module doc)."""
     started = time.perf_counter()
@@ -246,27 +282,11 @@ def build_bundle(profile: str, seed: int, forecast_overrides: dict | None = None
     ecfg = load_explain_config()
     if profile not in fcfg.splits:
         raise ValueError(f"no forecast splits for profile {profile!r}")
-    if ecfg.drivers.level not in fcfg.quantiles:
-        raise ValueError(f"drivers.level {ecfg.drivers.level} is not a forecast quantile")
     splits = fcfg.splits[profile]
-
-    status_quo = simulate(world, make_policy(STATUS_QUO, world), ops)
-    panel = panel_from_history(status_quo.history)
-    ds = build_dataset(panel, world.calendar, world.agents, fcfg, splits, sim.start)
-    forecaster = fit_forecaster(ds)
-    h = pcfg.horizon_hours
-    ranges = TrainingRange.fit(
-        ds.features.matrix(h)[ds.rows("train", h)], ecfg.guardrails.range_features
-    )
-    train_days = np.arange(
-        (splits.train[0] - sim.start).days, (splits.train[1] - sim.start).days + 1
-    )
-    feats = day_features(panel, world.agents, ecfg.anomaly)
-    detector = fit_detector(feats, world.agents, train_days, ecfg.anomaly)
-    del ds, status_quo, panel, feats
+    models = fit_models(world, ops, fcfg, ecfg, splits, pcfg.horizon_hours)
 
     start_hour = (splits.test[0] - sim.start).days * 24
-    jogan_policy = Recorder(forecaster, pcfg, ecfg, ranges, detector)
+    jogan_policy = Recorder(models.forecaster, pcfg, ecfg, models.ranges, models.detector)
     simulate(world, Deployed(jogan_policy, start_hour), ops)
 
     dates = world.calendar["date"].dt.date.to_numpy()

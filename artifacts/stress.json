@@ -1,0 +1,165 @@
+{
+ "meta": {
+  "generated_by": "make stress (python -m jogan.eval.stress)",
+  "timing_only": true,
+  "profile": "stress",
+  "seed": 0,
+  "warmup_days": 7,
+  "models": {
+   "profile": "full",
+   "seed": 42
+  },
+  "config_hashes": {
+   "sim": "29cdf695e563",
+   "ops": "be3cc5becc53",
+   "forecast": "0dfbbf360b88",
+   "plan": "a095d02941fb",
+   "explain": "3b7cb853e08d"
+  },
+  "lightgbm_threads": 0,
+  "milp_time_limit_s": 10.0,
+  "versions": {
+   "jogan": "0.1.0",
+   "python": "3.12.14",
+   "lightgbm": "4.7.0",
+   "scipy": "1.18.1",
+   "scikit-learn": "1.9.1"
+  },
+  "machine": {
+   "cpu": "13th Gen Intel(R) Core(TM) i7-13650HX",
+   "logical_cpus": 20,
+   "memory_gb": 14.7,
+   "os": "Linux 7.0.0-34-generic"
+  }
+ },
+ "world": {
+  "agents": 10000,
+  "runners": 260,
+  "territories": 60,
+  "hubs": 6,
+  "days": 14,
+  "plan_mornings": 7
+ },
+ "seconds": {
+  "fit_models": 74.2,
+  "build_world": 0.7,
+  "status_quo_run": 2.3,
+  "jogan_run": 23.6,
+  "total": 100.9
+ },
+ "summary": {
+  "morning_s": {
+   "mean": 3.077,
+   "max": 4.299
+  },
+  "plan_s": {
+   "mean": 2.415,
+   "max": 3.53
+  },
+  "solver_s": {
+   "mean": 1.672,
+   "max": 2.804
+  },
+  "explain_s": {
+   "mean": 0.661,
+   "max": 0.77
+  },
+  "programs": 360,
+  "fallbacks": 0,
+  "visits": 23836,
+  "peak_memory_mb": 1779
+ },
+ "mornings": [
+  {
+   "date": "2026-05-25",
+   "morning_s": 2.784,
+   "plan_s": 2.081,
+   "solver_s": 1.361,
+   "explain_s": 0.703,
+   "programs": 60,
+   "fallbacks": 0,
+   "candidates": 8027,
+   "visits": 4072,
+   "manual_review": 3399,
+   "anomaly_flags": 0
+  },
+  {
+   "date": "2026-05-26",
+   "morning_s": 4.299,
+   "plan_s": 3.53,
+   "solver_s": 2.804,
+   "explain_s": 0.77,
+   "programs": 60,
+   "fallbacks": 0,
+   "candidates": 8396,
+   "visits": 4079,
+   "manual_review": 2359,
+   "anomaly_flags": 73
+  },
+  {
+   "date": "2026-05-27",
+   "morning_s": 3.67,
+   "plan_s": 2.966,
+   "solver_s": 2.234,
+   "explain_s": 0.704,
+   "programs": 60,
+   "fallbacks": 0,
+   "candidates": 8452,
+   "visits": 4059,
+   "manual_review": 1558,
+   "anomaly_flags": 84
+  },
+  {
+   "date": "2026-05-28",
+   "morning_s": 0.801,
+   "plan_s": 0.528,
+   "solver_s": 0.0,
+   "explain_s": 0.273,
+   "programs": 0,
+   "fallbacks": 0,
+   "candidates": 8406,
+   "visits": 0,
+   "manual_review": 0,
+   "anomaly_flags": 72
+  },
+  {
+   "date": "2026-05-29",
+   "morning_s": 3.99,
+   "plan_s": 3.27,
+   "solver_s": 2.536,
+   "explain_s": 0.72,
+   "programs": 60,
+   "fallbacks": 0,
+   "candidates": 8138,
+   "visits": 4078,
+   "manual_review": 1336,
+   "anomaly_flags": 785
+  },
+  {
+   "date": "2026-05-30",
+   "morning_s": 3.36,
+   "plan_s": 2.637,
+   "solver_s": 1.764,
+   "explain_s": 0.723,
+   "programs": 60,
+   "fallbacks": 0,
+   "candidates": 6227,
+   "visits": 3671,
+   "manual_review": 1058,
+   "anomaly_flags": 368
+  },
+  {
+   "date": "2026-05-31",
+   "morning_s": 2.633,
+   "plan_s": 1.896,
+   "solver_s": 1.003,
+   "explain_s": 0.737,
+   "programs": 60,
+   "fallbacks": 0,
+   "candidates": 6622,
+   "visits": 3877,
+   "manual_review": 832,
+   "anomaly_flags": 172
+  }
+ ]
+}
