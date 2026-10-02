@@ -89,6 +89,8 @@ def test_bundle_round_trips_through_files(bundle: Bundle, tmp_path: Path) -> Non
 
 
 def test_health_and_meta_need_no_sign_in(client: TestClient, bundle: Bundle) -> None:
+    assert client.get("/").json()["docs"] == "/docs"
+    assert client.get("/docs").status_code == 200
     assert client.get("/health").json()["bundle_id"] == bundle.bundle_id
     meta = client.get("/v1/meta").json()
     assert meta["simulated"] is True

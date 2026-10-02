@@ -193,6 +193,11 @@ def create_app(
             raise HTTPException(403, "this account has no Jogan role")
         return role
 
+    # the bare URL, linked from the README, points to the docs instead of a 404
+    @app.get("/", include_in_schema=False)
+    def index() -> dict:
+        return {"name": "Jogan API", "simulated": True, "docs": "/docs", "health": "/health"}
+
     # uptime monitors send HEAD; it runs the same check and the server drops the body
     @app.api_route("/health", methods=["GET", "HEAD"])
     def health() -> dict:
