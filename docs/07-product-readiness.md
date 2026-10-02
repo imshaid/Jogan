@@ -62,6 +62,8 @@ On real data, e-float stock-outs are exact (the balance is in upay's ledger); ca
 3. **Randomised pilot by distributor territory.** Pair similar territories; one of each pair uses Jogan's queue with an approver, the other keeps its rounds. Measure the primary and cost metrics per territory, with the agent-group breakdown.
 4. **Go or no-go**, on thresholds agreed with upay before the pilot starts (we do not set them), including "no group worse served".
 
+In the guideline's post-hackathon pathway (§13), these steps follow the technical and business reviews: step 1 is the controlled validation, step 2 the POC, step 3 the pilot assessment and step 4 the next decision.
+
 **Proxy for cash stock-outs.** A one-tap "could not serve" button in the agent app, failed cash-out attempts where the system records them, and customer complaints. Each undercounts; using the same proxy in both arms keeps the comparison fair.
 
 ## 6. Fits a real workflow

@@ -3,7 +3,8 @@
 Every official requirement and owner decision, as a list we can tick. "Where" points to the file or milestone that meets the requirement.
 
 **Sources:**
-- the organizers' Rulebook and Student Guideline (AI Dev Fest 2026, DIU CPC × upay)
+- the organizers' AI Hackathon Rulebook, General Rules and Student Guideline (AI Dev Fest 2026, DIU CPC × upay)
+- the organizers' announcement of the dates and the video length
 - the owner's binding decisions
 
 Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-model-card.md), [`05-evaluation`](05-evaluation.md), [`06-responsible-ai`](06-responsible-ai.md), [`07-product-readiness`](07-product-readiness.md), [`09-deployment`](09-deployment.md), [`10-demo-script`](10-demo-script.md); report draft in [`report/report.md`](../report/report.md).
@@ -11,9 +12,9 @@ Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-m
 ## A. Deadlines and submission
 
 - [ ] Initial code pushed before **4 Oct 2026 10:00 BST**, tag `submission-initial` (M12)
-- [ ] Demo video of **at least 5 minutes** covering the project, its development, what it does, how it works and its real-world impact (script done: [`10-demo-script.md`](10-demo-script.md); recording by teammate 2)
-- [ ] Project report on the approach, the implementation process and other details (draft done: [`report/report.md`](../report/report.md); team review, roles and final format before submission)
-- [ ] Public GitHub link submitted through the organizers' form
+- [ ] Demo video of **at least 5 minutes** covering the project, its development, how it works, the features and AI components, and its real-world impact (Rulebook §7.2; script done: [`10-demo-script.md`](10-demo-script.md); recording by teammate 2)
+- [ ] Project report on the problem, the idea, the implemented solution, key features, the AI approach, the implementation process and the intended impact (Rulebook §7.3; draft done: [`report/report.md`](../report/report.md); team review, roles and final format before submission)
+- [ ] Public GitHub link submitted through the organizers' form, with any presentation or file format they specify (Rulebook §7.4); check the submission is complete and opens before the deadline (General Rules §6.1)
 - [ ] On-site, 7 Oct: new requirements implemented and pushed as small commits, logged in `docs/ONSITE_LOG.md`
 
 ## B. GitHub rules (Rulebook §5)
@@ -46,6 +47,7 @@ Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-m
 - [x] Significant external datasets, APIs and services listed (README "Data and external sources"; sources in [`02-data-assumptions.md`](02-data-assumptions.md))
 - [ ] Every teammate can explain the design, the implementation and the AI (architecture doc, model card and evaluation written in M11; a walkthrough with both teammates is still due)
 - [x] No copying from other teams
+- [ ] No external human help during an active contest, nothing shared with other teams (General Rules §4.1–4.2); questions to the organizers only through the official clarification channel (§10.1)
 
 ## E. Branding
 
@@ -121,10 +123,10 @@ Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-m
 
 ## I. Quality bar
 
-- [ ] `make setup`, `make test`, `make eval` (writes `artifacts/metrics.json`), `make run`; a clean clone works by following the README (`make run` does not exist yet: today `make api` plus `npm run dev`; clean-clone test in M12)
+- [x] `make setup`, `make test`, `make eval` (writes `artifacts/metrics.json`), `make run`; a clean clone works by following the README (M12: fresh clone from GitHub, `make setup`, `make check`, `make run` with local sign-in, approve and audit in headless Chrome)
   - setup and test exist since M0
   - eval: M5
-  - run: M6
+  - run: M12 (API and web app with local sign-in, no accounts)
 - [x] CI runs lint and tests; gitleaks secret scanning; Dependabot updates
 - [x] **Honest evaluation** (M4–M5, M10; [`05-evaluation.md`](05-evaluation.md)):
   - leakage-free time splits and a held-out test window
@@ -164,4 +166,5 @@ Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-m
   - config-driven code
   - auto-deploy on push
   - small commits per new requirement
-  - own laptop and hotspot
+  - own laptop and a backup hotspot (General Rules §2.2); `make run` as a local fallback if the live site is down (map tiles and fonts still come from the internet; not tested offline)
+  - every member brings a valid institutional ID card (General Rules §1.2); late entry only up to 1 hour, with no extra time (§3.2)
