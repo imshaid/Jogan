@@ -20,6 +20,9 @@ it on to PostgREST, requests are rate-limited per client address and per user
 (:mod:`jogan.api.guard`), every refusal has the same body (:mod:`jogan.api.errors`), and
 ``/trace`` returns what each layer produced for one recommendation (:mod:`jogan.api.trace`)
 (D-024).
+
+``/network`` (every agent of a plan day, for the map) and ``/agents`` (one agent over the test
+window) are read-only views of the bundle (:mod:`jogan.api.views`, D-025).
 """
 
 from __future__ import annotations
@@ -35,6 +38,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi import Path as PathParam
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator
@@ -48,6 +52,7 @@ from jogan.api.errors import problem, validation_errors
 from jogan.api.guard import Guard, Limiter, RateLimited, limited
 from jogan.api.store import NOTE_MAX, MemoryStore, Store, StoreError, SupabaseConfig, SupabaseStore
 from jogan.api.trace import decision_trace
+from jogan.api.views import agent, annotate, day_counts, network
 from jogan.explain.config import load_explain_config
 from jogan.explain.narrator import Narrator
 from jogan.explain.template import anomaly_items, facts, render, risk_percent
@@ -67,6 +72,7 @@ def _iso_date(v: object) -> object:
 
 Day = Annotated[dt.date, BeforeValidator(_iso_date)]
 RecId = Annotated[int, PathParam(ge=1, le=BIGINT_MAX)]
+AgentId = Annotated[str, PathParam(pattern=r"^[A-Z]{3}-\d{3,5}$")]
 Lang = Literal["en", "bn"]
 
 
@@ -105,7 +111,9 @@ User = Annotated[Caller, Depends(signed_in)]
 
 
 def with_explanation(row: dict) -> dict:
-    return {**row, "explanation": {lang: render(row, lang) for lang in ("en", "bn")}}
+    """A queue row with its template explanations and the display text of its evidence."""
+    explanation = {lang: render(row, lang) for lang in ("en", "bn")}
+    return {**row, "evidence": annotate(row["evidence"]), "explanation": explanation}
 
 
 def create_app(
@@ -127,6 +135,8 @@ def create_app(
         description="Agent liquidity copilot. All data is simulated.",
     )
     app.state.verifier, app.state.limiter = verifier, limiter
+    # the map's day of 600 agents is about 150 KB of JSON; Cloud Run does not compress
+    app.add_middleware(GZipMiddleware, minimum_size=cfg.request.gzip_min_bytes)
     # the guard runs inside CORS, so its refusals still carry the CORS headers
     app.add_middleware(
         Guard, limiter=limiter, proxy_hops=proxy_hops, max_body=cfg.request.max_body_bytes
@@ -140,6 +150,7 @@ def create_app(
             allow_headers=["Authorization", "Content-Type"],
         )
     published: set[dt.date] = set()
+    days = day_counts(bundle)
 
     @app.exception_handler(StoreError)
     def _store_error(_: Request, e: StoreError) -> JSONResponse:
@@ -187,6 +198,7 @@ def create_app(
             "counts": m["counts"],
             "lost_customer_value_tk": m["lost_customer_value_tk"],
             "territories": bundle.territories.to_dict("records"),
+            "days": days,
             "simulated": True,
         }
 
@@ -231,7 +243,24 @@ def create_app(
         if rec is None:
             raise HTTPException(404, f"recommendation {rec_id} not found")
         rows = store.audit(user.token, AUDIT_PER_RECOMMENDATION, recommendation_id=rec_id)
-        return decision_trace(rec, rows, bundle)
+        return decision_trace({**rec, "evidence": annotate(rec["evidence"])}, rows, bundle)
+
+    @app.get("/v1/network/{day}")
+    def network_day(day: Day, user: User) -> dict:
+        """Every agent on the morning of ``day`` with its stock-out chance and planned visit."""
+        staff_role(user.token)
+        if day not in bundle.plan_dates:
+            raise HTTPException(404, f"no plan for {day.isoformat()}")
+        return {"plan_date": day.isoformat(), "agents": network(bundle, day)}
+
+    @app.get("/v1/agents/{agent_id}")
+    def agent_detail(agent_id: AgentId, user: User) -> dict:
+        """One agent's evidence on every plan day, with its advisory anomaly flags."""
+        staff_role(user.token)
+        found = agent(bundle, agent_id)
+        if found is None:
+            raise HTTPException(404, f"agent {agent_id} not found")
+        return {"bundle_id": bundle.bundle_id, **found}
 
     @app.get("/v1/anomalies/{day}")
     def anomalies(day: Day, user: User) -> dict:

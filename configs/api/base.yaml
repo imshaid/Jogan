@@ -38,3 +38,4 @@ rate_limit:
 
 request:
   max_body_bytes: 8192 # a decision with a 500-character Bangla note is under 4 KB (ASSUMPTION)
+  gzip_min_bytes: 1024 # smaller answers gain little from compression (ASSUMPTION)
