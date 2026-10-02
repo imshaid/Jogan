@@ -23,6 +23,10 @@ it on to PostgREST, requests are rate-limited per client address and per user
 
 ``/network`` (every agent of a plan day, for the map) and ``/agents`` (one agent over the test
 window) are read-only views of the bundle (:mod:`jogan.api.views`, D-025).
+
+``/health`` answers from the process alone; ``/health/db`` also runs one small query on the
+store, at most once per ``health.db_cache_s``, for the uptime monitor and the Supabase
+keep-alive (D-026).
 """
 
 from __future__ import annotations
@@ -30,6 +34,8 @@ from __future__ import annotations
 import datetime as dt
 import os
 import re
+import threading
+import time
 import unicodedata
 from pathlib import Path
 from typing import Annotated, Literal, Protocol
@@ -151,6 +157,8 @@ def create_app(
         )
     published: set[dt.date] = set()
     days = day_counts(bundle)
+    db_check = {"at": -float("inf"), "ok": False}
+    db_lock = threading.Lock()
 
     @app.exception_handler(StoreError)
     def _store_error(_: Request, e: StoreError) -> JSONResponse:
@@ -188,6 +196,22 @@ def create_app(
     @app.get("/health")
     def health() -> dict:
         return {"status": "ok", "version": jogan.__version__, "bundle_id": bundle.bundle_id}
+
+    @app.get("/health/db", response_model=None)
+    def health_db() -> dict | JSONResponse:
+        with db_lock:
+            now = time.monotonic()
+            if now - db_check["at"] >= cfg.health.db_cache_s:
+                try:
+                    store.ping()
+                    db_check["ok"] = True
+                except StoreError:
+                    db_check["ok"] = False
+                db_check["at"] = now
+            ok = db_check["ok"]
+        if not ok:
+            return problem(503, "database unavailable")
+        return {"status": "ok", "database": "ok", "bundle_id": bundle.bundle_id}
 
     @app.get("/v1/meta")
     def meta() -> dict:

@@ -112,11 +112,14 @@ def main() -> int:
         assert r.headers.get("access-control-allow-origin") == WEB, "CORS for the web app"
         other = httpx.get(f"{api}/health", headers={"Origin": "https://jogan-x.vercel.app"})
         assert "access-control-allow-origin" not in other.headers, "CORS for other origins"
+        db = httpx.get(f"{api}/health/db", timeout=30)
+        assert db.status_code == 200, db.text
+        assert db.json()["database"] == "ok", db.text
         meta = httpx.get(f"{api}/v1/meta").json()
         day = meta["plan_dates"][-1]
         assert httpx.get(f"{api}/v1/plans/{day}").status_code == 401, "no token, no plan"
         assert httpx.get(f"{api}/v1/network/{day}").status_code == 401, "no token, no network"
-        print(f"health, CORS and 401 ok; bundle {meta['bundle_id']}, checking {day}")
+        print(f"health, database, CORS and 401 ok; bundle {meta['bundle_id']}, checking {day}")
 
         page.goto(f"{WEB}/impact")
         expect(page.get_by_text("lost requests per 1,000").first).to_be_visible()

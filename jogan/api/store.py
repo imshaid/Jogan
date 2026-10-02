@@ -33,6 +33,8 @@ class StoreError(Exception):
 
 
 class Store(Protocol):
+    def ping(self) -> None: ...
+
     def role(self, token: str) -> str | None: ...
 
     def publish(self, bundle_id: str, day: dt.date, rows: list[dict], trace: dict) -> int: ...
@@ -93,6 +95,10 @@ class SupabaseStore:
         status = _SQLSTATE.get(code, 401 if r.status_code == 401 else 502)
         message = body.get("message", "") if status != 502 else "database error"
         raise StoreError(status, message or "request refused")
+
+    def ping(self) -> None:
+        """One small query, for ``/health/db``; raises :class:`StoreError` if it fails."""
+        self._send("GET", "/recommendations", self._service(), params={"select": "id", "limit": 1})
 
     def role(self, token: str) -> str | None:
         rows = self._send("GET", "/user_roles", self._user(token), params={"select": "role"})
@@ -163,6 +169,9 @@ class MemoryStore:
                 "detail": detail,
             }
         )
+
+    def ping(self) -> None:
+        pass
 
     def role(self, token: str) -> str | None:
         return self._who(token)[1]

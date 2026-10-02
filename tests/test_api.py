@@ -17,7 +17,8 @@ from fastapi.testclient import TestClient
 from jogan.api.app import create_app
 from jogan.api.auth import StaticVerifier
 from jogan.api.bundle import Bundle, load_bundle, save_bundle
-from jogan.api.store import REVIEW_NOTE, MemoryStore
+from jogan.api.config import load_api_config
+from jogan.api.store import REVIEW_NOTE, MemoryStore, StoreError, SupabaseConfig, SupabaseStore
 from jogan.explain.config import load_explain_config
 from jogan.explain.narrator import Narrator
 
@@ -92,6 +93,55 @@ def test_health_and_meta_need_no_sign_in(client: TestClient, bundle: Bundle) -> 
     meta = client.get("/v1/meta").json()
     assert meta["simulated"] is True
     assert meta["plan_dates"] == bundle.meta["plan_dates"]
+
+
+def test_health_db_asks_the_store_at_most_once_per_cache_window(bundle: Bundle) -> None:
+    class Counted(MemoryStore):
+        pings, down = 0, False
+
+        def ping(self) -> None:
+            self.pings += 1
+            if self.down:
+                raise StoreError(503, "database unavailable")
+
+    store = Counted(dict(USERS))
+    cached = TestClient(create_app(bundle, store, VERIFIER))
+    ok = {"status": "ok", "database": "ok", "bundle_id": bundle.bundle_id}
+    assert cached.get("/health/db").json() == ok
+    store.down = True
+    assert cached.get("/health/db").json() == ok  # the answer is reused within db_cache_s
+    assert store.pings == 1
+    cfg = load_api_config({"health": {"db_cache_s": 0}})
+    r = TestClient(create_app(bundle, store, VERIFIER, config=cfg)).get("/health/db")
+    assert r.status_code == 503
+    assert r.json() == {"detail": "database unavailable", "code": "unavailable"}
+    assert store.pings == 2
+
+
+def test_supabase_ping_reads_one_id_with_the_secret_key() -> None:
+    seen: list[httpx.Request] = []
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=[{"id": 1}])
+
+    store = SupabaseStore(SupabaseConfig("https://x.supabase.co", "pub-key", "secret-key"))
+    store.http = httpx.Client(
+        base_url="https://x.supabase.co/rest/v1", transport=httpx.MockTransport(answer)
+    )
+    store.ping()
+    (request,) = seen
+    assert request.method == "GET"
+    assert request.url.path == "/rest/v1/recommendations"
+    assert dict(request.url.params) == {"select": "id", "limit": "1"}
+    assert request.headers["apikey"] == "secret-key"
+
+    store.http = httpx.Client(
+        base_url="https://x.supabase.co/rest/v1",
+        transport=httpx.MockTransport(lambda _: httpx.Response(503, text="paused")),
+    )
+    with pytest.raises(StoreError):
+        store.ping()
 
 
 def test_plans_need_a_signed_in_user_with_a_role(client: TestClient, bundle: Bundle) -> None:
