@@ -9,15 +9,20 @@ export type Status = "pending" | "approved" | "rejected";
 
 export type Lang = "en" | "bn";
 
+export type Bilingual = Record<Lang, string>;
+
+// label and value_text are the template's display text (jogan/api/views.py, D-025)
 export type Driver = {
   feature: string;
   value: number | string | null;
   effect_pct: number;
+  label: Bilingual;
+  value_text: Bilingual;
 };
 
 export type Review = {
   flag: boolean;
-  reasons: ({ code: string } & Record<string, unknown>)[];
+  reasons: ({ code: string; text: Bilingual } & Record<string, unknown>)[];
 };
 
 export type Evidence = {
@@ -112,7 +117,56 @@ export type Meta = {
   };
   lost_customer_value_tk: number;
   territories: Territory[];
+  days: DayCount[];
   simulated: true;
+};
+
+export type DayCount = { date: string; visits: number; manual_review: number; anomaly_flags: number };
+
+// One agent on the map (GET /v1/network/{day}).
+export type NetworkAgent = {
+  agent_id: string;
+  territory: string;
+  setting: string;
+  size_class: string;
+  lat: number;
+  lon: number;
+  cash_tk: number;
+  efloat_tk: number;
+  p_stockout_cash: number;
+  p_stockout_efloat: number;
+  runner_id: string | null;
+  value_tk: number | null;
+  side: "cash" | "efloat" | null;
+  manual_review: boolean;
+  anomaly: boolean;
+};
+
+// Evidence of a day without a visit has no side, drivers or review.
+export type AgentDay = {
+  plan_date: string;
+  runner_id: string | null;
+  candidate: boolean;
+  target_cash_tk: number;
+  value_tk: number;
+  evidence: Omit<Evidence, "side" | "drivers" | "review"> & Partial<Pick<Evidence, "side" | "drivers" | "review">>;
+};
+
+export type AgentDetail = {
+  bundle_id: string;
+  agent: {
+    agent_id: string;
+    territory: string;
+    setting: string;
+    size_class: string;
+    lat: number;
+    lon: number;
+    hub_road_km: number;
+    district_en: string;
+    district_bn: string;
+  };
+  days: AgentDay[];
+  anomalies: (Omit<AnomalyFlag, "territory"> & { plan_date: string })[];
 };
 
 // What one layer produced for a recommendation (GET /v1/recommendations/{id}/trace, D-024).
@@ -188,10 +242,17 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ decision, note: note || null }),
     }),
-  audit: (token: string, limit = 20) => call<{ items: AuditEntry[] }>(`/v1/audit?limit=${limit}`, token),
+  audit: (token: string, limit = 50, recommendationId?: number) =>
+    call<{ items: AuditEntry[] }>(
+      `/v1/audit?limit=${limit}${recommendationId ? `&recommendation_id=${recommendationId}` : ""}`,
+      token,
+    ),
   trace: (token: string, id: number) => call<DecisionTrace>(`/v1/recommendations/${id}/trace`, token),
   explanation: (token: string, id: number, lang: Lang) =>
     call<Explanation>(`/v1/recommendations/${id}/explanation?lang=${lang}`, token),
   anomalies: (token: string, day: string) =>
     call<{ plan_date: string; advisory: true; items: AnomalyFlag[] }>(`/v1/anomalies/${day}`, token),
+  network: (token: string, day: string) =>
+    call<{ plan_date: string; agents: NetworkAgent[] }>(`/v1/network/${day}`, token),
+  agent: (token: string, id: string) => call<AgentDetail>(`/v1/agents/${encodeURIComponent(id)}`, token),
 };

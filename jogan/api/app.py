@@ -135,7 +135,7 @@ def create_app(
         description="Agent liquidity copilot. All data is simulated.",
     )
     app.state.verifier, app.state.limiter = verifier, limiter
-    # the map's day of 600 agents is about 150 KB of JSON; Cloud Run does not compress
+    # the map's day of 600 agents is 172 KB of JSON (16 KB gzipped); Cloud Run does not compress
     app.add_middleware(GZipMiddleware, minimum_size=cfg.request.gzip_min_bytes)
     # the guard runs inside CORS, so its refusals still carry the CORS headers
     app.add_middleware(

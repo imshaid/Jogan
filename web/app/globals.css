@@ -3,34 +3,119 @@
 /* Brand tokens measured from the official guideline PDF (DECISIONS.md D-007).
    Yellow is a fill only (ink text on it); red marks critical states only. */
 :root {
+  color-scheme: light;
   --upay-yellow: #fbd603;
   --upay-blue: #0c55a4;
   --upay-red: #eb1d27;
   --upay-ink: #050608;
-  /* derived */
-  --red-text: #b5121b; /* darker red for small text: 6.85:1 on white */
-  --blue-tint: #e8f0f9;
-  --yellow-tint: #fff8cc;
-  --line: #d9dde3;
-  --muted: #4a5361;
-  --bg: #f6f7f9;
+
+  /* derived steps (contrast on white in brackets) */
+  --blue-800: #083f7a; /* hover on primary fills */
+  --blue-100: #dce8f6;
+  --blue-50: #eef4fb;
+  --yellow-100: #fff3a6;
+  --yellow-50: #fffbe3;
+  --red-text: #b5121b; /* small text and marks: 6.85:1 */
+  --red-50: #fdf0f0;
+  --amber-text: #7a4b00; /* medium risk text: 7.4:1 */
+  --amber-mark: #e0a400; /* medium risk marks, always with an ink outline */
+  --amber-50: #fff7e0;
+  --green-text: #13663a; /* "holds" and approved: 7.0:1 */
+  --green-50: #eaf6ee;
+  --orange: #d9730d; /* e-float series marks only (3.3:1, validated against blue for CVD) */
+
+  --text: #12161c;
+  --text-2: #4a5361; /* 7.8:1 */
+  --text-3: #636b78; /* 5.4:1, never below 12px */
+  --line: #e3e6eb;
+  --line-strong: #cdd2d9;
+  --surface: #ffffff;
+  --bg: #f4f5f7;
+  --bg-sunken: #eceef2;
 }
 
 @theme inline {
   --color-brand: var(--upay-blue);
+  --color-brand-strong: var(--blue-800);
+  --color-brand-tint: var(--blue-50);
+  --color-brand-soft: var(--blue-100);
   --color-accent: var(--upay-yellow);
+  --color-accent-soft: var(--yellow-100);
+  --color-accent-tint: var(--yellow-50);
   --color-danger: var(--upay-red);
   --color-danger-text: var(--red-text);
+  --color-danger-tint: var(--red-50);
+  --color-warn-text: var(--amber-text);
+  --color-warn-mark: var(--amber-mark);
+  --color-warn-tint: var(--amber-50);
+  --color-ok-text: var(--green-text);
+  --color-ok-tint: var(--green-50);
+  --color-efloat: var(--orange);
   --color-ink: var(--upay-ink);
-  --color-brand-tint: var(--blue-tint);
-  --color-accent-tint: var(--yellow-tint);
+  --color-fg: var(--text);
+  --color-fg-2: var(--text-2);
+  --color-fg-3: var(--text-3);
+  --color-muted: var(--text-2);
   --color-line: var(--line);
-  --color-muted: var(--muted);
+  --color-line-strong: var(--line-strong);
+  --color-surface: var(--surface);
   --color-page: var(--bg);
+  --color-sunken: var(--bg-sunken);
   --font-sans: var(--font-inter), var(--font-bengali), system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--bg);
+  color: var(--text);
+  font-feature-settings: "cv11", "ss01";
+}
+
+/* Bangla script needs a little more line height than Latin */
+:lang(bn) {
+  line-height: 1.6;
+}
+
+:focus-visible {
+  outline: 2px solid var(--upay-blue);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--yellow-100);
   color: var(--upay-ink);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* MapLibre: popups and controls in the app's type and colours */
+.maplibregl-popup-content {
+  border-radius: 8px;
+  padding: 0;
+  box-shadow: 0 6px 24px rgb(5 6 8 / 0.14);
+  font-family: var(--font-inter), var(--font-bengali), system-ui, sans-serif;
+}
+.maplibregl-popup-close-button {
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  color: var(--text-2);
+}
+.maplibregl-ctrl-attrib {
+  font-size: 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
