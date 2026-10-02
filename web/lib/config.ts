@@ -5,6 +5,10 @@ export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 export const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
 // Optional: when set, the sign-in card offers one-click demo accounts (DECISIONS.md D-022).
 export const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "";
+// Local runs only (`make run`): sign in with the in-memory API's fixed tokens, without Supabase.
+// Honoured only for an API on this machine; the deployed API rejects these tokens anyway.
+export const LOCAL_AUTH =
+  process.env.NEXT_PUBLIC_LOCAL_AUTH === "1" && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(API_BASE_URL);
 
 export const DEMO_ACCOUNTS = [
   { email: "jogan.analyst@example.com", role: "analyst" },
