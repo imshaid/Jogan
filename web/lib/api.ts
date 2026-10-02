@@ -115,10 +115,45 @@ export type Meta = {
   simulated: true;
 };
 
+// What one layer produced for a recommendation (GET /v1/recommendations/{id}/trace, D-024).
+export type TraceStep = {
+  step:
+    | "forecast"
+    | "stock_out_chance"
+    | "drivers"
+    | "need_and_value"
+    | "dispatch"
+    | "guardrails"
+    | "explanation"
+    | "decision";
+  by: "model" | "model explanation" | "rule" | "optimizer" | "template" | "human";
+  what: string;
+  config: { name: string; hash: string | null } | null;
+  outputs: Record<string, unknown>;
+};
+
+export type DecisionTrace = {
+  recommendation_id: number;
+  bundle_id: string;
+  served_bundle: boolean;
+  plan_date: string;
+  agent_id: string;
+  territory: string;
+  status: Status;
+  trace: Record<string, unknown>;
+  steps: TraceStep[];
+  explanation: Record<Lang, string>;
+  anomaly: Omit<AnomalyFlag, "text"> | null;
+  audit: AuditEntry[];
+};
+
+// Every refusal has the body { detail, code } (D-024); 429 adds Retry-After.
 export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public code: string = "error",
+    public retryAfterS: number | null = null,
   ) {
     super(message);
   }
@@ -136,14 +171,16 @@ async function call<T>(path: string, token?: string, init?: RequestInit): Promis
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     const detail = typeof body.detail === "string" ? body.detail : `request failed (${res.status})`;
-    throw new ApiError(res.status, detail);
+    const code = typeof body.code === "string" ? body.code : "error";
+    const retry = Number(res.headers.get("Retry-After"));
+    throw new ApiError(res.status, detail, code, Number.isFinite(retry) && retry > 0 ? retry : null);
   }
   return body as T;
 }
 
 export const api = {
   meta: () => call<Meta>("/v1/meta"),
-  me: (token: string) => call<{ role: Role | null }>("/v1/me", token),
+  me: (token: string) => call<{ user_id: string; role: Role | null }>("/v1/me", token),
   plan: (token: string, day: string) =>
     call<{ bundle_id: string; plan_date: string; items: Recommendation[] }>(`/v1/plans/${day}`, token),
   decide: (token: string, id: number, decision: "approved" | "rejected", note?: string) =>
@@ -152,6 +189,7 @@ export const api = {
       body: JSON.stringify({ decision, note: note || null }),
     }),
   audit: (token: string, limit = 20) => call<{ items: AuditEntry[] }>(`/v1/audit?limit=${limit}`, token),
+  trace: (token: string, id: number) => call<DecisionTrace>(`/v1/recommendations/${id}/trace`, token),
   explanation: (token: string, id: number, lang: Lang) =>
     call<Explanation>(`/v1/recommendations/${id}/explanation?lang=${lang}`, token),
   anomalies: (token: string, day: string) =>

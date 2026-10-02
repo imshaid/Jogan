@@ -43,7 +43,7 @@ class Store(Protocol):
 
     def decide(self, token: str, rec_id: int, decision: str, note: str | None) -> dict: ...
 
-    def audit(self, token: str, limit: int) -> list[dict]: ...
+    def audit(self, token: str, limit: int, recommendation_id: int | None = None) -> list[dict]: ...
 
 
 # --- Supabase -------------------------------------------------------------------------------
@@ -125,8 +125,10 @@ class SupabaseStore:
         body = {"p_id": rec_id, "p_decision": decision, "p_note": note}
         return self._send("POST", "/rpc/decide_recommendation", self._user(token), json=body)
 
-    def audit(self, token: str, limit: int) -> list[dict]:
+    def audit(self, token: str, limit: int, recommendation_id: int | None = None) -> list[dict]:
         params = {"select": "*", "order": "id.desc", "limit": str(limit)}
+        if recommendation_id is not None:
+            params["recommendation_id"] = f"eq.{recommendation_id}"
         return self._send("GET", "/audit_log", self._user(token), params=params)
 
 
@@ -240,11 +242,16 @@ class MemoryStore:
             self._log(user, role, f"recommendation.{decision}", rec_id, detail)
             return dict(rec)
 
-    def audit(self, token: str, limit: int) -> list[dict]:
+    def audit(self, token: str, limit: int, recommendation_id: int | None = None) -> list[dict]:
         _, role = self._who(token)
         if not role:
             return []
-        return sorted(self.audit_log, key=lambda r: -r["id"])[:limit]
+        rows = [
+            r
+            for r in self.audit_log
+            if recommendation_id is None or r["recommendation_id"] == recommendation_id
+        ]
+        return sorted(rows, key=lambda r: -r["id"])[:limit]
 
 
 def _now() -> str:

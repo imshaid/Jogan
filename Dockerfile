@@ -32,9 +32,12 @@ RUN .venv/bin/python -m jogan.api.bundle --profile "$JOGAN_PROFILE" --seed "$JOG
 RUN useradd --system --uid 10001 --no-create-home jogan
 USER jogan
 
+# Cloud Run's front end appends the client address to X-Forwarded-For; the rate limits read
+# it one entry from the right, since anything further left can be forged (D-024)
 ENV PATH=/app/.venv/bin:$PATH \
     JOGAN_BUNDLE_DIR=/app/bundle \
     JOGAN_ENV=production \
+    JOGAN_TRUSTED_PROXY_HOPS=1 \
     PORT=8080
 
 EXPOSE 8080
