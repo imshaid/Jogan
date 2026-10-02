@@ -193,11 +193,12 @@ def create_app(
             raise HTTPException(403, "this account has no Jogan role")
         return role
 
-    @app.get("/health")
+    # uptime monitors send HEAD; it runs the same check and the server drops the body
+    @app.api_route("/health", methods=["GET", "HEAD"])
     def health() -> dict:
         return {"status": "ok", "version": jogan.__version__, "bundle_id": bundle.bundle_id}
 
-    @app.get("/health/db", response_model=None)
+    @app.api_route("/health/db", methods=["GET", "HEAD"], response_model=None)
     def health_db() -> dict | JSONResponse:
         with db_lock:
             now = time.monotonic()
