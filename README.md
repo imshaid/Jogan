@@ -136,7 +136,7 @@ Exact versions are pinned in [`uv.lock`](uv.lock) and [`web/package-lock.json`](
 
 ## Requirements
 
-- Linux or macOS, `git`, GNU `make`, [`uv`](https://docs.astral.sh/uv/) (it installs Python 3.12 itself)
+- Linux or macOS, `git`, GNU `make`, `curl`, [`uv`](https://docs.astral.sh/uv/) (it installs Python 3.12 itself)
 - Node.js 22 and npm for the web app
 - Docker, only for `make test-db` (a throwaway Postgres 17) and for building the API image
 - For a full deployment of your own: a Supabase project, a Google AI Studio key, a Google Cloud project with billing, a Vercel account
@@ -154,15 +154,16 @@ git clone https://github.com/imshaid/Jogan.git
 cd Jogan
 make setup                       # Python deps with uv, git hooks
 make check                       # lint + tests, same as CI
-cp .env.example .env             # fill in only what you need (see below)
-cd web && npm ci && cd ..        # web app deps
+make run                         # API on :8000 + web app on :3000, no accounts needed
 ```
 
-Nothing else is needed to run the API locally: `make api` uses an in-memory store and the fixed tokens `analyst` and `approver`, so no Supabase or Gemini account is required. Without `GEMINI_API_KEY`, "Reword with AI" answers with the template and says why.
+Then open <http://localhost:3000> and sign in under **Local run** as analyst or approver. The first `make run` builds the deployed demo world into `bundle/` (profile `full`, seed 42, about 80 s) and installs the web app's packages; later runs start in seconds. Ctrl+C stops both servers.
+
+`make run` needs no Supabase or Gemini account: the API keeps decisions and the audit log in memory (`JOGAN_STORE=memory`, refused outside `JOGAN_ENV=development`) and takes the role names `analyst` and `approver` as bearer tokens, and the web app offers those two roles instead of a password form (`NEXT_PUBLIC_LOCAL_AUTH=1`, honoured only for an API on `localhost`). Without `GEMINI_API_KEY`, "Reword with AI" answers with the template and says why; to try it locally, run `GEMINI_API_KEY=<your key> make run`. For a smaller, faster world, run `make bundle PROFILE=tiny SEED=0` first.
 
 ## Environment variables
 
-All names are in [`.env.example`](.env.example) with placeholders. Never commit `.env` or `web/.env.local`.
+All names are in [`.env.example`](.env.example) with placeholders. The API reads the process environment: `make run` and `make api` set the local values themselves, Cloud Run gets them from the deploy workflow and Secret Manager, and a `.env` copy of `.env.example` is read only where a command says so (`scripts/gcp-setup.sh`, `uv run --env-file .env …`). The web app reads `web/.env.local` locally and the Vercel project settings in production. Never commit `.env` or `web/.env.local`.
 
 | Name | Where | Purpose |
 |---|---|---|
@@ -183,6 +184,7 @@ All names are in [`.env.example`](.env.example) with placeholders. Never commit 
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | web | Supabase Auth in the browser |
 | `NEXT_PUBLIC_MAP_STYLE_URL` | web | Optional MapLibre style; default OpenFreeMap `positron`, no key |
 | `NEXT_PUBLIC_DEMO_PASSWORD` | web | Optional one-click demo sign-in (public by design, D-022) |
+| `NEXT_PUBLIC_LOCAL_AUTH` | web | `1` on a local run only (`make run` sets it): sign in as analyst or approver without Supabase, against an API on `localhost` |
 
 ## Run and build
 
@@ -196,14 +198,15 @@ make impact                        # impact page numbers → web/lib/impact.json
 make docs                          # numbers in README and docs ← artifacts
 make stress                        # 10,000-agent timing → artifacts/stress.json
 make bundle PROFILE=tiny SEED=0    # served bundle → bundle/ (deployed: PROFILE=full SEED=42)
-make api                           # API on :8000, in-memory store (after make bundle)
-cd web && npm run dev              # web app on :3000 (NEXT_PUBLIC_* in web/.env.local)
+make run                           # API + web app locally, no accounts (builds bundle/ if missing)
+make api                           # API alone on :8000, in-memory store, auto-reload (after make bundle)
+cd web && npm run dev              # web app alone on :3000 (NEXT_PUBLIC_* in web/.env.local)
 cd web && npm run build            # production build of the web app
 docker build -t jogan-api .        # API image; builds the full demo bundle inside
 make help                          # every target
 ```
 
-With `make api` running, set `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` in `web/.env.local`. The local API accepts the bearer tokens `analyst` and `approver`; the web app's sign-in needs a Supabase project (or use the live site).
+To run the two halves separately, put the `NEXT_PUBLIC_*` values in `web/.env.local`: with `make api`, `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` and `NEXT_PUBLIC_LOCAL_AUTH=1`; with an API on your own Supabase project, the two `NEXT_PUBLIC_SUPABASE_*` values instead. The deployed API answers only the production web origin (CORS), so a local web app cannot use it.
 
 ## Testing
 
@@ -211,6 +214,7 @@ With `make api` running, set `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` in
 make check                   # ruff lint and format check, then pytest (same as CI)
 make test                    # pytest only
 make test-db                 # migrations, RLS, grants and append-only audit on Postgres 17 (Docker)
+make run                     # then sign in at http://localhost:3000 and approve a visit by hand
 cd web && npm run lint && npm run typecheck && npm run build
 uv run --with playwright python scripts/live_check.py   # end-to-end on the live site (decides 2 visits)
 ```

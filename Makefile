@@ -5,7 +5,7 @@ UV ?= uv
 PROFILE ?= dev
 SEED ?= 0
 
-.PHONY: help setup lint format test check data history baselines forecast eval impact docs stress bundle api test-db clean
+.PHONY: help setup lint format test check data history baselines forecast eval impact docs stress bundle api run test-db clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -60,6 +60,9 @@ bundle: ## Build the served demo bundle → bundle/ (PROFILE=full SEED=42 for th
 api: ## Run the API locally on :8000 with the in-memory store (after make bundle)
 	JOGAN_STORE=memory JOGAN_ENV=development JOGAN_CORS_ORIGINS=http://localhost:3000 \
 		$(UV) run uvicorn --factory jogan.api.app:from_env --reload --port 8000
+
+run: ## Run the API and the web app locally, no accounts needed (builds bundle/ if missing)
+	UV=$(UV) bash scripts/run-local.sh
 
 clean: ## Remove caches and build outputs
 	rm -rf .pytest_cache .ruff_cache build dist
