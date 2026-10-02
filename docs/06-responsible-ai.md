@@ -82,7 +82,7 @@ Tests mock the HTTP layer and cover the fallback, every refusal, the rate limit,
 
 ## 8. Accessibility
 
-Risk is never shown by colour alone: every band has a word and a shape (▲ ◆ ●). Text colours meet WCAG AA contrast (measured in D-007 and D-025); upay yellow is used only as a fill under dark text. Every chart has a table view, and the map's facts are repeated in a territory table and a "highest risk" list for screen readers. The whole interface works in Bangla and English, and at phone width.
+Risk is never shown by colour alone: every band has a word and a shape (▲ ◆ ●). Text colours meet WCAG AA contrast (measured in D-007, D-025 and D-029); upay yellow is used only as a fill under dark text. Every chart has a table view, and the map's facts are repeated in a territory table and a "highest risk" list for screen readers. The whole interface works in Bangla and English, and at phone width.
 
 ## 9. Known gaps
 

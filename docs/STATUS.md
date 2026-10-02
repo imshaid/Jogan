@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02, end of M12._
+_Last updated: 2026-10-02, after the web UI redesign (D-029)._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -219,11 +219,18 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - **Checks:** `make check` (198 tests), `make test-db`, web lint, types and build; CI and the API deploy green; `scripts/live_check.py` passed on the live site after the deploy (approver decided CUM-072 and KUR-082 on 3 Jun; Bangla rewording from `gemini-3.5-flash-lite`)
   - decision D-028
 
+- **Web UI redesign** (owner request, after M12; D-029)
+  - look: warm grey trays around white cards, small caps labels in Geist Mono, KPI cards with ten-day bars, the planned-visits timeline as block columns, pill badges; upay blue for actions and yellow only as a fill; contrast re-measured
+  - shell: sidebar that collapses to an icon rail (cookie, no flash), breadcrumb, command menu (`/` or Ctrl/⌘ K: pages, agent ids, language), pending count on the queue item from already-loaded data only; on phones a floating tab bar
+  - phones: the queue as cards, the decision first on the agent page; no horizontal scroll at 360 and 390 px
+  - every feature, label, route and number source unchanged; quantities in Inter tabular figures, ids in mono
+  - **Checks:** web lint, types and build; the live check's browser steps replayed against `make run` (analyst, Bangla, rewording, approve, reject, approve with a note, audit, 8-step trace) passed; screenshots at 1440 px and 390 px in English and Bangla, collapsed rail and command menu
+
 ## Next
 
 **Submission (by about 09:00 on 4 Oct; deadline 10:00 BST)**
 
-- Video: teammate 2 records it from [`10-demo-script.md`](10-demo-script.md) (at least 5 minutes; features and AI components, Rulebook §7.2), then its link goes into the submission form and the README.
+- Video: teammate 2 records it from [`10-demo-script.md`](10-demo-script.md) (at least 5 minutes; features and AI components, Rulebook §7.2) on the redesigned UI (D-029, live after this push), then its link goes into the submission form and the README.
 - Report: team review of [`report/report.md`](../report/report.md), confirm the roles on its cover, add the team's emails only if the owner wants them public, and export to the format the organizers ask for (PDF if needed).
 - **Tag `submission-initial` on the last commit before the deadline** (after the video link and the report are in), then push the tag. Not tagged in M12 on purpose: a tag cannot move without a force-push. In fish: `git tag -a submission-initial -m "Initial submission, AI Dev Fest 2026"; and git push origin submission-initial`
 - Submission form: GitHub link, video, report, any other file the organizers ask for; open each link from a private browser window before submitting (General Rules §6.1).
