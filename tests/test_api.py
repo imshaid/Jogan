@@ -118,6 +118,23 @@ def test_health_db_asks_the_store_at_most_once_per_cache_window(bundle: Bundle) 
     assert store.pings == 2
 
 
+def test_uptime_monitors_may_send_head_and_still_reach_the_database(bundle: Bundle) -> None:
+    class Counted(MemoryStore):
+        pings = 0
+
+        def ping(self) -> None:
+            self.pings += 1
+
+    store = Counted(dict(USERS))
+    c = TestClient(create_app(bundle, store, VERIFIER))
+    for path in ("/health", "/health/db"):
+        r = c.head(path)
+        assert r.status_code == 200, path
+        assert r.content == b""
+    assert store.pings == 1  # HEAD runs the check, so it keeps the database awake
+    assert c.post("/health/db", headers={"Content-Length": "0"}).status_code == 405
+
+
 def test_supabase_ping_reads_one_id_with_the_secret_key() -> None:
     seen: list[httpx.Request] = []
 
