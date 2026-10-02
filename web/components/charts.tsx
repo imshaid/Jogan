@@ -11,8 +11,11 @@ import { cx } from "./ui";
 // a hover/focus readout, and a table twin for every chart (the caller renders it).
 
 const SURFACE = "#ffffff";
-const GRID = "#e3e6eb";
-const AXIS_TEXT = "#636b78";
+const GRID = "#ecebe7";
+const AXIS_TEXT = "#66676d";
+const INK = "#111113";
+const MUTED = "#86857f"; // --mark-muted
+const HOVER = "#f6f6f4"; // --tray
 
 export type Series = { key: string; name: string; color: string; values: (number | null)[] };
 
@@ -128,7 +131,7 @@ export function ProbabilityChart({
         ))}
         {dates.map((d, i) =>
           i % every === 0 ? (
-            <text key={d} x={x(i)} y={height - 8} textAnchor="middle" fontSize={11} fill={AXIS_TEXT}>
+            <text key={d} x={x(i)} y={height - 8} textAnchor="middle" fontSize={11} fill={AXIS_TEXT} className="num">
               {f.dayShort(d)}
             </text>
           ) : null,
@@ -157,7 +160,7 @@ export function ProbabilityChart({
           )}
         {active !== null && (
           <g pointerEvents="none">
-            <line x1={x(active)} x2={x(active)} y1={m.top} y2={m.top + h} stroke="#4a5361" strokeWidth={1} />
+            <line x1={x(active)} x2={x(active)} y1={m.top} y2={m.top + h} stroke="#4b4c52" strokeWidth={1} strokeDasharray="3 3" />
             {series.map((s) =>
               s.values[active] !== null ? (
                 <circle
@@ -178,7 +181,7 @@ export function ProbabilityChart({
         <div
           id={tipId}
           role="status"
-          className="pointer-events-none absolute top-1 z-10 min-w-36 rounded-md border border-line bg-surface px-2.5 py-2 text-xs shadow-md"
+          className="pointer-events-none absolute top-1 z-10 min-w-36 rounded-lg border border-line bg-surface px-2.5 py-2 text-xs shadow-pop"
           style={x(active) > width / 2 ? { right: width - x(active) + 10 } : { left: x(active) + 10 }}
         >
           <div className="mb-1 font-medium text-fg-2">{f.day(dates[active])}</div>
@@ -226,19 +229,19 @@ export function DrainRanges({
           const cy = 10 + i * rowH + 18;
           return (
             <g key={r.key}>
-              <text x={0} y={cy} dy="0.32em" fontSize={12} fill="#12161c" fontWeight={600}>
+              <text x={0} y={cy} dy="0.32em" fontSize={12} fill={INK} fontWeight={600}>
                 {r.name}
               </text>
               <rect x={sx(0)} y={cy - 7} width={sx(r.q99) - sx(0)} height={14} rx={3} fill={r.color} opacity={0.14} />
               <rect x={sx(0)} y={cy - 7} width={sx(r.q90) - sx(0)} height={14} rx={3} fill={r.color} opacity={0.32} />
               <rect x={sx(0)} y={cy - 7} width={Math.max(2, sx(r.q50) - sx(0))} height={14} rx={3} fill={r.color} />
-              <line x1={sx(r.balance)} x2={sx(r.balance)} y1={cy - 13} y2={cy + 13} stroke="#050608" strokeWidth={2} />
+              <line x1={sx(r.balance)} x2={sx(r.balance)} y1={cy - 13} y2={cy + 13} stroke={INK} strokeWidth={2} />
               <text
                 x={sx(r.balance)}
                 y={cy - 17}
                 textAnchor={sx(r.balance) > width - 90 ? "end" : "middle"}
                 fontSize={11}
-                fill="#12161c"
+                fill={INK}
               >
                 {t.agent.balance}
               </text>
@@ -249,10 +252,10 @@ export function DrainRanges({
       <div className="mt-2">
         <Legend
           items={[
-            { name: t.agent.q50, color: "#4a5361", kind: "box" },
-            { name: t.agent.q90, color: "rgba(74,83,97,0.4)", kind: "box" },
-            { name: t.agent.q99, color: "rgba(74,83,97,0.18)", kind: "box" },
-            { name: t.agent.balance, color: "#050608", kind: "line" },
+            { name: t.agent.q50, color: "#4b4c52", kind: "box" },
+            { name: t.agent.q90, color: "rgba(75,76,82,0.4)", kind: "box" },
+            { name: t.agent.q99, color: "rgba(75,76,82,0.18)", kind: "box" },
+            { name: t.agent.balance, color: INK, kind: "line" },
           ]}
         />
       </div>
@@ -296,7 +299,7 @@ export function IntervalPlot({
   const lo = Math.min(0, ...rows.map((r) => r.low));
   const hi = Math.max(0, ...rows.map((r) => r.high));
   const pad = (hi - lo) * 0.08 || 1;
-  const labelW = Math.min(180, Math.max(110, width * 0.32));
+  const labelW = Math.min(180, Math.max(120, width * 0.36));
   const valueW = 76;
   const plotL = labelW + 8;
   const plotR = width - valueW - 8;
@@ -305,25 +308,25 @@ export function IntervalPlot({
   return (
     <div ref={attach} className="relative">
       <svg width={width} height={total} viewBox={`0 0 ${width} ${total}`} className="block" aria-hidden>
-        <line x1={sx(0)} x2={sx(0)} y1={0} y2={total - 18} stroke="#4a5361" strokeWidth={1} />
+        <line x1={sx(0)} x2={sx(0)} y1={0} y2={total - 18} stroke="#4b4c52" strokeWidth={1} />
         {zeroLabel && (
-          <text x={sx(0)} y={total - 4} textAnchor="middle" fontSize={11} fill={AXIS_TEXT}>
+          <text x={sx(0)} y={total - 4} textAnchor="middle" fontSize={11} fill={AXIS_TEXT} className="num">
             {zeroLabel}
           </text>
         )}
         {rows.map((r, i) => {
           const cy = i * height + height / 2;
           const on = hover === r.key;
-          const color = r.emphasis ? "#0c55a4" : "#7d8796";
+          const color = r.emphasis ? "#0c55a4" : MUTED;
           return (
             <g key={r.key} onPointerEnter={() => setHover(r.key)} onPointerLeave={() => setHover(null)}>
-              <rect x={0} y={cy - height / 2} width={width} height={height} fill={on ? "#f4f5f7" : "transparent"} />
+              <rect x={0} y={cy - height / 2} width={width} height={height} fill={on ? HOVER : "transparent"} />
               <line x1={plotL} x2={plotR} y1={cy} y2={cy} stroke={GRID} />
               <line x1={sx(r.low)} x2={sx(r.high)} y1={cy} y2={cy} stroke={color} strokeWidth={2} strokeLinecap="round" />
               <line x1={sx(r.low)} x2={sx(r.low)} y1={cy - 5} y2={cy + 5} stroke={color} strokeWidth={2} />
               <line x1={sx(r.high)} x2={sx(r.high)} y1={cy - 5} y2={cy + 5} stroke={color} strokeWidth={2} />
               <circle cx={sx(r.mean)} cy={cy} r={5} fill={color} stroke={SURFACE} strokeWidth={2} />
-              <text x={width} y={cy} dy="0.32em" textAnchor="end" fontSize={12} fill="#12161c" className="num" fontWeight={600}>
+              <text x={width} y={cy} dy="0.32em" textAnchor="end" fontSize={12} fill={INK} className="num" fontWeight={600}>
                 {format(r.mean)}
               </text>
             </g>
@@ -345,7 +348,7 @@ export function IntervalPlot({
       {hover && (
         <div
           role="status"
-          className="pointer-events-none absolute right-0 z-10 rounded-md border border-line bg-surface px-2.5 py-1.5 text-xs shadow-md"
+          className="pointer-events-none absolute right-0 z-10 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs shadow-pop"
           style={{ top: rows.findIndex((r) => r.key === hover) * height + height }}
         >
           {(() => {
@@ -381,23 +384,23 @@ export function BarIntervals({ rows, format }: { rows: IntervalRow[]; format: (v
   return (
     <div ref={attach} className="relative">
       <svg width={width} height={total} viewBox={`0 0 ${width} ${total}`} className="block" aria-hidden>
-        <line x1={plotL} x2={plotL} y1={0} y2={total} stroke="#cdd2d9" />
+        <line x1={plotL} x2={plotL} y1={0} y2={total} stroke="#d7d6d1" />
         {rows.map((r, i) => {
           const cy = i * rowH + rowH / 2;
-          const color = r.emphasis ? "#0c55a4" : "#aeb5c0";
+          const color = r.emphasis ? "#0c55a4" : "#bdbcb6";
           const on = hover === r.key;
           const bw = Math.max(2, sx(r.mean) - plotL);
           return (
             <g key={r.key} onPointerEnter={() => setHover(r.key)} onPointerLeave={() => setHover(null)}>
-              <rect x={0} y={cy - rowH / 2} width={width} height={rowH} fill={on ? "#f4f5f7" : "transparent"} />
+              <rect x={0} y={cy - rowH / 2} width={width} height={rowH} fill={on ? HOVER : "transparent"} />
               <path
                 d={`M${plotL},${cy - 9} h${bw - 4} a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h${-(bw - 4)} z`}
                 fill={color}
               />
-              <line x1={sx(r.low)} x2={sx(r.high)} y1={cy} y2={cy} stroke="#12161c" strokeWidth={1.5} />
-              <line x1={sx(r.low)} x2={sx(r.low)} y1={cy - 4} y2={cy + 4} stroke="#12161c" strokeWidth={1.5} />
-              <line x1={sx(r.high)} x2={sx(r.high)} y1={cy - 4} y2={cy + 4} stroke="#12161c" strokeWidth={1.5} />
-              <text x={width} y={cy} dy="0.32em" textAnchor="end" fontSize={12} fill="#12161c" className="num" fontWeight={r.emphasis ? 700 : 500}>
+              <line x1={sx(r.low)} x2={sx(r.high)} y1={cy} y2={cy} stroke={INK} strokeWidth={1.5} />
+              <line x1={sx(r.low)} x2={sx(r.low)} y1={cy - 4} y2={cy + 4} stroke={INK} strokeWidth={1.5} />
+              <line x1={sx(r.high)} x2={sx(r.high)} y1={cy - 4} y2={cy + 4} stroke={INK} strokeWidth={1.5} />
+              <text x={width} y={cy} dy="0.32em" textAnchor="end" fontSize={12} fill={INK} className="num" fontWeight={r.emphasis ? 700 : 500}>
                 {format(r.mean)}
               </text>
             </g>
@@ -418,7 +421,7 @@ export function BarIntervals({ rows, format }: { rows: IntervalRow[]; format: (v
       {hover && (
         <div
           role="status"
-          className="pointer-events-none absolute right-0 z-10 rounded-md border border-line bg-surface px-2.5 py-1.5 text-xs shadow-md"
+          className="pointer-events-none absolute right-0 z-10 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs shadow-pop"
           style={{ top: rows.findIndex((r) => r.key === hover) * rowH + rowH }}
         >
           {(() => {
@@ -452,9 +455,9 @@ export function DataTable({
       <table className="w-full text-xs">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead>
-          <tr className="border-b border-line text-left text-fg-2">
+          <tr className="border-b border-line text-left text-fg-3">
             {head.map((h, i) => (
-              <th key={i} scope="col" className={cx("py-1.5 pr-3 font-medium", i > 0 && "text-right")}>
+              <th key={i} scope="col" className={cx("eyebrow py-2 pr-3 font-medium", i > 0 && "text-right")}>
                 {h}
               </th>
             ))}
@@ -464,7 +467,7 @@ export function DataTable({
           {rows.map((r, i) => (
             <tr key={i} className="border-b border-line last:border-0">
               {r.map((c, j) => (
-                <td key={j} className={cx("py-1.5 pr-3", j > 0 && "num text-right")}>
+                <td key={j} className={cx("py-2 pr-3", j > 0 && "num text-right")}>
                   {c}
                 </td>
               ))}

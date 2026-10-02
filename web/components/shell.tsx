@@ -1,27 +1,55 @@
 "use client";
 
-import { BarChart3, ExternalLink, Info, LogOut, Map as MapIcon, Menu, ScrollText, ListChecks, X } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BarChart3,
+  ChevronRight,
+  CodeXml,
+  Eye,
+  Info,
+  Languages,
+  ListChecks,
+  LogOut,
+  Map as MapIcon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ScrollText,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 
-import { supabase, type Lang, type Role } from "@/lib/api";
-import { DEMO_ACCOUNTS, DEMO_PASSWORD, LOCAL_AUTH } from "@/lib/config";
+import { supabase, type Lang, type Recommendation, type Role } from "@/lib/api";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD, LOCAL_AUTH, SIDEBAR_COOKIE } from "@/lib/config";
+import { usePeek } from "@/lib/data";
+import { keys, useMeta } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 
-import { Button, cx, ErrorNotice, Segmented, Skeleton } from "./ui";
+import { CommandDialog, type Command } from "./command";
+import { Button, cx, ErrorNotice, IconButton, Segmented, Skeleton } from "./ui";
 
 const REPO = "https://github.com/imshaid/Jogan";
 
-function Wordmark({ compact }: { compact?: boolean }) {
+function Mark({ size = 32 }: { size?: number }) {
   return (
-    <span className="flex items-center gap-2.5">
-      <Image src="/brand/jogan-mark.png" alt="" width={28} height={28} priority />
-      <span className={cx("font-semibold tracking-tight text-ink", compact ? "text-[15px]" : "text-base")}>
-        Jogan <span aria-hidden className="text-fg-3">·</span> <span lang="bn">যোগান</span>
-      </span>
+    <span
+      className="flex shrink-0 items-center justify-center rounded-lg bg-accent-tint ring-1 ring-accent/60"
+      style={{ width: size, height: size }}
+    >
+      <Image src="/brand/jogan-mark.png" alt="" width={Math.round(size * 0.7)} height={Math.round(size * 0.7)} priority />
+    </span>
+  );
+}
+
+function Wordmark({ className }: { className?: string }) {
+  return (
+    <span className={cx("font-semibold tracking-tight text-ink", className)}>
+      Jogan <span aria-hidden className="text-fg-3">·</span> <span lang="bn">যোগান</span>
     </span>
   );
 }
@@ -39,63 +67,207 @@ function SimulatedBadge() {
   );
 }
 
-function useNav() {
-  const { t } = useLang();
-  return [
-    {
-      section: t.nav.sectionOps,
-      items: [
-        { href: "/", label: t.nav.network, Icon: MapIcon, keepDay: true },
-        { href: "/queue", label: t.nav.queue, Icon: ListChecks, keepDay: true },
-        { href: "/audit", label: t.nav.audit, Icon: ScrollText, keepDay: false },
-      ],
-    },
-    {
-      section: t.nav.sectionEvidence,
-      items: [
-        { href: "/impact", label: t.nav.impact, Icon: BarChart3, keepDay: false },
-        { href: "/about", label: t.nav.about, Icon: Info, keepDay: false },
-      ],
-    },
-  ];
+// The sidebar width lives on <html data-sidebar>, set by the server from a cookie.
+function subscribeRail(cb: () => void) {
+  const mo = new MutationObserver(cb);
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-sidebar"] });
+  return () => mo.disconnect();
+}
+const isRail = () => document.documentElement.dataset.sidebar === "rail";
+
+function useRail(): [boolean, () => void] {
+  const rail = useSyncExternalStore(subscribeRail, isRail, () => false);
+  const toggle = useCallback(() => {
+    const next = isRail() ? "full" : "rail";
+    document.documentElement.dataset.sidebar = next;
+    document.cookie = `${SIDEBAR_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+  }, []);
+  return [rail, toggle];
 }
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
-  const nav = useNav();
-  const pathname = usePathname();
+type NavItem = { href: string; label: string; Icon: typeof MapIcon; keepDay: boolean; section: string };
+
+function useNav() {
+  const { t } = useLang();
+  return useMemo(() => {
+    const ops = t.nav.sectionOps;
+    const ev = t.nav.sectionEvidence;
+    const items: NavItem[] = [
+      { href: "/", label: t.nav.network, Icon: MapIcon, keepDay: true, section: ops },
+      { href: "/queue", label: t.nav.queue, Icon: ListChecks, keepDay: true, section: ops },
+      { href: "/audit", label: t.nav.audit, Icon: ScrollText, keepDay: false, section: ops },
+      { href: "/impact", label: t.nav.impact, Icon: BarChart3, keepDay: false, section: ev },
+      { href: "/about", label: t.nav.about, Icon: Info, keepDay: false, section: ev },
+    ];
+    return items;
+  }, [t]);
+}
+
+function isActive(href: string, pathname: string) {
+  return href === "/" ? pathname === "/" || pathname.startsWith("/agents") : pathname.startsWith(href);
+}
+
+function useHref() {
   const params = useSearchParams();
   const day = params.get("day");
+  return (item: NavItem) => (item.keepDay && day ? `${item.href}?day=${day}` : item.href);
+}
+
+// Pending visits for the day in view, only if a page has already loaded that day's plan.
+function usePending() {
+  const params = useSearchParams();
+  const meta = useMeta();
+  const day = params.get("day") ?? meta.data?.plan_dates[0] ?? null;
+  const plan = usePeek<{ items: Recommendation[] }>(day && keys.plan(day));
+  return plan?.items.filter((r) => r.status === "pending").length;
+}
+
+function NavLinks() {
+  const { t, f } = useLang();
+  const nav = useNav();
+  const pathname = usePathname();
+  const href = useHref();
+  const pending = usePending();
+  const sections = [...new Set(nav.map((n) => n.section))];
   return (
-    <nav className="flex flex-col gap-5">
-      {nav.map((group) => (
-        <div key={group.section}>
-          <div className="px-3 pb-1.5 text-[11px] font-semibold tracking-wide text-fg-3 uppercase">{group.section}</div>
+    <nav aria-label={t.nav.primary} className="flex flex-col gap-5">
+      {sections.map((section, k) => (
+        <div key={section}>
+          <div className="eyebrow px-2.5 pb-1.5 text-fg-3 rail:sr-only">{section}</div>
+          {k > 0 && <div aria-hidden className="mx-auto mb-3 hidden h-px w-6 bg-line-strong rail:block" />}
           <ul className="flex flex-col gap-0.5">
-            {group.items.map(({ href, label, Icon, keepDay }) => {
-              const active = href === "/" ? pathname === "/" || pathname.startsWith("/agents") : pathname.startsWith(href);
-              return (
-                <li key={href}>
-                  <Link
-                    href={keepDay && day ? `${href}?day=${day}` : href}
-                    onClick={onNavigate}
-                    aria-current={active ? "page" : undefined}
-                    className={cx(
-                      "relative flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      active ? "bg-brand-tint text-brand" : "text-fg-2 hover:bg-page hover:text-fg",
-                    )}
-                  >
-                    {active && (
-                      <span aria-hidden className="absolute top-1.5 bottom-1.5 left-0 w-[3px] rounded-r bg-accent" />
-                    )}
-                    <Icon aria-hidden className="size-4 shrink-0" strokeWidth={2} />
-                    {label}
-                  </Link>
-                </li>
-              );
-            })}
+            {nav
+              .filter((n) => n.section === section)
+              .map((item) => {
+                const active = isActive(item.href, pathname);
+                const badge = item.href === "/queue" && pending ? pending : undefined;
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={href(item)}
+                      aria-current={active ? "page" : undefined}
+                      title={item.label}
+                      className={cx(
+                        "flex h-9 items-center gap-2.5 rounded-lg border px-2.5 text-sm transition-colors rail:justify-center rail:px-0",
+                        active
+                          ? "border-line bg-surface font-medium text-fg shadow-xs"
+                          : "border-transparent text-fg-2 hover:bg-sunken/70 hover:text-fg",
+                      )}
+                    >
+                      <item.Icon
+                        aria-hidden
+                        className={cx("size-4.5 shrink-0", active ? "text-brand" : "text-fg-3")}
+                        strokeWidth={1.8}
+                      />
+                      <span className="min-w-0 flex-1 truncate rail:sr-only">{item.label}</span>
+                      {badge !== undefined && (
+                        <span className="num rounded-md bg-accent px-1.5 text-[11px] leading-5 font-semibold text-ink rail:hidden">
+                          {f.num(badge)}
+                          <span className="sr-only"> {t.queue.summary.pending}</span>
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
           </ul>
         </div>
       ))}
+    </nav>
+  );
+}
+
+function Sidebar({ onCommand }: { onCommand: () => void }) {
+  const { t } = useLang();
+  return (
+    <div className="flex h-full flex-col">
+      <div className="px-3 pt-3">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 rounded-xl border border-line bg-surface p-2 shadow-xs transition-colors hover:border-line-strong rail:justify-center rail:border-transparent rail:bg-transparent rail:p-0.5 rail:shadow-none"
+        >
+          <Mark />
+          <span className="min-w-0 leading-tight rail:sr-only">
+            <span className="block truncate text-[11px] text-fg-3">{t.appTagline}</span>
+            <Wordmark className="block truncate text-sm" />
+          </span>
+        </Link>
+        <button
+          type="button"
+          onClick={onCommand}
+          title={t.cmd.label}
+          className="mt-3 flex h-9 w-full items-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-[13px] text-fg-3 shadow-xs transition-colors hover:border-line-strong hover:text-fg-2 rail:justify-center rail:px-0"
+        >
+          <Search aria-hidden className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-left rail:sr-only">{t.cmd.trigger}</span>
+          <kbd aria-hidden className="mono rounded border border-line bg-tray px-1.5 text-[11px] leading-4 text-fg-3 rail:hidden">
+            /
+          </kbd>
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 py-5">
+        <Suspense fallback={null}>
+          <NavLinks />
+        </Suspense>
+      </div>
+      <div className="p-3">
+        <div className="rounded-xl border border-line bg-surface p-3 shadow-xs rail:hidden">
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
+            <span aria-hidden className="size-2 rounded-full bg-accent ring-[3px] ring-accent/30" />
+            {t.simulated}
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-fg-2">{t.simulatedTitle}</p>
+          <a
+            href={REPO}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+          >
+            {t.about.source} <ArrowUpRight aria-hidden className="size-3.5" />
+          </a>
+        </div>
+        <a
+          href={REPO}
+          target="_blank"
+          rel="noreferrer"
+          title={t.about.source}
+          aria-label={t.about.source}
+          className="mx-auto hidden size-9 items-center justify-center rounded-lg text-fg-3 hover:bg-sunken hover:text-fg rail:flex"
+        >
+          <CodeXml aria-hidden className="size-4.5" />
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function Breadcrumb() {
+  const { t } = useLang();
+  const nav = useNav();
+  const pathname = usePathname();
+  const href = useHref();
+  const item = nav.find((n) => isActive(n.href, pathname));
+  if (!item) return null;
+  const agent = pathname.startsWith("/agents/") ? decodeURIComponent(pathname.split("/")[2] ?? "") : null;
+  return (
+    <nav aria-label={t.nav.breadcrumb} className="hidden min-w-0 items-center gap-1.5 text-sm lg:flex">
+      <span className="text-fg-3">{item.section}</span>
+      <ChevronRight aria-hidden className="size-3.5 shrink-0 text-fg-3" />
+      {agent ? (
+        <>
+          <Link href={href(item)} className="text-fg-2 hover:text-fg">
+            {item.label}
+          </Link>
+          <ChevronRight aria-hidden className="size-3.5 shrink-0 text-fg-3" />
+          <span aria-current="page" className="mono truncate font-medium text-fg">
+            {agent}
+          </span>
+        </>
+      ) : (
+        <span aria-current="page" className="truncate font-medium text-fg">
+          {item.label}
+        </span>
+      )}
     </nav>
   );
 }
@@ -116,105 +288,165 @@ function LangSwitch() {
   );
 }
 
+function initials(email: string | null | undefined) {
+  const local = (email ?? "").split("@")[0];
+  const parts = local.split(/[._-]/).filter(Boolean);
+  return (parts[parts.length - 1] ?? "?").slice(0, 2).toUpperCase();
+}
+
 function UserMenu() {
   const { t } = useLang();
   const { session, email, role, signOut } = useSession();
   if (!session) {
     return (
-      <Link href="/" className="text-sm font-medium text-brand hover:underline">
+      <Link
+        href="/"
+        className="inline-flex h-8 items-center rounded-lg bg-brand px-3 text-[13px] font-medium text-white hover:bg-brand-strong"
+      >
         {t.signIn.submit}
       </Link>
     );
   }
   return (
     <div className="flex items-center gap-2.5">
-      <div className="hidden text-right leading-tight sm:block">
-        <div className="max-w-48 truncate text-[13px] text-fg">{email}</div>
-        <div className="text-xs font-semibold text-brand">{role ? t.user.role[role] : role === null ? t.user.noRole : "…"}</div>
+      <span
+        aria-hidden
+        className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-white sm:flex"
+      >
+        {initials(email)}
+      </span>
+      <div className="hidden leading-tight sm:block">
+        <div className="max-w-44 truncate text-[13px] font-medium text-fg">{email}</div>
+        <div className="text-xs text-fg-3">{role ? t.user.role[role] : role === null ? t.user.noRole : "…"}</div>
       </div>
-      <Button variant="ghost" size="sm" onClick={signOut} aria-label={t.user.signOut} title={t.user.signOut}>
+      <IconButton label={t.user.signOut} onClick={signOut}>
         <LogOut aria-hidden className="size-4" />
-        <span className="sr-only sm:not-sr-only">{t.user.signOut}</span>
-      </Button>
+      </IconButton>
     </div>
   );
 }
 
-function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+function MobileNav() {
   const { t } = useLang();
+  const nav = useNav();
+  const pathname = usePathname();
+  const href = useHref();
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-14 items-center px-4">
-        <Link href="/" onClick={onNavigate} className="rounded-md">
-          <Wordmark compact />
-        </Link>
-      </div>
-      <div className="flex-1 overflow-y-auto px-2 py-4">
-        <Suspense fallback={null}>
-          <NavLinks onNavigate={onNavigate} />
-        </Suspense>
-      </div>
-      <div className="space-y-2 border-t border-line px-4 py-3 text-xs text-fg-3">
-        <div>{t.appTagline}</div>
-        <a href={REPO} className="inline-flex items-center gap-1 hover:text-brand" target="_blank" rel="noreferrer">
-          {t.about.source} <ExternalLink aria-hidden className="size-3" />
-        </a>
-      </div>
-    </div>
+    <nav
+      aria-label={t.nav.primary}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(12px,env(safe-area-inset-bottom))] lg:hidden"
+    >
+      <ul className="pointer-events-auto mx-auto flex max-w-md items-center gap-1 rounded-full border border-line bg-surface/90 p-1.5 shadow-pop backdrop-blur-md">
+        {nav.map((item) => {
+          const active = isActive(item.href, pathname);
+          return (
+            <li key={item.href} className={cx("min-w-0", active ? "flex-[2.4]" : "flex-1")}>
+              <Link
+                href={href(item)}
+                aria-current={active ? "page" : undefined}
+                className={cx(
+                  "flex h-11 items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors",
+                  active ? "bg-ink text-white" : "text-fg-2 hover:bg-sunken hover:text-fg",
+                )}
+              >
+                <item.Icon aria-hidden className="size-5 shrink-0" strokeWidth={1.8} />
+                <span className={active ? "truncate" : "sr-only"}>{item.label}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
+}
+
+function useCommands(toggleRail: () => void, rail: boolean) {
+  const { t, lang, setLang } = useLang();
+  const nav = useNav();
+  const router = useRouter();
+  const href = useHref();
+  const pages: Command[] = nav.map((n) => ({
+    id: `page:${n.href}`,
+    label: n.label,
+    hint: n.section,
+    Icon: n.Icon,
+    run: () => router.push(href(n)),
+  }));
+  const actions: Command[] = [
+    { id: "lang", label: t.cmd.switchLang, Icon: Languages, run: () => setLang(lang === "en" ? "bn" : "en") },
+    {
+      id: "rail",
+      label: rail ? t.nav.expand : t.nav.collapse,
+      Icon: rail ? PanelLeftOpen : PanelLeftClose,
+      run: toggleRail,
+    },
+  ];
+  return { pages, actions };
+}
+
+function CommandLayer({ open, setOpen, rail, toggleRail }: { open: boolean; setOpen: (o: boolean) => void; rail: boolean; toggleRail: () => void }) {
+  const { pages, actions } = useCommands(toggleRail, rail);
+  return open ? <CommandDialog pages={pages} actions={actions} onClose={() => setOpen(false)} /> : null;
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useLang();
-  const [open, setOpen] = useState(false);
-  const pathname = usePathname();
+  const [rail, toggleRail] = useRail();
+  const [command, setCommand] = useState(false);
+
+  // Ctrl/⌘ K anywhere, or "/" outside a text field, opens the command menu
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const typing = !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setCommand((o) => !o);
+      } else if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setCommand(true);
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-page">
       <a
         href="#main"
-        className="sr-only z-50 rounded bg-surface px-3 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+        className="sr-only z-50 rounded-lg bg-surface px-3 py-2 text-sm font-medium shadow-pop focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
       >
         {t.skipToContent}
       </a>
-      <div aria-hidden className="fixed inset-x-0 top-0 z-40 h-[3px] bg-accent" />
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 border-r border-line bg-surface pt-[3px] lg:block">
-        <Sidebar />
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-line bg-side transition-[width] duration-200 lg:block rail:w-17">
+        <Sidebar onCommand={() => setCommand(true)} />
       </aside>
-      {open && (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label={t.nav.menu}>
-          <div className="absolute inset-0 bg-ink/30" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-64 bg-surface pt-[3px] shadow-xl">
-            <button
-              className="absolute top-3.5 right-3 rounded p-1 text-fg-2 hover:bg-page"
-              onClick={() => setOpen(false)}
-              aria-label={t.nav.close}
+      <div className="transition-[padding] duration-200 lg:pl-64 rail:lg:pl-17">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-line bg-page/85 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+          <Link href="/" className="flex min-w-0 items-center gap-2 lg:hidden">
+            <Mark size={28} />
+            <Wordmark className="hidden truncate text-[15px] whitespace-nowrap min-[400px]:inline" />
+          </Link>
+          <span className="-ml-2 hidden lg:block">
+            <IconButton
+              label={rail ? t.nav.expand : t.nav.collapse}
+              onClick={toggleRail}
+              className="border-transparent bg-transparent shadow-none"
             >
-              <X className="size-5" />
-            </button>
-            <Sidebar key={pathname} onNavigate={() => setOpen(false)} />
-          </div>
-        </div>
-      )}
-      <div className="pt-[3px] lg:pl-60">
-        <header className="sticky top-[3px] z-20 flex h-14 items-center gap-3 border-b border-line bg-surface/95 px-4 backdrop-blur sm:px-6">
-          <button
-            className="-ml-1 rounded p-1.5 text-fg-2 hover:bg-page lg:hidden"
-            onClick={() => setOpen(true)}
-            aria-label={t.nav.menu}
-          >
-            <Menu className="size-5" />
-          </button>
-          <span className="lg:hidden">
-            <Wordmark compact />
+              {rail ? <PanelLeftOpen aria-hidden className="size-4.5" /> : <PanelLeftClose aria-hidden className="size-4.5" />}
+            </IconButton>
           </span>
-          <div className="ml-auto flex items-center gap-3">
+          <span aria-hidden className="hidden h-5 w-px bg-line lg:block" />
+          <Suspense fallback={null}>
+            <Breadcrumb />
+          </Suspense>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <span className="lg:hidden">
+              <IconButton label={t.cmd.label} onClick={() => setCommand(true)}>
+                <Search aria-hidden className="size-4" />
+              </IconButton>
+            </span>
             <span className="hidden md:inline-flex">
               <SimulatedBadge />
             </span>
@@ -223,32 +455,42 @@ export function AppShell({ children }: { children: ReactNode }) {
             <UserMenu />
           </div>
         </header>
-        <div className="border-b border-line bg-accent-tint px-4 py-1.5 text-center text-xs font-medium text-ink md:hidden">
+        <div className="border-b border-accent/50 bg-accent-tint px-4 py-1.5 text-center text-xs font-medium text-ink md:hidden">
           {t.simulated}
         </div>
-        <main id="main" className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
+        <main id="main" className="mx-auto max-w-360 px-4 pt-6 pb-28 sm:px-6 lg:px-8 lg:pt-8 lg:pb-12">
           {children}
         </main>
       </div>
+      <Suspense fallback={null}>
+        <MobileNav />
+        <CommandLayer open={command} setOpen={setCommand} rail={rail} toggleRail={toggleRail} />
+      </Suspense>
     </div>
   );
 }
 
 function RoleButton({ role, disabled, onClick }: { role: Role; disabled?: boolean; onClick: () => void }) {
   const { t } = useLang();
+  const Icon = role === "analyst" ? Eye : ShieldCheck;
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="group rounded-lg border border-line-strong px-3 py-2.5 text-left transition-colors hover:border-brand hover:bg-brand-tint disabled:opacity-60"
+      className="group flex items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left shadow-xs transition-colors hover:border-brand/50 hover:bg-brand-tint/50 disabled:opacity-60"
     >
-      <div className="text-sm font-semibold text-brand">
-        {role === "analyst" ? t.signIn.asAnalyst : t.signIn.asApprover}
-      </div>
-      <div className="mt-0.5 text-xs text-fg-2">
-        {role === "analyst" ? t.signIn.asAnalystNote : t.signIn.asApproverNote}
-      </div>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold text-fg">
+          {role === "analyst" ? t.signIn.asAnalyst : t.signIn.asApprover}
+        </span>
+        <span className="mt-0.5 block text-xs text-fg-2">
+          {role === "analyst" ? t.signIn.asAnalystNote : t.signIn.asApproverNote}
+        </span>
+      </span>
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-tray text-fg-2 transition-colors group-hover:border-brand/40 group-hover:text-brand">
+        <Icon aria-hidden className="size-4" />
+      </span>
     </button>
   );
 }
@@ -258,17 +500,43 @@ function LocalSignIn() {
   const { t } = useLang();
   const { signInLocal } = useSession();
   return (
-    <div className="mt-6">
-      <div className="text-xs font-semibold tracking-wide text-fg-3 uppercase">{t.signIn.local}</div>
-      <div className="mt-2 grid grid-cols-2 gap-2">
+    <div className="mt-7">
+      <div className="eyebrow text-fg-3">{t.signIn.local}</div>
+      <div className="mt-2.5 grid grid-cols-1 gap-2">
         {(["analyst", "approver"] as const).map((r) => (
           <RoleButton key={r} role={r} onClick={() => signInLocal(r)} />
         ))}
       </div>
-      <p className="mt-2 text-xs text-fg-3">{t.signIn.localNote}</p>
+      <p className="mt-2.5 text-xs leading-relaxed text-fg-3">{t.signIn.localNote}</p>
     </div>
   );
 }
+
+// Decorative block pattern for the sign-in panel (not data).
+const BLOCKS = [2, 3, 2, 4, 3, 5, 3, 4, 6, 5, 7, 6, 8, 7, 9];
+
+function BlockArt() {
+  return (
+    <div aria-hidden className="flex items-end gap-1.25">
+      {BLOCKS.map((h, i) => (
+        <div key={i} className="flex flex-col-reverse gap-1.25">
+          {Array.from({ length: 10 }, (_, k) => (
+            <span
+              key={k}
+              className={cx(
+                "size-3 rounded-xs",
+                k >= h ? "bg-white/6" : i === BLOCKS.length - 1 ? "bg-accent" : "bg-white/75",
+              )}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const INPUT =
+  "mt-1.5 h-10 w-full rounded-lg border border-line-strong bg-surface px-3 text-sm shadow-xs outline-none focus:border-brand focus:ring-2 focus:ring-brand/20";
 
 function SignIn() {
   const { t } = useLang();
@@ -286,57 +554,58 @@ function SignIn() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <div aria-hidden className="fixed inset-x-0 top-0 z-40 h-[3px] bg-accent" />
-      <section className="hidden flex-col justify-between bg-brand px-12 py-10 text-white lg:flex">
+    <div className="grid grid-cols-1 min-h-screen bg-tray lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-2 lg:p-2">
+      <section className="relative hidden flex-col justify-between overflow-hidden rounded-2xl bg-ink px-12 py-10 text-white lg:flex">
         <div className="flex items-center gap-3">
-          <span className="rounded-lg bg-white p-1.5">
-            <Image src="/brand/jogan-mark.png" alt="" width={28} height={28} priority />
+          <span className="rounded-lg bg-white p-1">
+            <Mark size={30} />
           </span>
           <span className="text-lg font-semibold tracking-tight">
             Jogan · <span lang="bn">যোগান</span>
           </span>
         </div>
         <div className="max-w-md">
-          <p className="text-[26px] leading-snug font-semibold tracking-tight">{t.appTagline}</p>
-          <p className="mt-3 text-[15px] leading-relaxed text-white/85">{t.signIn.lead}</p>
-          <ul className="mt-8 space-y-4">
+          <BlockArt />
+          <p className="mt-10 text-[28px] leading-tight font-semibold tracking-[-0.02em]">{t.appTagline}</p>
+          <p className="mt-3 text-[15px] leading-relaxed text-white/75">{t.signIn.lead}</p>
+          <ul className="mt-8 space-y-3.5">
             {t.signIn.points.map((p, i) => (
               <li key={p} className="flex gap-3 text-sm leading-relaxed text-white/90">
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-ink">
-                  {i + 1}
+                <span className="mono mt-px flex h-5 min-w-7 shrink-0 items-center justify-center rounded-md bg-white/10 text-[11px] font-medium text-accent">
+                  0{i + 1}
                 </span>
                 {p}
               </li>
             ))}
           </ul>
         </div>
-        <p className="text-xs text-white/70">{t.signIn.footer}</p>
+        <p className="text-xs text-white/60">{t.signIn.footer}</p>
       </section>
 
-      <section className="flex flex-col bg-surface">
-        <div className="flex items-center justify-between px-6 pt-6 sm:px-10">
-          <span className="lg:hidden">
-            <Wordmark />
+      <section className="flex flex-col bg-surface lg:rounded-2xl lg:border lg:border-line">
+        <div className="flex items-center justify-between gap-3 px-6 pt-6 sm:px-10">
+          <span className="flex items-center gap-2 lg:invisible">
+            <Mark size={28} />
+            <Wordmark className="text-base" />
           </span>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <SimulatedBadge />
             <LangSwitch />
           </div>
         </div>
         <div className="flex flex-1 items-center justify-center px-6 py-10 sm:px-10">
           <div className="w-full max-w-sm">
-            <h1 className="text-2xl font-semibold tracking-tight">{t.signIn.title}</h1>
-            <p className="mt-2 text-sm text-fg-2 lg:hidden">{t.signIn.lead}</p>
+            <h1 className="text-[26px] leading-8 font-semibold tracking-[-0.02em]">{t.signIn.title}</h1>
+            <p className="mt-2 text-sm leading-relaxed text-fg-2 lg:hidden">{t.signIn.lead}</p>
 
             {LOCAL_AUTH ? (
               <LocalSignIn />
             ) : (
               <>
                 {DEMO_PASSWORD && (
-                  <div className="mt-6">
-                    <div className="text-xs font-semibold tracking-wide text-fg-3 uppercase">{t.signIn.demo}</div>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="mt-7">
+                    <div className="eyebrow text-fg-3">{t.signIn.demo}</div>
+                    <div className="mt-2.5 grid grid-cols-1 gap-2">
                       {DEMO_ACCOUNTS.map((a) => (
                         <RoleButton
                           key={a.email}
@@ -346,7 +615,7 @@ function SignIn() {
                         />
                       ))}
                     </div>
-                    <p className="mt-2 text-xs text-fg-3">{t.signIn.demoNote}</p>
+                    <p className="mt-2.5 text-xs leading-relaxed text-fg-3">{t.signIn.demoNote}</p>
                     <div className="my-6 flex items-center gap-3 text-xs text-fg-3">
                       <span className="h-px flex-1 bg-line" />
                       {t.signIn.or}
@@ -356,7 +625,7 @@ function SignIn() {
                 )}
 
                 <form
-                  className="space-y-4"
+                  className={cx("space-y-4", !DEMO_PASSWORD && "mt-7")}
                   onSubmit={(ev) => {
                     ev.preventDefault();
                     signIn(email, password);
@@ -365,7 +634,7 @@ function SignIn() {
                   <label className="block">
                     <span className="text-sm font-medium">{t.signIn.email}</span>
                     <input
-                      className="mt-1.5 h-10 w-full rounded-md border border-line-strong px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                      className={INPUT}
                       type="email"
                       autoComplete="username"
                       value={email}
@@ -376,7 +645,7 @@ function SignIn() {
                   <label className="block">
                     <span className="text-sm font-medium">{t.signIn.password}</span>
                     <input
-                      className="mt-1.5 h-10 w-full rounded-md border border-line-strong px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                      className={INPUT}
                       type="password"
                       autoComplete="current-password"
                       value={password}
@@ -395,12 +664,12 @@ function SignIn() {
                 )}
               </>
             )}
-            <p className="mt-8 flex gap-4 border-t border-line pt-4 text-sm">
-              <Link href="/impact" className="font-medium text-brand hover:underline">
-                {t.nav.impact} →
+            <p className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-line pt-4 text-sm">
+              <Link href="/impact" className="inline-flex items-center gap-1 font-medium text-brand hover:underline">
+                {t.nav.impact} <ArrowRight aria-hidden className="size-3.5" />
               </Link>
-              <Link href="/about" className="font-medium text-brand hover:underline">
-                {t.nav.about} →
+              <Link href="/about" className="inline-flex items-center gap-1 font-medium text-brand hover:underline">
+                {t.nav.about} <ArrowRight aria-hidden className="size-3.5" />
               </Link>
             </p>
           </div>
@@ -427,11 +696,11 @@ export function Staff({ children }: { children: ReactNode }) {
       {roleError ? (
         <ErrorNotice error={roleError} />
       ) : role === null ? (
-        <p className="rounded-md border border-line bg-surface px-4 py-3 text-sm">{t.common.noRole}</p>
+        <p className="rounded-xl border border-line bg-tray px-4 py-3 text-sm">{t.common.noRole}</p>
       ) : role === undefined ? (
         <div className="space-y-4">
-          <Skeleton className="h-7 w-56" />
-          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-28 w-full" />
           <Skeleton className="h-96 w-full" />
         </div>
       ) : (

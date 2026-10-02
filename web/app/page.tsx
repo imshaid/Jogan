@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, MapPinOff } from "lucide-react";
+import { ArrowRight, ArrowUpRight, MapPinOff, X } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 
@@ -19,8 +19,10 @@ import {
   Skeleton,
   Stat,
   StatusBadge,
+  TH,
+  THEAD,
 } from "@/components/ui";
-import type { Meta, NetworkAgent, Recommendation } from "@/lib/api";
+import type { DayCount, Meta, NetworkAgent, Recommendation } from "@/lib/api";
 import { RISK_BANDS, RISK_SHAPE } from "@/lib/format";
 import { useDay, useMeta, useNetwork, usePlan } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
@@ -33,6 +35,15 @@ export default function Page() {
       </Suspense>
     </Staff>
   );
+}
+
+const SPARK_DAYS = 10;
+
+// The last few plan days up to the one in view, for a KPI's bars.
+function spark(days: DayCount[], i: number, key: "visits" | "manual_review" | "anomaly_flags") {
+  if (i < 0) return undefined;
+  const start = Math.max(0, i - SPARK_DAYS + 1);
+  return { values: days.slice(start, i + 1).map((d) => d[key]), active: i - start };
 }
 
 function NetworkView() {
@@ -63,17 +74,24 @@ function NetworkView() {
   if (meta.error) return <ErrorNotice error={meta.error} onRetry={meta.reload} />;
   if (!meta.data || !day) return <Skeleton className="h-96 w-full" />;
   const chosen = agents?.find((a) => a.agent_id === selected) ?? null;
+  const days = meta.data.days;
+  const i = days.findIndex((d) => d.date === day);
+  const delta = i > 0 ? days[i].visits - days[i - 1].visits : null;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title={t.network.title}
         subtitle={t.network.subtitle}
         actions={<DayControl meta={meta.data} day={day} onChange={setDay} playable />}
       />
 
-      <div className="grid grid-cols-2 divide-line rounded-lg border border-line bg-surface sm:grid-cols-3 sm:divide-x xl:grid-cols-6">
-        <Stat label={t.network.kpiAgents} value={stats ? f.num(stats.agents) : "…"} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        <Stat
+          label={t.network.kpiAgents}
+          value={stats ? f.num(stats.agents) : "…"}
+          hint={t.network.kpiTerritories(f.num(meta.data.territories.length))}
+        />
         <Stat
           label={
             <>
@@ -84,31 +102,54 @@ function NetworkView() {
           hint={side === "max" ? t.risk.higherSide : side === "cash" ? t.common.cash : t.common.efloat}
           tone="danger"
         />
-        <Stat label={t.network.kpiVisits} value={stats ? f.num(stats.visits) : "…"} />
-        <Stat label={t.network.kpiReview} value={stats ? f.num(stats.review) : "…"} tone="warn" />
-        <Stat label={t.network.kpiFlags} value={stats ? f.num(stats.flags) : "…"} />
+        <Stat
+          label={t.network.kpiVisits}
+          value={stats ? f.num(stats.visits) : "…"}
+          spark={spark(days, i, "visits")}
+          hint={
+            delta === null ? (
+              t.network.kpiFirstDay
+            ) : (
+              <>
+                <span className="num font-medium text-fg-2">{f.signed(delta)}</span>{" "}
+                {t.network.kpiVsPrev(f.dayShort(days[i - 1].date))}
+              </>
+            )
+          }
+        />
+        <Stat
+          label={t.network.kpiReview}
+          value={stats ? f.num(stats.review) : "…"}
+          tone="warn"
+          spark={spark(days, i, "manual_review")}
+          hint={stats ? t.network.kpiOfVisits(f.num(stats.visits)) : undefined}
+        />
+        <Stat
+          label={t.network.kpiFlags}
+          value={stats ? f.num(stats.flags) : "…"}
+          spark={spark(days, i, "anomaly_flags")}
+          hint={t.anomaly.advisory}
+        />
         <Stat
           label={t.network.kpiPending}
           value={pending === undefined ? "…" : f.num(pending)}
           hint={
-            <Link href={`/queue?day=${day}`} className="text-brand hover:underline">
-              {t.nav.queue} →
+            <Link href={`/queue?day=${day}`} className="inline-flex items-center gap-0.5 font-medium text-brand hover:underline">
+              {t.nav.queue} <ArrowUpRight aria-hidden className="size-3.5" />
             </Link>
           }
         />
       </div>
 
-      <div className="rounded-lg border border-line bg-surface px-4 pt-3 pb-2">
-        <Timeline meta={meta.data} day={day} onChange={setDay} />
-      </div>
+      <Timeline meta={meta.data} day={day} onChange={setDay} />
 
       <ErrorNotice error={network.error} onRetry={network.reload} />
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
-        <section className="overflow-hidden rounded-lg border border-line bg-surface" aria-label={t.network.mapLabel}>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-2.5">
-            <div className="flex items-center gap-2 text-xs text-fg-2">
-              {t.network.riskOn}
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
+        <section className="rounded-2xl border border-line bg-tray p-1" aria-label={t.network.mapLabel}>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-2.5 py-1.5">
+            <div className="flex items-center gap-2 text-xs text-fg-3">
+              <span className="hidden sm:inline">{t.network.riskOn}</span>
               <Segmented<RiskSide>
                 label={t.network.riskOn}
                 size="sm"
@@ -121,8 +162,8 @@ function NetworkView() {
                 ]}
               />
             </div>
-            <div className="flex items-center gap-2 text-xs text-fg-2">
-              {t.network.show}
+            <div className="flex items-center gap-2 text-xs text-fg-3">
+              <span className="hidden sm:inline">{t.network.show}</span>
               <Segmented<ShowFilter>
                 label={t.network.show}
                 size="sm"
@@ -139,7 +180,7 @@ function NetworkView() {
               <Provenance kind="prediction" />
             </span>
           </div>
-          <div className="relative h-[560px] bg-sunken">
+          <div className="relative h-110 overflow-hidden rounded-xl border border-line bg-sunken shadow-card sm:h-145">
             {agents ? (
               <NetworkMap
                 agents={agents}
@@ -154,7 +195,7 @@ function NetworkView() {
               <Skeleton className="absolute inset-0 rounded-none" />
             )}
             {mapFailed && (
-              <div className="absolute inset-x-4 top-4 flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg-2 shadow-sm">
+              <div className="absolute inset-x-4 top-4 flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-fg-2 shadow-pop">
                 <MapPinOff aria-hidden className="size-4" />
                 {t.network.mapError}
               </div>
@@ -178,21 +219,21 @@ function NetworkView() {
 function Legend() {
   const { t } = useLang();
   const item = (shape: string, cls: string, label: string) => (
-    <li className="flex items-center gap-1.5">
-      <span aria-hidden className={`text-[11px] leading-none ${cls}`}>
+    <li className="flex items-center gap-2">
+      <span aria-hidden className={`w-3 text-center text-[11px] leading-none ${cls}`}>
         {shape}
       </span>
       {label}
     </li>
   );
   return (
-    <div className="absolute bottom-3 left-3 rounded-md border border-line bg-surface/95 px-3 py-2 text-xs text-fg-2 shadow-sm">
-      <div className="mb-1 font-semibold text-fg">{t.network.legend}</div>
+    <div className="absolute bottom-3 left-3 rounded-xl border border-line bg-surface/95 px-3 py-2.5 text-xs text-fg-2 shadow-pop backdrop-blur">
+      <div className="eyebrow mb-1.5 text-fg-3">{t.network.legend}</div>
       <ul className="space-y-1">
         {item(RISK_SHAPE.high, "text-danger-text", `${t.risk.high} ≥ 50%`)}
         {item(RISK_SHAPE.medium, "text-warn-mark [text-shadow:0_0_1px_#050608]", `${t.risk.medium} ≥ 20%`)}
         {item(RISK_SHAPE.low, "text-[#7d8796]", t.risk.low)}
-        <li className="flex items-center gap-1.5">
+        <li className="flex items-center gap-2">
           <span aria-hidden className="inline-block size-3 rounded-full border-[1.75px] border-brand bg-brand/10" />
           {t.network.legendVisit}
         </li>
@@ -215,32 +256,43 @@ function AgentCard({
   const { t, f } = useLang();
   return (
     <div
-      className="absolute top-3 left-3 w-[300px] max-w-[calc(100%-1.5rem)] rounded-lg border border-line bg-surface shadow-lg"
+      className="absolute top-3 left-3 w-75 max-w-[calc(100%-1.5rem)] overflow-hidden rounded-xl border border-line bg-surface shadow-pop"
       role="dialog"
       aria-label={agent.agent_id}
     >
-      <div className="flex items-start justify-between gap-2 border-b border-line px-3.5 py-2.5">
+      <div className="flex items-start justify-between gap-2 px-3.5 pt-3 pb-2">
         <div>
-          <div className="text-sm font-semibold">{agent.agent_id}</div>
-          <div className="text-xs text-fg-2">
+          <div className="mono text-[15px] font-semibold">{agent.agent_id}</div>
+          <div className="text-xs text-fg-3">
             {agent.territory} · {t.agent.setting[agent.setting] ?? agent.setting}
           </div>
         </div>
-        <button onClick={onClose} className="rounded px-1.5 text-lg leading-none text-fg-3 hover:bg-page" aria-label="×">
-          ×
+        <button
+          onClick={onClose}
+          className="flex size-7 items-center justify-center rounded-md text-fg-3 hover:bg-tray hover:text-fg"
+          aria-label="×"
+        >
+          <X aria-hidden className="size-4" />
         </button>
       </div>
-      <dl className="grid grid-cols-2 gap-x-3 gap-y-2 px-3.5 py-3 text-xs">
-        <dt className="text-fg-2">{t.common.cash}</dt>
-        <dd className="num text-right font-medium">{f.tk(agent.cash_tk)}</dd>
-        <dt className="text-fg-2">{t.common.efloat}</dt>
-        <dd className="num text-right font-medium">{f.tk(agent.efloat_tk)}</dd>
+      <dl className="mx-3.5 grid grid-cols-2 gap-2">
+        {(
+          [
+            [t.common.cash, agent.cash_tk],
+            [t.common.efloat, agent.efloat_tk],
+          ] as const
+        ).map(([k, v]) => (
+          <div key={k} className="rounded-lg bg-tray px-2.5 py-2">
+            <dt className="eyebrow text-fg-3">{k}</dt>
+            <dd className="num mt-0.5 text-sm font-semibold">{f.tk(v)}</dd>
+          </div>
+        ))}
       </dl>
-      <div className="flex flex-wrap gap-1.5 px-3.5 pb-3">
+      <div className="flex flex-wrap gap-1.5 px-3.5 pt-2.5 pb-3">
         <RiskBadge p={agent.p_stockout_cash} side={t.common.cash} />
         <RiskBadge p={agent.p_stockout_efloat} side={t.common.efloat} />
       </div>
-      <div className="space-y-2 border-t border-line px-3.5 py-2.5 text-xs">
+      <div className="space-y-2.5 border-t border-line bg-tray/60 px-3.5 py-3 text-xs">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-fg-2">{agent.runner_id ? t.network.visitBy(agent.runner_id) : t.network.noVisit}</span>
           {rec && <StatusBadge status={rec.status} />}
@@ -253,7 +305,7 @@ function AgentCard({
         )}
         <Link
           href={`/agents/${agent.agent_id}?day=${day}`}
-          className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+          className="flex h-8 items-center justify-center gap-1 rounded-lg bg-ink text-[13px] font-medium text-white hover:bg-ink/85"
         >
           {t.common.viewAgent} <ArrowRight aria-hidden className="size-3.5" />
         </Link>
@@ -274,36 +326,36 @@ function TerritoryTable({ meta, agents, side }: { meta: Meta; agents?: NetworkAg
     };
   });
   return (
-    <Panel title={t.network.territories} bodyClassName="p-0">
+    <Panel title={t.network.territories} bodyClassName="overflow-hidden p-0">
       <table className="w-full text-sm">
-        <thead className="text-left text-xs text-fg-2">
-          <tr className="border-b border-line">
-            <th scope="col" className="px-4 py-2 font-medium">
+        <thead className={THEAD}>
+          <tr>
+            <th scope="col" className={`${TH} pl-4`}>
               {t.common.territory}
             </th>
-            <th scope="col" className="px-2 py-2 text-right font-medium">
+            <th scope="col" className={`${TH} px-2 text-right`}>
               {t.common.agents}
             </th>
-            <th scope="col" className="px-2 py-2 text-right font-medium">
+            <th scope="col" className={`${TH} px-2 text-right`}>
               <span aria-hidden>{RISK_SHAPE.high}</span> {t.risk.high}
             </th>
-            <th scope="col" className="px-4 py-2 text-right font-medium">
+            <th scope="col" className={`${TH} pr-4 text-right`}>
               {t.common.visits}
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-line">
           {rows.map((r) => (
-            <tr key={r.territory} className="border-b border-line last:border-0">
-              <td className="px-4 py-2">
+            <tr key={r.territory} className="hover:bg-tray/60">
+              <td className="px-4 py-2.5">
                 <div className="font-medium">{lang === "bn" ? r.district_bn : r.district_en}</div>
-                <div className="text-xs text-fg-3">
-                  {r.territory} · {t.agent.setting[r.setting] ?? r.setting}
+                <div className="text-xs whitespace-nowrap text-fg-3">
+                  <span className="mono">{r.territory}</span> · {t.agent.setting[r.setting] ?? r.setting}
                 </div>
               </td>
-              <td className="num px-2 py-2 text-right">{agents ? f.num(r.agents) : "…"}</td>
-              <td className="num px-2 py-2 text-right font-medium text-danger-text">{agents ? f.num(r.high) : "…"}</td>
-              <td className="num px-4 py-2 text-right">{agents ? f.num(r.visits) : "…"}</td>
+              <td className="num px-2 py-2.5 text-right">{agents ? f.num(r.agents) : "…"}</td>
+              <td className="num px-2 py-2.5 text-right font-medium text-danger-text">{agents ? f.num(r.high) : "…"}</td>
+              <td className="num px-4 py-2.5 text-right">{agents ? f.num(r.visits) : "…"}</td>
             </tr>
           ))}
         </tbody>
@@ -333,11 +385,16 @@ function HighRiskList({
     .sort((a, b) => sideP(b, side) - sideP(a, side))
     .slice(0, TOP);
   return (
-    <Panel title={t.network.highRiskList} aside={<Provenance kind="prediction" />} bodyClassName="p-0">
+    <Panel
+      title={t.network.highRiskList}
+      aside={<Provenance kind="prediction" />}
+      bodyClassName="p-0"
+      footer={t.risk.bandsNote}
+    >
       {!agents ? (
         <div className="space-y-2 p-4">
-          <Skeleton className="h-8" />
-          <Skeleton className="h-8" />
+          <Skeleton className="h-10" />
+          <Skeleton className="h-10" />
         </div>
       ) : top.length === 0 ? (
         <p className="px-4 py-6 text-sm text-fg-2">{t.network.highRiskEmpty}</p>
@@ -346,13 +403,10 @@ function HighRiskList({
           {top.map((a) => {
             const rec = recs.get(a.agent_id);
             return (
-              <li key={a.agent_id} className="flex items-center gap-3 px-4 py-2">
-                <button
-                  className="min-w-0 flex-1 text-left"
-                  onClick={() => onPick(a.agent_id)}
-                  title={t.network.mapLabel}
-                >
-                  <div className="text-sm font-medium">{a.agent_id}</div>
+              <li key={a.agent_id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-tray/60">
+                <span aria-hidden className="h-8 w-0.75 shrink-0 rounded-full bg-ink" />
+                <button className="min-w-0 flex-1 text-left" onClick={() => onPick(a.agent_id)} title={t.network.mapLabel}>
+                  <div className="mono text-sm font-medium">{a.agent_id}</div>
                   <div className="truncate text-xs text-fg-3">
                     {a.runner_id ? `${t.common.runner} ${a.runner_id}` : t.network.noVisit}
                   </div>
@@ -361,17 +415,16 @@ function HighRiskList({
                 {rec && <StatusBadge status={rec.status} />}
                 <Link
                   href={`/agents/${a.agent_id}?day=${day}`}
-                  className="rounded p-1 text-brand hover:bg-brand-tint"
+                  className="flex size-7 items-center justify-center rounded-md border border-line text-fg-2 shadow-xs hover:bg-tray hover:text-brand"
                   aria-label={`${t.common.viewAgent} ${a.agent_id}`}
                 >
-                  <ArrowRight className="size-4" />
+                  <ArrowRight className="size-3.5" />
                 </Link>
               </li>
             );
           })}
         </ul>
       )}
-      <p className="border-t border-line px-4 py-2 text-[11px] text-fg-3">{t.risk.bandsNote}</p>
     </Panel>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeft, Bot, Calculator, Cpu, FileText, Sparkles, UserCheck } from "lucide-react";
+import { ArrowLeft, Bot, Calculator, Cpu, FileText, MapPin, Route, Sparkles, Store, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { DataTable, DrainRanges, Legend, ProbabilityChart } from "@/components/charts";
 import { DayControl } from "@/components/day";
@@ -78,24 +78,29 @@ function AgentView() {
   const flagsToday = agent.data.anomalies.filter((x) => x.plan_date === day);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <BackLink day={day} />
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h1 className="text-xl font-semibold tracking-tight">{a.agent_id}</h1>
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <h1 className="mono text-[28px] leading-8 font-semibold tracking-tight">{a.agent_id}</h1>
             {today?.evidence.review?.flag && <ReviewBadge />}
             {flagsToday.length > 0 && <AnomalyBadge />}
           </div>
-          <p className="mt-1 text-sm text-fg-2">
-            {lang === "bn" ? a.district_bn : a.district_en} ({a.territory}) · {t.agent.setting[a.setting] ?? a.setting} ·{" "}
-            {t.agent.size[a.size_class] ?? a.size_class} · {t.agent.hub(f.num(a.hub_road_km, 1))}
-          </p>
+          <ul className="mt-3 flex flex-wrap gap-1.5 text-xs text-fg-2">
+            <Chip Icon={MapPin}>
+              {lang === "bn" ? a.district_bn : a.district_en} <span className="mono text-fg-3">({a.territory})</span>
+            </Chip>
+            <Chip Icon={Store}>
+              {t.agent.setting[a.setting] ?? a.setting} · {t.agent.size[a.size_class] ?? a.size_class}
+            </Chip>
+            <Chip Icon={Route}>{t.agent.hub(f.num(a.hub_road_km, 1))}</Chip>
+          </ul>
         </div>
         <DayControl meta={meta.data} day={day} onChange={setDay} />
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="min-w-0 space-y-5">
           <Panel
             title={t.agent.riskChart}
@@ -187,7 +192,8 @@ function AgentView() {
           {today?.runner_id && <TracePanel rec={rec} />}
         </div>
 
-        <div className="min-w-0 space-y-5">
+        {/* on a phone the decision comes first, the charts and the trace after it */}
+        <div className="order-first min-w-0 space-y-5 xl:order-none">
           <Panel title={t.agent.recommendation} aside={rec && <StatusBadge status={rec.status} />}>
             {!today?.runner_id ? (
               <div className="space-y-1 text-sm text-fg-2">
@@ -196,7 +202,7 @@ function AgentView() {
               </div>
             ) : (
               <div className="space-y-4">
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                <dl className="grid grid-cols-2 gap-2 text-sm">
                   <Fact label={t.common.runner} value={today.runner_id} />
                   <Fact
                     label={t.agent.sideAtRisk}
@@ -207,7 +213,7 @@ function AgentView() {
                   <Fact label={t.agent.needCash} value={f.tk(today.evidence.need_cash_tk)} />
                   <Fact label={t.agent.needEfloat} value={f.tk(today.evidence.need_efloat_tk)} />
                 </dl>
-                <div className="border-t border-line pt-4">
+                <div className="rounded-xl border border-line bg-tray/60 p-3">
                   {rec ? <DecisionControls rec={rec} layout="stack" /> : <Skeleton className="h-8 w-48" />}
                 </div>
                 {rec && (
@@ -235,10 +241,16 @@ function AgentView() {
             {agent.data.anomalies.length === 0 ? (
               <p className="text-sm text-fg-2">{t.anomaly.agentNone}</p>
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {agent.data.anomalies.map((x) => (
-                  <li key={x.plan_date} className={cx("text-sm", x.plan_date === day && "font-medium")}>
-                    <button className="text-xs font-semibold text-brand hover:underline" onClick={() => setDay(x.plan_date)}>
+                  <li
+                    key={x.plan_date}
+                    className={cx(
+                      "rounded-lg border px-3 py-2 text-sm",
+                      x.plan_date === day ? "border-ink/60 bg-surface font-medium" : "border-line bg-tray/60",
+                    )}
+                  >
+                    <button className="num text-xs font-semibold text-brand hover:underline" onClick={() => setDay(x.plan_date)}>
                       {f.day(x.plan_date)}
                     </button>{" "}
                     <span className="text-xs text-fg-3">{t.anomaly.onDay(f.dayShort(x.date))}</span>
@@ -249,7 +261,7 @@ function AgentView() {
                 ))}
               </ul>
             )}
-            <p className="mt-3 text-[11px] text-fg-3">{t.anomaly.note}</p>
+            <p className="mt-3 text-xs leading-relaxed text-fg-3">{t.anomaly.note}</p>
           </Panel>
         </div>
       </div>
@@ -260,18 +272,30 @@ function AgentView() {
 function BackLink({ day }: { day: string | null }) {
   const { t } = useLang();
   return (
-    <Link href={day ? `/?day=${day}` : "/"} className="inline-flex items-center gap-1 text-sm text-fg-2 hover:text-brand">
-      <ArrowLeft aria-hidden className="size-4" /> {t.agent.back}
+    <Link
+      href={day ? `/?day=${day}` : "/"}
+      className="inline-flex h-7 items-center gap-1 rounded-md border border-line bg-surface pr-2.5 pl-1.5 text-xs font-medium text-fg-2 shadow-xs hover:bg-tray hover:text-fg"
+    >
+      <ArrowLeft aria-hidden className="size-3.5" /> {t.agent.back}
     </Link>
   );
 }
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <dt className="text-xs text-fg-2">{label}</dt>
-      <dd className="num mt-0.5 font-semibold">{value}</dd>
+    <div className="rounded-lg bg-tray px-3 py-2.5">
+      <dt className="text-xs text-fg-3">{label}</dt>
+      <dd className="num mt-1 text-[15px] font-semibold">{value}</dd>
     </div>
+  );
+}
+
+function Chip({ Icon, children }: { Icon: typeof MapPin; children: ReactNode }) {
+  return (
+    <li className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface py-1 pr-2.5 pl-2 shadow-xs">
+      <Icon aria-hidden className="size-3.5 text-fg-3" />
+      {children}
+    </li>
   );
 }
 
@@ -309,26 +333,27 @@ function TracePanel({ rec }: { rec?: Recommendation }) {
             const Icon = BY_ICON[s.by] ?? Bot;
             const last = k === trace.data!.steps.length - 1;
             return (
-              <li key={s.step} className="relative flex gap-3 pb-5 last:pb-0">
-                {!last && <span aria-hidden className="absolute top-8 bottom-0 left-[15px] w-px bg-line" />}
+              <li key={s.step} className="relative flex gap-3 pb-4 last:pb-0">
+                {!last && <span aria-hidden className="absolute top-9 bottom-0 left-[17px] w-px bg-line-strong" />}
                 <span
                   className={cx(
-                    "relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border",
-                    s.by === "human" ? "border-accent bg-accent-tint text-ink" : "border-line bg-surface text-brand",
+                    "relative z-10 flex size-9 shrink-0 items-center justify-center rounded-xl border shadow-xs",
+                    s.by === "human" ? "border-accent bg-accent text-ink" : "border-line bg-surface text-brand",
                   )}
                 >
                   <Icon aria-hidden className="size-4" />
                 </span>
-                <div className="min-w-0 flex-1 pt-0.5">
+                <div className="min-w-0 flex-1 rounded-xl border border-line bg-tray/50 px-3 py-2.5">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="mono text-xs text-fg-3">{String(k + 1).padStart(2, "0")}</span>
                     <span className="text-sm font-semibold">
-                      {k + 1}. {(t.trace as unknown as Record<string, string>)[s.step] ?? s.step}
+                      {(t.trace as unknown as Record<string, string>)[s.step] ?? s.step}
                     </span>
-                    <span className="rounded bg-sunken px-1.5 py-0.5 text-[11px] font-medium text-fg-2">
+                    <span className="rounded-full border border-line bg-surface px-2 py-0.5 text-[11px] font-medium text-fg-2">
                       {t.trace.by[s.by] ?? s.by}
                     </span>
                     {s.config?.hash && (
-                      <code className="text-[11px] text-fg-3" title={`${s.config.name} config hash`}>
+                      <code className="mono ml-auto text-[11px] text-fg-3" title={`${s.config.name} config hash`}>
                         {t.agent.config} {s.config.name}@{s.config.hash.slice(0, 8)}
                       </code>
                     )}
@@ -342,7 +367,7 @@ function TracePanel({ rec }: { rec?: Recommendation }) {
         </ol>
       )}
       {trace.data && (
-        <p className="mt-4 border-t border-line pt-3 text-[11px] text-fg-3">
+        <p className="mono mt-4 border-t border-line pt-3 text-[11px] text-fg-3">
           bundle <code>{trace.data.bundle_id}</code> · {f.day(trace.data.plan_date)}
         </p>
       )}
@@ -417,7 +442,7 @@ function StepOutputs({ step, audit }: { step: TraceStep; audit: AuditEntry[] }) 
   return (
     <ul className="mt-2 flex flex-wrap gap-1.5" lang={lang}>
       {chips.map((c) => (
-        <li key={c} className="num rounded border border-line bg-page px-2 py-0.5 text-xs text-fg">
+        <li key={c} className="num rounded-md border border-line bg-surface px-2 py-0.5 text-xs text-fg">
           {c}
         </li>
       ))}

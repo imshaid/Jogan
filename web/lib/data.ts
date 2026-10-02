@@ -54,6 +54,17 @@ export function clearCache() {
   emit();
 }
 
+// Whatever is cached under a key, without fetching it. Reading a plan publishes that day, so
+// side views (the sidebar's count, the command menu) only ever look at what a page loaded.
+export function usePeek<T>(key: string | null): T | undefined {
+  const entry = useSyncExternalStore(
+    subscribe,
+    () => (key ? entries.get(key) : undefined),
+    () => undefined,
+  );
+  return entry?.data as T | undefined;
+}
+
 export type Resource<T> = {
   data: T | undefined;
   // the group's latest data while this key loads (see `lastOf`)
