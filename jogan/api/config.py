@@ -36,6 +36,7 @@ class RateLimit(Strict):
 
 class Request(Strict):
     max_body_bytes: int = Field(ge=1024)
+    gzip_min_bytes: int = Field(ge=0)
 
 
 class ApiConfig(Strict):

@@ -4,11 +4,13 @@ Tokens are opaque here (:class:`StaticVerifier`); ``test_api_guard.py`` checks r
 tokens, rate limits, error bodies, input validation and the decision trace.
 """
 
+import dataclasses
 import datetime as dt
 import json
 from pathlib import Path
 
 import httpx2 as httpx
+import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
@@ -262,3 +264,82 @@ def test_a_flagged_recommendation_needs_a_note_to_approve(
     )
     audit = client.get("/v1/audit", headers=h).json()["items"]
     assert [a["detail"]["manual_review"] for a in audit[:2]] == [True, True]
+
+
+def test_meta_counts_every_plan_day(client: TestClient, bundle: Bundle) -> None:
+    days = client.get("/v1/meta").json()["days"]
+    assert [d["date"] for d in days] == bundle.meta["plan_dates"]
+    counts = bundle.meta["counts"]
+    assert sum(d["visits"] for d in days) == counts["recommendations"]
+    assert sum(d["manual_review"] for d in days) == counts["manual_review"]
+    assert sum(d["anomaly_flags"] for d in days) == counts["anomaly_flags"]
+
+
+def test_the_network_shows_every_agent_and_the_planned_visits(
+    client: TestClient, bundle: Bundle
+) -> None:
+    day = first_day(bundle)
+    url = f"/v1/network/{day}"
+    assert client.get(url).status_code == 401
+    assert client.get(url, headers=auth("t-nobody")).status_code == 403
+    assert client.get("/v1/network/1999-01-01", headers=auth("t-analyst")).status_code == 404
+    r = client.get(url, headers={**auth("t-analyst"), "Accept-Encoding": "gzip"})
+    assert r.headers["content-encoding"] == "gzip"
+    agents = r.json()["agents"]
+    assert len(agents) == bundle.meta["counts"]["agents"]
+    recs = {x["agent_id"]: x for x in bundle.recommendations(bundle.plan_dates[0])}
+    assert {a["agent_id"] for a in agents if a["runner_id"]} == set(recs)
+    for a in agents:
+        assert all(0 <= a[f"p_stockout_{s}"] <= 1 for s in ("cash", "efloat"))
+        assert abs(a["lat"]) <= 90
+        assert abs(a["lon"]) <= 180
+        if a["runner_id"]:
+            rec = recs[a["agent_id"]]
+            assert a["side"] == rec["evidence"]["side"]
+            assert a["manual_review"] == rec["evidence"]["review"]["flag"]
+        else:
+            assert (a["side"], a["value_tk"], a["manual_review"]) == (None, None, False)
+
+
+def test_queue_and_trace_carry_display_text_for_drivers_and_reasons(
+    client: TestClient, bundle: Bundle
+) -> None:
+    items = client.get(f"/v1/plans/{first_day(bundle)}", headers=auth("t-analyst")).json()["items"]
+    for r in items:
+        for d in r["evidence"]["drivers"]:
+            assert all(d["label"][lang] for lang in ("en", "bn"))
+            assert all(d["value_text"][lang] for lang in ("en", "bn"))
+        for reason in r["evidence"]["review"]["reasons"]:
+            assert all(reason["text"][lang] for lang in ("en", "bn"))
+    trace = client.get(f"/v1/recommendations/{items[0]['id']}/trace", headers=auth("t-analyst"))
+    drivers = next(s for s in trace.json()["steps"] if s["step"] == "drivers")["outputs"]
+    assert drivers["drivers"] == items[0]["evidence"]["drivers"]
+
+
+def test_an_agent_has_its_evidence_on_every_plan_day(client: TestClient, bundle: Bundle) -> None:
+    rec = bundle.recommendations(bundle.plan_dates[0])[0]
+    flag = {"plan_date": bundle.plan_dates[1], "agent_id": rec["agent_id"],
+            "date": bundle.meta["plan_dates"][0], "score": 0.5,
+            "items": json.dumps([{"feature": "night_n", "value": 4}])}  # fmt: skip
+    flagged = dataclasses.replace(bundle, anomalies=pd.DataFrame([flag]))
+    c = TestClient(create_app(flagged, MemoryStore(dict(USERS)), VERIFIER))
+    url = f"/v1/agents/{rec['agent_id']}"
+    assert c.get(url).status_code == 401
+    assert c.get(url, headers=auth("t-nobody")).status_code == 403
+    assert c.get("/v1/agents/ZZZ-999", headers=auth("t-analyst")).status_code == 404
+    assert c.get("/v1/agents/drop%20table", headers=auth("t-analyst")).status_code == 422
+    body = c.get(url, headers=auth("t-analyst")).json()
+    assert body["agent"]["agent_id"] == rec["agent_id"]
+    assert body["agent"]["district_bn"]
+    assert [d["plan_date"] for d in body["days"]] == bundle.meta["plan_dates"]
+    first = body["days"][0]
+    assert first["runner_id"] == rec["runner_id"]
+    assert first["evidence"]["p_stockout_cash"] == rec["evidence"]["p_stockout_cash"]
+    assert [d["feature"] for d in first["evidence"]["drivers"]] == [
+        d["feature"] for d in rec["evidence"]["drivers"]
+    ]
+    assert all(d["label"]["bn"] for d in first["evidence"]["drivers"])
+    assert all("drivers" not in d["evidence"] for d in body["days"] if d["runner_id"] is None)
+    [anomaly] = body["anomalies"]
+    assert anomaly["plan_date"] == bundle.meta["plan_dates"][1]
+    assert anomaly["text"]["en"].startswith("transactions outside opening hours")
