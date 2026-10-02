@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02, end of M11._
+_Last updated: 2026-10-02, end of M12._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -207,19 +207,26 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - **Checks:** 198 Python tests (5 new for `make docs`); `make check` passes
   - decision D-027
 
+- **M12 · Clean-clone test, `make run`, live check, link check**
+  - **clean clone** from GitHub into a fresh directory, README only: `make setup` and `make check` (198 tests) passed, `make bundle PROFILE=tiny SEED=0` and `make api` worked. Found: the web app could sign in only through Supabase; the README's `cp .env.example .env` implied something reads `.env`; the API's bare URL was a 404
+  - **`make run`** (`scripts/run-local.sh`): API (in-memory store) and web app together, no accounts; builds `bundle/` if missing (deployed world `full`, seed 42, 80 s once; same bundle id as live), `npm ci` if needed, Ctrl+C stops both. Checked in the clone in headless Chrome: local sign-in as analyst (map, queue without buttons, still signed in after a reload) and approver (approve, "Why?", Bangla, audit, impact), no console errors
+  - **local sign-in** in the web app (`NEXT_PUBLIC_LOCAL_AUTH=1`, only for an API on `localhost`): "Local run" as analyst or approver; the role name is the token, which only the in-memory store takes. A role name against the deployed API is a 401 (new test); the in-memory store refuses `JOGAN_ENV=production` (new test)
+  - API `GET /` points to `/docs` and `/health` (new test; live)
+  - README: `make run` is the setup path, `curl` in requirements, the `.env` wording fixed, `NEXT_PUBLIC_LOCAL_AUTH` in the table; `.env.example`, `web/README.md` and the threat table in `06-responsible-ai` updated
+  - **links:** every relative link and anchor in README, `web/README.md`, `docs/`, `report/` resolves; 41 external links fetched, the Daily Star holiday list fixed (its image host answered 402). `configs/calendar/bd_2026.yaml` keeps the old URL, since it is inside the simulator config hash
+  - **rulebooks re-read:** checklist items added from Rulebook §7.2–7.4 and General Rules §1.2, §2.2, §3.2, §4.1, §10.1; `07-product-readiness` maps the validation plan to the guideline's post-hackathon pathway
+  - `web/AGENTS.md` and `web/CLAUDE.md` (written by `next dev` 16.3 when it detects an AI agent) are git-ignored
+  - **Checks:** `make check` (198 tests), `make test-db`, web lint, types and build; CI and the API deploy green; `scripts/live_check.py` passed on the live site after the deploy (approver decided CUM-072 and KUR-082 on 3 Jun; Bangla rewording from `gemini-3.5-flash-lite`)
+  - decision D-028
+
 ## Next
 
-**M12 · Clean-clone test, live check, fixes, tag `submission-initial`** (budget 3 h)
+**Submission (by about 09:00 on 4 Oct; deadline 10:00 BST)**
 
-- Clean clone on a fresh directory following only the README: `make setup`, `make check`, `make bundle PROFILE=tiny SEED=0`, `make api`, the web app against it. Fix whatever the README gets wrong.
-- Requirements I asks for `make run`: add it (the API plus the web app, or the API alone with a clear message), or change the checklist and README.
-- `uv run --with playwright python scripts/live_check.py` on the live site; `make test-db`; web lint, types and build.
-- Check every README and docs link resolves (the docs pack is new).
-- Tag `submission-initial` and push the tag before about 09:00 on 4 Oct.
-
-**Carried into M12:**
+- Video: teammate 2 records it from [`10-demo-script.md`](10-demo-script.md) (at least 5 minutes; features and AI components, Rulebook §7.2), then its link goes into the submission form and the README.
 - Report: team review of [`report/report.md`](../report/report.md), confirm the roles on its cover, add the team's emails only if the owner wants them public, and export to the format the organizers ask for (PDF if needed).
-- Video: teammate 2 records it from [`10-demo-script.md`](10-demo-script.md), then its link goes into the submission form and the README.
+- **Tag `submission-initial` on the last commit before the deadline** (after the video link and the report are in), then push the tag. Not tagged in M12 on purpose: a tag cannot move without a force-push. In fish: `git tag -a submission-initial -m "Initial submission, AI Dev Fest 2026"; and git push origin submission-initial`
+- Submission form: GitHub link, video, report, any other file the organizers ask for; open each link from a private browser window before submitting (General Rules §6.1).
 - A walkthrough of the docs pack with both teammates, so everyone can explain the design (checklist D).
 - Every number in README, report, UI and video comes from `artifacts/metrics.json` and `artifacts/stress.json` through `make impact` and `make docs`. Re-run `make eval`, then both, after any change to sim, ops, forecast or plan code or configs.
 
@@ -239,7 +246,7 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | done |
 | M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | done |
 | M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | done |
-| M12 | Clean-clone test, live check, fixes, tag `submission-initial` | 3 h | Sun 4 Oct 08:00 | next |
+| M12 | Clean-clone test, live check, fixes (tag at submission) | 3 h | Sun 4 Oct 08:00 | done |
 | – | Buffer and submission form (submit by about 09:00) | 2 h | Sun 10:00 | |
 
 **Cut-line if behind schedule** (drop in this order; the anomaly flag and Gemini narration are done in M7):
@@ -251,7 +258,7 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 
 ## Open decisions and questions
 
-- **Organizers:** are fix pushes and redeploys allowed between 4 Oct 10:00 and the on-site start? The owner will ask. Until answered, only critical fixes in that window.
+- **Organizers:** are fix pushes and redeploys allowed between 4 Oct 10:00 and the on-site start? The owner asks through the official clarification channel (General Rules §10.1). Until answered, no pushes in that window except a critical fix to the live site.
 - Dependabot: during the competition merge only security fixes after CI passes. Python stays on 3.12, and major web bumps are skipped (TypeScript 7 breaks typescript-eslint). PR #3 (React 19.3.0) is green but not a security fix, so leave it open.
 
 ## Owner checklist
@@ -283,7 +290,7 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 - **Teammate 2: Md. Afsahul Arefin Talukder (241-15-377)**
   - Record the video (at least 5 minutes) from [`10-demo-script.md`](10-demo-script.md); rehearse and record on different plan days, never 3 Jun.
   - Manual QA on the live URL.
-  - Clean-clone test following the README.
+  - Clean-clone test on your own laptop, README only, ending with `make run` (the owner's machine passed in M12).
 
 ## How to run
 
@@ -300,7 +307,8 @@ make impact  # copy the impact page's numbers from artifacts/metrics.json → we
 make docs    # write the numbers blocks in README.md, docs/ and report/ from artifacts/*.json
 make stress  # time Jogan's mornings for 10,000 agents → artifacts/stress.json (about 2 min)
 make bundle PROFILE=tiny SEED=0  # served demo bundle → bundle/ (deployed: PROFILE=full SEED=42)
-make api     # API on :8000 with the in-memory store (tokens "analyst", "approver")
+make run     # API + web app locally, sign in under "Local run" (builds bundle/ if missing)
+make api     # API alone on :8000 with the in-memory store (tokens "analyst", "approver")
 make test-db # migration + RLS/audit checks on a throwaway Postgres 17 (Docker)
 cd web && npm ci && npm run dev  # web app on :3000 (NEXT_PUBLIC_* in web/.env.local)
 uv run --with playwright python scripts/live_check.py  # live end-to-end check (decides 2 visits)

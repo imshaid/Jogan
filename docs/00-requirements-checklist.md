@@ -11,7 +11,7 @@ Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-m
 
 ## A. Deadlines and submission
 
-- [ ] Initial code pushed before **4 Oct 2026 10:00 BST**, tag `submission-initial` (M12)
+- [ ] Initial code pushed before **4 Oct 2026 10:00 BST**, tag `submission-initial` on the last commit before the deadline (D-028)
 - [ ] Demo video of **at least 5 minutes** covering the project, its development, how it works, the features and AI components, and its real-world impact (Rulebook §7.2; script done: [`10-demo-script.md`](10-demo-script.md); recording by teammate 2)
 - [ ] Project report on the problem, the idea, the implemented solution, key features, the AI approach, the implementation process and the intended impact (Rulebook §7.3; draft done: [`report/report.md`](../report/report.md); team review, roles and final format before submission)
 - [ ] Public GitHub link submitted through the organizers' form, with any presentation or file format they specify (Rulebook §7.4); check the submission is complete and opens before the deadline (General Rules §6.1)
