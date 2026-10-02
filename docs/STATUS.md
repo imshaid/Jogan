@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02, end of M9._
+_Last updated: 2026-10-02, end of M10._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -181,18 +181,31 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - **Checks:** 186 Python tests (6 new: meta day counts, the network's agents and visits, display text, one agent's days and flags, the impact copy matches `metrics.json`); web lint, types and build. Checked locally in headless Chrome against the in-memory API on the demo bundle: analyst without buttons, approve, reject, approve with a note, "Why?", AI rewording, the trace after a decision, audit, pagination, Bangla and a 390 px phone width. `scripts/live_check.py` rewritten for the new pages and passed on the live site after the deploy: public impact page, the map, the analyst refused (403), the whole interface in Bangla with Gemini's rewording (`gemini-3.5-flash-lite`), an approval and a rejection on 3 Jun audited, the 8-step trace, the rate limit. No flagged visit was pending on the first page of 3 Jun this run, so the note step was skipped (it passed in M7–M8)
   - decision D-025
 
+- **M10 · Final eval check, stress test, monitoring, keep-alive**
+  - **`make eval` not re-run:** the six config hashes and the library versions recomputed now equal `artifacts/metrics.json`'s `meta`; the only code change behind it since then is `jogan/eval/web.py`; `make impact` changes nothing
+  - **`make stress`** (`jogan/eval/stress.py`, `configs/eval/stress.yaml`) → `artifacts/stress.json` (committed, timing only): 10,000 agents, 260 runners, 60 territories; status quo 7 days, then 7 Jogan mornings (25–31 May, Eid-ul-Azha inside) through the whole served pipeline with the demo bundle's models (`full`, seed 42); the forecaster sees each distributor area as its hub (D-026)
+    - on this laptop (i7-13650HX, 20 threads): a morning takes 3.1 s on average, 4.3 s at most (plan 2.4 s of which HiGHS 1.7 s; drivers, guardrails and flags 0.7 s); 360 programs, 0 fallbacks, 23,836 visits; the 14-day status quo for 10,000 agents 2.3 s; peak memory 1.8 GB (fitting on `full` included); whole run 101 s
+    - 28 May has no programs: no runner is on duty on Eid (roster)
+    - not scored (13 days of history at most), and not covered: publishing and serving a 10,000-agent day
+  - `jogan.api.bundle.fit_models` shared by the bundle and the stress check (tiny bundle identical before and after)
+  - **monitoring:** `GET /health/db` runs one PostgREST query with the secret key (`select=id`, `limit=1`), answer reused 60 s under a lock, 503 if the database fails; `scripts/live_check.py` checks it
+  - **keep-alive:** a Free Supabase project pauses after a week without database activity (verified); UptimeRobot's free plan cannot send the `apikey` header (verified), hence `/health/db`. `.github/workflows/keepalive.yml` calls it every 6 hours as a backup; UptimeRobot (every 5 min) is the owner's checklist item
+  - **Checks:** 192 Python tests (6 new: stress config and tags, hub mapping, a stress run on a replicated tiny world with a different agent count, refusal of unseen hubs, `/health/db` caching and 503, the Supabase ping request)
+  - decision D-026
+
 ## Next
 
-**M10 · Final eval and stress test, monitoring, keep-alive** (budget 1.5 h)
+**M11 · Full README, docs pack, report draft, video script** (budget 3 h)
 
-- `make eval` only if sim, ops, forecast or plan code or configs changed (they did not in M9); then `make impact`.
-- Stress profile (10k agents) timing, if time allows (first on the cut-line).
-- UptimeRobot: `/health` monitor and a Supabase keep-alive (owner checklist).
+- README with the live URLs, demo accounts, `make` targets and the headline numbers from `artifacts/metrics.json` (and timings from `artifacts/stress.json`).
+- Docs pack named in the requirements checklist: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsible-ai`, `07-product-readiness`.
+- Report draft (with teammate 1's skeleton in `report/`) and the video script (teammate 2's storyboard).
 
-**Carried into M10–M11:**
+**Carried into M11:**
 - The report gets a section on **where Jogan does not win**: H4 (DHK/urban vs `threshold`), H3 (group coverage of the forecast), the oracle gap, the anomaly flag's weakness on structuring (split cash-outs, 1 of 9 windows), and the costs left unpriced (motorcycle wear, phone, agents' own time).
 - Not modelled in the policy: the runner's bag in the program, the hours between the forecast and the runner's arrival, and a call rescuing an agent who was not visited (D-021).
 - Every number in README, report, UI and video comes from `artifacts/metrics.json`. Re-run `make eval` after any change to sim, ops, forecast or plan code or configs; its `meta.config_hashes` records the versions.
+- Timings (stress check) come from `artifacts/stress.json` (`make stress`), never typed by hand (D-026).
 
 ## Milestone plan
 
@@ -208,14 +221,14 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | done |
 | M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | done |
 | M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | done |
-| M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | next |
-| M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | |
+| M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | done |
+| M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | next |
 | M12 | Clean-clone test, live check, fixes, tag `submission-initial` | 3 h | Sun 4 Oct 08:00 | |
 | – | Buffer and submission form (submit by about 09:00) | 2 h | Sun 10:00 | |
 
 **Cut-line if behind schedule** (drop in this order; the anomaly flag and Gemini narration are done in M7):
 
-1. 10k-agent stress test
+1. ~~10k-agent stress test~~ (done in M10)
 2. partially observed cash
 
 Never cut the end-to-end flow: simulator → environment → forecast → dispatch → approval → impact page → deploy → docs.
@@ -236,7 +249,10 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 - [x] ~~MapTiler key~~ not needed: the map uses OpenFreeMap (D-025)
 - [x] GCP project with billing and a budget alert; `scripts/gcp-setup.sh` run
 - [x] Vercel project `jogan-bd` (root `web/`)
-- [ ] UptimeRobot account (M10: `/health` monitor and Supabase keep-alive)
+- [ ] UptimeRobot (free, no card; D-026), sign up at <https://uptimerobot.com> and add two monitors, both HTTP(s), every 5 minutes, alerts to your email:
+  - `Jogan API + DB`: `https://jogan-api-gt7msysppq-as.a.run.app/health/db` (also the Supabase keep-alive)
+  - `Jogan web`: `https://jogan-bd.vercel.app/about`
+  - Keep them until about 15 Oct, then delete them and `.github/workflows/keepalive.yml`
 - [ ] Teammates added as collaborators
 - [ ] Repo secret scanning and push protection enabled
 - [ ] Commit email verified on the GitHub account
@@ -265,6 +281,7 @@ make forecast PROFILE=dev SEED=0  # drain forecast backtest → data/dev/seed0/f
 make eval    # final comparison, seeds 1000–1009 → artifacts/metrics.json (about 17 min)
 make eval ARGS="--seeds 0 1 2 3"  # development run → artifacts/eval/metrics_dev.json
 make impact  # copy the impact page's numbers from artifacts/metrics.json → web/lib/impact.json
+make stress  # time Jogan's mornings for 10,000 agents → artifacts/stress.json (about 2 min)
 make bundle PROFILE=tiny SEED=0  # served demo bundle → bundle/ (deployed: PROFILE=full SEED=42)
 make api     # API on :8000 with the in-memory store (tokens "analyst", "approver")
 make test-db # migration + RLS/audit checks on a throwaway Postgres 17 (Docker)
