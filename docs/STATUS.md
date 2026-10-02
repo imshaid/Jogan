@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02, end of M8._
+_Last updated: 2026-10-02, end of M9._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -167,17 +167,30 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
     - The client-address rule was also checked live from a second address (D-024). The owner's ISP uses carrier-grade NAT with 3 public addresses
   - decision D-024
 
+- **M9 · Web UI: map, agent detail, queue, impact, audit, about; Bangla/English**
+  - six routes (`web/app/`): `/` network map, `/queue`, `/agents/[id]`, `/audit` (signed in); `/impact`, `/about` (public). The plan day lives in the URL (`?day=`)
+  - **network:** MapLibre GL JS 6.11.2 on OpenFreeMap `positron` (no key, so the MapTiler key is no longer needed); every agent as a shape by risk band (▲ ◆ ●) with a ring for a planned visit; risk for the higher side, cash or e-float; filter to visits or high risk; KPI strip; a 28-day timeline of planned visits with play; territory table and "highest risk" list (the map's facts in readable form)
+  - **queue:** filters (agent or runner, territory, status, manual review only), 50 rows a page, "Why?" row with the explanation (template or AI-written, labelled), drivers as diverging bars and guardrail reasons; approve, reject, approve with a note; 429 counts down `Retry-After`
+  - **agent:** stock-out chance over the test window (cash and e-float, visit days marked, click a day), forecast drain (median, 90%, 99%) against the balance, the recommendation with its decision controls, drivers, guardrails, anomaly flags, and the decision trace (8 steps, who produced each, config hash, audit rows); every chart has a table view
+  - **impact:** every number from `web/lib/impact.json`, a copy of `artifacts/metrics.json` made by `make impact` (`jogan/eval/web.py`) and checked by a test: Jogan vs the status quo and the best baseline with 95% intervals, lost requests by policy, Jogan minus each baseline (lost, km, cost), hypotheses H1–H4, "where Jogan does not win", fairness by group, forecast coverage and Brier, the anomaly flag, ablations; test or Eid window
+  - **audit** (filter by action, 50/100/200 rows) and **about** (data to decision, where AI is and is not used, every label explained, data and privacy, access and accountability, limits)
+  - **Bangla/English:** all copy in `web/lib/i18n.tsx`; a cookie read by the server layout, so the first paint is in the chosen language; Bangla digits, lakh grouping, ৳, dates in Bangla; ids never translated. Teammate 1 reviews the Bangla
+  - labels on every output: Prediction, Template, AI-written, Assumption, Evaluation
+  - look: upay yellow and blue in our own layout (white sidebar, yellow active marker and top strip, blue actions); derived text colours checked for contrast; lucide-react 1.49.0 icons; security headers on the web app
+  - API (`jogan/api/views.py`): `GET /v1/network/{day}`, `GET /v1/agents/{id}`, `days` in `/v1/meta`, bilingual display text for drivers and review reasons, gzip (a day's network: 172 KB → 16 KB)
+  - **Checks:** 186 Python tests (6 new: meta day counts, the network's agents and visits, display text, one agent's days and flags, the impact copy matches `metrics.json`); web lint, types and build. Checked locally in headless Chrome against the in-memory API on the demo bundle: analyst without buttons, approve, reject, approve with a note, "Why?", AI rewording, the trace after a decision, audit, pagination, Bangla and a 390 px phone width. `scripts/live_check.py` rewritten for the new pages
+  - decision D-025
+
 ## Next
 
-**M9 · Web UI: map, agent detail, queue, impact, audit, about; Bangla/English** (budget 6.5 h)
+**M10 · Final eval and stress test, monitoring, keep-alive** (budget 1.5 h)
 
-- Network map (MapLibre; the MapTiler key is still on the owner checklist) with risk shown by word and symbol, not colour alone, and a time control over the plan days.
-- Agent detail: forecast quantiles, drivers, review reasons and the decision trace.
-- Queue with approve/reject and the Bangla/English explanation (exists since M6–M7); impact page from `artifacts/metrics.json` only; audit page; about / responsible-AI page.
-- Full Bangla/English toggle, Noto Sans Bengali, ৳; outputs labelled prediction, assumption or AI-written explanation.
-- **Inputs from M8:** `api.trace(token, id)` → `DecisionTrace` (steps with `by` and config hash), `ApiError.code` and `retryAfterS` (show "try again in N s" on 429), `/v1/me` → `user_id`, `/v1/audit?recommendation_id=`.
+- Run `scripts/live_check.py` on the live site after the M9 deploy if it has not passed yet.
+- `make eval` only if sim, ops, forecast or plan code or configs changed (they did not in M9); then `make impact`.
+- Stress profile (10k agents) timing, if time allows (first on the cut-line).
+- UptimeRobot: `/health` monitor and a Supabase keep-alive (owner checklist).
 
-**Carried into M9–M11:**
+**Carried into M10–M11:**
 - The report gets a section on **where Jogan does not win**: H4 (DHK/urban vs `threshold`), H3 (group coverage of the forecast), the oracle gap, the anomaly flag's weakness on structuring (split cash-outs, 1 of 9 windows), and the costs left unpriced (motorcycle wear, phone, agents' own time).
 - Not modelled in the policy: the runner's bag in the program, the hours between the forecast and the runner's arrival, and a call rescuing an agent who was not visited (D-021).
 - Every number in README, report, UI and video comes from `artifacts/metrics.json`. Re-run `make eval` after any change to sim, ops, forecast or plan code or configs; its `meta.config_hashes` records the versions.
@@ -195,8 +208,8 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | done |
 | M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | done |
 | M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | done |
-| M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | next |
-| M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | |
+| M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | done |
+| M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | next |
 | M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | |
 | M12 | Clean-clone test, live check, fixes, tag `submission-initial` | 3 h | Sun 4 Oct 08:00 | |
 | – | Buffer and submission form (submit by about 09:00) | 2 h | Sun 10:00 | |
@@ -221,7 +234,7 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 - [ ] `claude update`, check `/model` and `/usage`
 - [x] Supabase project (Singapore, D-022), migration pushed, demo users seeded, public sign-up off
 - [x] Google AI Studio API key (do not enable billing)
-- [ ] MapTiler key
+- [x] ~~MapTiler key~~ not needed: the map uses OpenFreeMap (D-025)
 - [x] GCP project with billing and a budget alert; `scripts/gcp-setup.sh` run
 - [x] Vercel project `jogan-bd` (root `web/`)
 - [ ] UptimeRobot account (M10: `/health` monitor and Supabase keep-alive)
@@ -252,6 +265,7 @@ make baselines PROFILE=dev SEED=0 # three baselines + oracle, break-even vs stat
 make forecast PROFILE=dev SEED=0  # drain forecast backtest → data/dev/seed0/forecast/
 make eval    # final comparison, seeds 1000–1009 → artifacts/metrics.json (about 17 min)
 make eval ARGS="--seeds 0 1 2 3"  # development run → artifacts/eval/metrics_dev.json
+make impact  # copy the impact page's numbers from artifacts/metrics.json → web/lib/impact.json
 make bundle PROFILE=tiny SEED=0  # served demo bundle → bundle/ (deployed: PROFILE=full SEED=42)
 make api     # API on :8000 with the in-memory store (tokens "analyst", "approver")
 make test-db # migration + RLS/audit checks on a throwaway Postgres 17 (Docker)
