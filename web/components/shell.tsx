@@ -6,8 +6,8 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
 
-import { supabase, type Lang } from "@/lib/api";
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/config";
+import { supabase, type Lang, type Role } from "@/lib/api";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD, LOCAL_AUTH } from "@/lib/config";
 import { useLang } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 
@@ -234,6 +234,42 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
+function RoleButton({ role, disabled, onClick }: { role: Role; disabled?: boolean; onClick: () => void }) {
+  const { t } = useLang();
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="group rounded-lg border border-line-strong px-3 py-2.5 text-left transition-colors hover:border-brand hover:bg-brand-tint disabled:opacity-60"
+    >
+      <div className="text-sm font-semibold text-brand">
+        {role === "analyst" ? t.signIn.asAnalyst : t.signIn.asApprover}
+      </div>
+      <div className="mt-0.5 text-xs text-fg-2">
+        {role === "analyst" ? t.signIn.asAnalystNote : t.signIn.asApproverNote}
+      </div>
+    </button>
+  );
+}
+
+// A local run (`make run`) has no accounts: the in-memory API takes the role names as tokens.
+function LocalSignIn() {
+  const { t } = useLang();
+  const { signInLocal } = useSession();
+  return (
+    <div className="mt-6">
+      <div className="text-xs font-semibold tracking-wide text-fg-3 uppercase">{t.signIn.local}</div>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {(["analyst", "approver"] as const).map((r) => (
+          <RoleButton key={r} role={r} onClick={() => signInLocal(r)} />
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-fg-3">{t.signIn.localNote}</p>
+    </div>
+  );
+}
+
 function SignIn() {
   const { t } = useLang();
   const [email, setEmail] = useState("");
@@ -293,73 +329,71 @@ function SignIn() {
             <h1 className="text-2xl font-semibold tracking-tight">{t.signIn.title}</h1>
             <p className="mt-2 text-sm text-fg-2 lg:hidden">{t.signIn.lead}</p>
 
-            {DEMO_PASSWORD && (
-              <div className="mt-6">
-                <div className="text-xs font-semibold tracking-wide text-fg-3 uppercase">{t.signIn.demo}</div>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {DEMO_ACCOUNTS.map((a) => (
-                    <button
-                      key={a.email}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => signIn(a.email, DEMO_PASSWORD)}
-                      className="group rounded-lg border border-line-strong px-3 py-2.5 text-left transition-colors hover:border-brand hover:bg-brand-tint disabled:opacity-60"
-                    >
-                      <div className="text-sm font-semibold text-brand">
-                        {a.role === "analyst" ? t.signIn.asAnalyst : t.signIn.asApprover}
-                      </div>
-                      <div className="mt-0.5 text-xs text-fg-2">
-                        {a.role === "analyst" ? t.signIn.asAnalystNote : t.signIn.asApproverNote}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 text-xs text-fg-3">{t.signIn.demoNote}</p>
-                <div className="my-6 flex items-center gap-3 text-xs text-fg-3">
-                  <span className="h-px flex-1 bg-line" />
-                  {t.signIn.or}
-                  <span className="h-px flex-1 bg-line" />
-                </div>
-              </div>
-            )}
+            {LOCAL_AUTH ? (
+              <LocalSignIn />
+            ) : (
+              <>
+                {DEMO_PASSWORD && (
+                  <div className="mt-6">
+                    <div className="text-xs font-semibold tracking-wide text-fg-3 uppercase">{t.signIn.demo}</div>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {DEMO_ACCOUNTS.map((a) => (
+                        <RoleButton
+                          key={a.email}
+                          role={a.role}
+                          disabled={busy}
+                          onClick={() => signIn(a.email, DEMO_PASSWORD)}
+                        />
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs text-fg-3">{t.signIn.demoNote}</p>
+                    <div className="my-6 flex items-center gap-3 text-xs text-fg-3">
+                      <span className="h-px flex-1 bg-line" />
+                      {t.signIn.or}
+                      <span className="h-px flex-1 bg-line" />
+                    </div>
+                  </div>
+                )}
 
-            <form
-              className="space-y-4"
-              onSubmit={(ev) => {
-                ev.preventDefault();
-                signIn(email, password);
-              }}
-            >
-              <label className="block">
-                <span className="text-sm font-medium">{t.signIn.email}</span>
-                <input
-                  className="mt-1.5 h-10 w-full rounded-md border border-line-strong px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-                  type="email"
-                  autoComplete="username"
-                  value={email}
-                  onChange={(ev) => setEmail(ev.target.value)}
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-medium">{t.signIn.password}</span>
-                <input
-                  className="mt-1.5 h-10 w-full rounded-md border border-line-strong px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(ev) => setPassword(ev.target.value)}
-                  required
-                />
-              </label>
-              <Button variant="primary" className="h-10 w-full" disabled={busy}>
-                {busy ? t.signIn.busy : t.signIn.submit}
-              </Button>
-            </form>
-            {error && (
-              <p role="alert" className="mt-4 text-sm text-danger-text">
-                {error}
-              </p>
+                <form
+                  className="space-y-4"
+                  onSubmit={(ev) => {
+                    ev.preventDefault();
+                    signIn(email, password);
+                  }}
+                >
+                  <label className="block">
+                    <span className="text-sm font-medium">{t.signIn.email}</span>
+                    <input
+                      className="mt-1.5 h-10 w-full rounded-md border border-line-strong px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                      type="email"
+                      autoComplete="username"
+                      value={email}
+                      onChange={(ev) => setEmail(ev.target.value)}
+                      required
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm font-medium">{t.signIn.password}</span>
+                    <input
+                      className="mt-1.5 h-10 w-full rounded-md border border-line-strong px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                      type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(ev) => setPassword(ev.target.value)}
+                      required
+                    />
+                  </label>
+                  <Button variant="primary" className="h-10 w-full" disabled={busy}>
+                    {busy ? t.signIn.busy : t.signIn.submit}
+                  </Button>
+                </form>
+                {error && (
+                  <p role="alert" className="mt-4 text-sm text-danger-text">
+                    {error}
+                  </p>
+                )}
+              </>
             )}
             <p className="mt-8 flex gap-4 border-t border-line pt-4 text-sm">
               <Link href="/impact" className="font-medium text-brand hover:underline">

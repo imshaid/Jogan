@@ -4,38 +4,71 @@ import type { Session } from "@supabase/supabase-js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { api, supabase, type Role } from "./api";
+import { LOCAL_AUTH } from "./config";
 import { clearCache } from "./data";
+
+// Who is signed in: a Supabase session, or on a local run (LOCAL_AUTH) one of the in-memory
+// API's fixed tokens, which are the role names themselves (jogan/api/app.py `from_env`).
+type Account = { token: string; userId: string; email: string | null };
 
 type SessionState = {
   ready: boolean;
-  session: Session | null;
+  session: Account | null;
   token: string | null;
   email: string | null;
   // undefined while loading, null when the account has no Jogan role
   role: Role | null | undefined;
   roleError: unknown;
+  signInLocal: (role: Role) => void;
   signOut: () => Promise<void>;
 };
 
 const Ctx = createContext<SessionState | null>(null);
 
+const LOCAL_KEY = "jogan-local-role";
+
+function localAccount(role: Role): Account {
+  return { token: role, userId: `local-${role}`, email: `${role}@localhost` };
+}
+
+function savedLocalRole(): Role | null {
+  try {
+    const r = sessionStorage.getItem(LOCAL_KEY);
+    return r === "analyst" || r === "approver" ? r : null;
+  } catch {
+    return null;
+  }
+}
+
+function fromSupabase(s: Session | null): Account | null {
+  return s ? { token: s.access_token, userId: s.user.id, email: s.user.email ?? null } : null;
+}
+
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [session, setSession] = useState<Session | null>(null);
+  const [account, setAccount] = useState<Account | null>(null);
   const [role, setRole] = useState<{ user: string; role: Role | null } | null>(null);
   const [roleError, setRoleError] = useState<unknown>(null);
 
   useEffect(() => {
+    if (LOCAL_AUTH) {
+      // read after mount, like Supabase's getSession, so the first render matches the server's
+      Promise.resolve(savedLocalRole()).then((r) => {
+        setAccount(r ? localAccount(r) : null);
+        setReady(true);
+      });
+      return;
+    }
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+      setAccount(fromSupabase(data.session));
       setReady(true);
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+    const { data } = supabase.auth.onAuthStateChange((_event, s) => setAccount(fromSupabase(s)));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  const token = session?.access_token ?? null;
-  const userId = session?.user.id ?? null;
+  const token = account?.token ?? null;
+  const userId = account?.userId ?? null;
 
   useEffect(() => {
     if (!token || !userId) return;
@@ -55,8 +88,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  const signInLocal = useCallback((r: Role) => {
+    try {
+      sessionStorage.setItem(LOCAL_KEY, r);
+    } catch {
+      // storage blocked: signed in until the tab reloads
+    }
+    setAccount(localAccount(r));
+  }, []);
+
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (LOCAL_AUTH) {
+      try {
+        sessionStorage.removeItem(LOCAL_KEY);
+      } catch {
+        // nothing stored
+      }
+      setAccount(null);
+    } else {
+      await supabase.auth.signOut();
+    }
     clearCache();
     setRole(null);
   }, []);
@@ -64,14 +115,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<SessionState>(
     () => ({
       ready,
-      session,
+      session: account,
       token,
-      email: session?.user.email ?? null,
+      email: account?.email ?? null,
       role: role && role.user === userId ? role.role : undefined,
       roleError,
+      signInLocal,
       signOut,
     }),
-    [ready, session, token, role, userId, roleError, signOut],
+    [ready, account, token, role, userId, roleError, signInLocal, signOut],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
