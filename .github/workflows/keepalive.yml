@@ -1,0 +1,24 @@
+name: Keep-alive
+
+# Calls the API's /health/db, which runs one small query on Supabase. A free Supabase project is
+# paused after a week without database activity; the uptime monitor (every 5 minutes) is the
+# main keep-alive and this is the backup that needs no outside account (D-026). Remove it after
+# the live demo period ends (about 15 Oct 2026).
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    name: API and database health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      API_URL: https://jogan-api-gt7msysppq-as.a.run.app
+    steps:
+      - name: GET /health/db
+        run: curl --fail --silent --show-error --retry 3 --retry-delay 30 --retry-all-errors --max-time 30 "$API_URL/health/db"
