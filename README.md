@@ -11,7 +11,7 @@
 
 ## Contents
 
-[Overview](#overview) · [Results](#results) · [Features and how AI is used](#features-and-how-ai-is-used) · [Architecture](#architecture) · [Technology stack](#technology-stack) · [Requirements](#requirements) · [Installation and setup](#installation-and-setup) · [Environment variables](#environment-variables) · [Run and build](#run-and-build) · [Testing](#testing) · [Configuration](#configuration) · [Deployment](#deployment) · [Data and external sources](#data-and-external-sources) · [Responsible AI and security](#responsible-ai-and-security) · [Documentation](#documentation) · [AI usage](#ai-usage) · [License](#license)
+[Overview](#overview) · [Results](#results) · [Features and how AI is used](#features-and-how-ai-is-used) · [Architecture](#architecture) · [Technology stack](#technology-stack) · [Requirements](#requirements) · [Installation and setup](#installation-and-setup) · [Environment variables](#environment-variables) · [Run and build](#run-and-build) · [Testing](#testing) · [Configuration](#configuration) · [Deployment](#deployment) · [Data and external sources](#data-and-external-sources) · [Responsible AI and security](#responsible-ai-and-security) · [Documentation](#documentation) · [Team](#team) · [AI usage](#ai-usage) · [License](#license)
 
 ## Overview
 
@@ -281,6 +281,16 @@ Details in [`docs/06-responsible-ai.md`](docs/06-responsible-ai.md).
 | [`10-demo-script`](docs/10-demo-script.md) | The demo video script |
 | [`DECISIONS`](docs/DECISIONS.md) | Decision log with reasons |
 | [`STATUS`](docs/STATUS.md) | Progress and how to run things |
+
+## Team
+
+Team Jogan, Department of Computer Science and Engineering, Daffodil International University:
+
+- Md. Shaid Hasan (241-15-360), team leader
+- Md. Fazle Rabbi (241-15-364)
+- Md. Afsahul Arefin Talukder (241-15-377)
+
+The project report draft is in [`report/report.md`](report/report.md).
 
 ## AI usage
 
