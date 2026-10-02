@@ -205,3 +205,45 @@ Verified on 2026-10-01/02: FastAPI 0.142.2, Uvicorn 0.54.0, httpx2 2.13.1 (PyPI)
 
   Flags never act. They put the agent's visit under manual review and list the agent for a person to look at. Each morning the bundle scores the previous day from the records that have arrived by then. `make eval` reports precision at 5, 10 and 20 and how many injected windows got a flag, on the test window of every evaluation seed.
 - **Bundle id.** The bundle hashes now include the explain config (narrator settings excluded, since they act only at request time). The new evidence is therefore published under a new bundle id, and live decisions made on the old one stay with it.
+
+## D-024 · 2026-10-02 · API guards: token checks, rate limits, one error body, decision trace
+
+- **Token checks in the API.** Until M7 the API passed the bearer token on to PostgREST and let the database refuse it. Now `jogan/api/auth.py` checks it first, so a bad token never costs a database call, and PostgREST still checks it again (row-level security unchanged).
+  - The project signs access tokens with an asymmetric key. The public keys are at `<SUPABASE_URL>/auth/v1/.well-known/jwks.json`, and on 2026-10-02 the live set held one ES256 key (<https://supabase.com/docs/guides/auth/signing-keys>).
+  - Checked: the signature, an allowed algorithm (ES256 or RS256, the two Supabase offers; `none` and HS256 are refused), the issuer `<SUPABASE_URL>/auth/v1`, the audience `authenticated`, the expiry (30 s leeway), a subject, and the role `authenticated` (claims: <https://supabase.com/docs/guides/auth/jwt-fields>).
+  - PyJWT 2.15.1 (PyPI, 28 Sep 2026, MIT) with its `crypto` extra, which adds cryptography 50.0.2 (Apache-2.0 or BSD-3-Clause). Both are new dependencies.
+  - The key set is kept for 10 minutes, the time Supabase's edge caches it (same page). A token naming an unknown key refetches the set at most once every 30 s, so made-up key ids cannot make the API flood Supabase. PyJWT's own `PyJWKClient` refetches on every unknown key id, which is why the cache is our own (about 40 lines, tested with a mocked HTTP layer and a fake clock).
+  - If Supabase cannot be reached, the keys already held keep working. With no keys at all the answer is 503.
+  - A token stays valid until it expires, even after sign-out; PostgREST behaves the same way.
+- **Rate limits.** Token buckets in memory (`jogan/api/guard.py`): one per client address for every request, one per user for every signed-in request, and separate ones for deciding and for AI rewording. The narrator keeps its own 8-a-minute cap on top (D-023). A refusal is a 429 with `Retry-After`.
+  - Each Cloud Run instance counts on its own. At most 2 instances run (D-022), so a client gets at most twice the configured rate. A shared store (Redis) is not worth it at this size.
+  - The sizes are ASSUMPTIONS in `configs/api/base.yaml`. Every judge signs in with the same demo account, so the per-user buckets fit several people on one account. At the on-site final many people may share one address, so the per-address bucket is generous.
+  - slowapi 0.1.10 (PyPI, June 2026) was the brief's suggestion. Its limits are decorators keyed by a function of the request, so a per-user key would need the token decoded a second time. Its previous release was in February 2024. Our own buckets are about 60 lines and tested with a fake clock.
+- **Client address.** Uvicorn runs with `--forwarded-allow-ips '*'` (D-022), which makes the leftmost `X-Forwarded-For` entry the client. The client writes that entry itself, so a limit keyed on it could be dodged with a new made-up address on every request. The guard reads the raw header instead, `JOGAN_TRUSTED_PROXY_HOPS` entries from the right (1 in the Docker image, 0 locally, where the socket peer is used). Google's docs do not say what Cloud Run puts in the header, so this was checked on the live service on 2026-10-02:
+  - For 75 s, 16 threads on this laptop sent `/health` requests, each with a different forged `X-Forwarded-For`. From the tenth second on, about 7 of every 8 got a 429. The forged values did not open new buckets.
+  - Meanwhile the same URL, fetched from another server (a public page-reader service), got 200 three times out of three. So the key is the caller's own address, not a Google address that every client shares.
+  - Successful requests settled at 16 a second, four times one bucket's rate. The laptop's ISP uses carrier-grade NAT and sent its requests from 3 public addresses within one minute, and 2 instances were counting. Many people in Bangladesh share one public address this way, which is another reason the per-address bucket is generous.
+
+  `scripts/live_check.py` repeats the forged-header part on every run.
+- **One error body.** Every refusal is `{"detail": <message>, "code": <slug>}`; `detail` stays a string, so the web app can always show it.
+  - Validation errors add `errors` (field and message, never the submitted value).
+  - A 429 adds `retry_after_s`.
+  - A 401 from a bad token carries `WWW-Authenticate: Bearer error="invalid_token"`.
+  - An unexpected error is a plain 500 with no detail.
+  - Every response has `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`.
+- **Input validation.**
+  - Dates must be `YYYY-MM-DD`: pydantic also took a Unix time (`/v1/plans/1717372800` was 3 Jun 2024) and a datetime.
+  - Ids must lie between 1 and 2^63 − 1 (Postgres `bigint`).
+  - A note may hold at most 500 characters and no control characters except newline, carriage return and tab (Postgres text cannot hold NUL).
+  - A decision body with unknown fields is refused.
+  - A body must have a `Content-Length` (411 otherwise) and be at most 8 KB (413).
+- **Decision trace.** `GET /v1/recommendations/{id}/trace` (`jogan/api/trace.py`) returns what each layer produced, in the order of the logic chain:
+  1. the forecast and the stock-out chance (model);
+  2. the drivers (TreeSHAP);
+  3. the need and value (rule);
+  4. the runner (optimizer);
+  5. the guardrails (rule);
+  6. the explanation (template);
+  7. the decision (human).
+
+  Each step names the config whose hash the stored trace recorded. The response also holds the stored trace, both template explanations, the agent's anomaly flag that morning, and the recommendation's audit rows; `/v1/audit` takes `recommendation_id` for the same filter. An LLM is never a step. It can only reword the explanation on request. A recommendation from an older bundle still gets its trace, but without the served anomaly flag, since the bundle that made it is gone.

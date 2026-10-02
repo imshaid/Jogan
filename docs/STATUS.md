@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02, end of M7._
+_Last updated: 2026-10-02, end of M8._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -151,17 +151,33 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - **Checks:** 160 Python tests (28 new: drivers add up to the raw prediction, every feature has both labels, lakh grouping and Bangla digits, guardrail reasons, the narrator with a mocked Gemini (fallback, refusals, rate limit, cache, no user text in the prompt), the anomaly flag on a synthetic log (patterns found, a territory-wide payday ignored, no leak from late or future records), API explanation, anomaly and review-note endpoints); `make test-db` checks the note rule; `scripts/live_check.py` now covers "Why?", Bangla, the AI rewording and a flagged approval. Passed on the live site after the owner applied the migration and mounted the Gemini key: the Bangla rewording came from `gemini-3.5-flash-lite`, and a flagged visit was refused without a note (422) and approved with one
   - decision D-023
 
+- **M8 · Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace**
+  - config: `configs/api/base.yaml` (typed loader `jogan/api/config.py`; every number tagged, enforced by a test)
+  - `jogan/api/`:
+    - `auth`: the API checks every Supabase token itself before any database call. It verifies the signature against the project's JWK set (ES256; RS256 allowed), the issuer, the audience, the expiry, the subject and the role `authenticated`. The key set is cached for 10 min, and an unknown key id refetches it at most every 30 s. Stale keys keep working through an outage; no keys at all gives 503. PostgREST still checks the token again
+    - `guard`: token-bucket rate limits in memory, per client address (every request) and per user (signed-in requests), plus separate buckets for deciding and for AI rewording. A refusal is a 429 with `Retry-After`. The guard also caps bodies at 8 KB with a `Content-Length` and adds `Cache-Control: no-store` and `nosniff` to every response. The client address is read from the right of `X-Forwarded-For` (`JOGAN_TRUSTED_PROXY_HOPS=1` in the image)
+    - `errors`: every refusal is `{detail, code}`. Validation errors add `errors` (field and message, never the submitted value); a 429 adds `retry_after_s`; an unexpected error is a plain 500
+    - `trace`: `GET /v1/recommendations/{id}/trace` returns the layers in order (forecast and stock-out chance → drivers → need and value → runner → guardrails → template → human decision). Each layer names the config hash it ran under. The response also holds the stored trace, both explanations, that morning's anomaly flag and the audit rows. An LLM is never a step
+    - input validation: dates only as `YYYY-MM-DD` (pydantic also took a Unix time or a datetime), ids within `bigint`, a note of at most 500 characters with no control characters, no unknown body fields; `/v1/audit?recommendation_id=` filters the log; `/v1/me` returns `user_id`
+  - new dependency: PyJWT 2.15.1 with `crypto` (cryptography 50.0.2), verified on PyPI
+  - web: `web/lib/api.ts` has `api.trace`, the `DecisionTrace` type, and `ApiError.code` / `retryAfterS` for M9
+  - **Checks:**
+    - 180 Python tests (20 new): real ES256 tokens signed in the tests and twelve kinds of forged or wrong tokens refused (another key, HS256, `none`, expired, other issuer, anon, service role, no subject …); key rotation and the refetch cap; an outage; bucket refill and the bound on stored buckets; the client address under forged headers; the per-address, per-user, decision and rewording limits; 411/413; one error body for 404/405/422/500; date, id and note validation; the trace's layers, config hashes and audit rows; `from_env` in both store modes
+    - `scripts/live_check.py` also checks a forged token (401 from the API), a Unix time as a date (422), the trace of an approved visit, and that forged `X-Forwarded-For` values still hit the rate limit. It passed on the live site
+    - The client-address rule was also checked live from a second address (D-024). The owner's ISP uses carrier-grade NAT with 3 public addresses
+  - decision D-024
+
 ## Next
 
-**M8 · Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace** (budget 2.5 h)
+**M9 · Web UI: map, agent detail, queue, impact, audit, about; Bangla/English** (budget 6.5 h)
 
-- API-level JWT verification (Supabase JWKS) instead of trusting PostgREST alone for every call.
-- Rate limiting per user and per IP, with clear 429 answers; the narrator keeps its own per-minute cap.
-- Decision trace endpoint: a recommendation with its evidence, drivers, review, bundle trace and audit rows.
-- Input validation everywhere (dates, ids, languages, note length) and consistent error bodies.
-- **Inputs from M7:** `evidence.side`, `evidence.drivers`, `evidence.review`, `Bundle.anomaly_flags(day)`, `jogan.explain.template.render/facts`.
+- Network map (MapLibre; the MapTiler key is still on the owner checklist) with risk shown by word and symbol, not colour alone, and a time control over the plan days.
+- Agent detail: forecast quantiles, drivers, review reasons and the decision trace.
+- Queue with approve/reject and the Bangla/English explanation (exists since M6–M7); impact page from `artifacts/metrics.json` only; audit page; about / responsible-AI page.
+- Full Bangla/English toggle, Noto Sans Bengali, ৳; outputs labelled prediction, assumption or AI-written explanation.
+- **Inputs from M8:** `api.trace(token, id)` → `DecisionTrace` (steps with `by` and config hash), `ApiError.code` and `retryAfterS` (show "try again in N s" on 429), `/v1/me` → `user_id`, `/v1/audit?recommendation_id=`.
 
-**Carried into M8–M11:**
+**Carried into M9–M11:**
 - The report gets a section on **where Jogan does not win**: H4 (DHK/urban vs `threshold`), H3 (group coverage of the forecast), the oracle gap, the anomaly flag's weakness on structuring (split cash-outs, 1 of 9 windows), and the costs left unpriced (motorcycle wear, phone, agents' own time).
 - Not modelled in the policy: the runner's bag in the program, the hours between the forecast and the runner's arrival, and a call rescuing an agent who was not visited (D-021).
 - Every number in README, report, UI and video comes from `artifacts/metrics.json`. Re-run `make eval` after any change to sim, ops, forecast or plan code or configs; its `meta.config_hashes` records the versions.
@@ -178,8 +194,8 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M5 | Newsvendor + MILP dispatch, multi-seed comparison, ablation, fairness, `make eval` | 3.5 h | Fri 19:30 | done |
 | M6 | Walking skeleton live: Cloud Run + Vercel + Supabase schema, RLS, audit | 3 h | Fri 22:30 | done |
 | M7 | Explanations, guardrails, Gemini narrator, anomaly flag | 2.5 h | Sat 3 Oct 09:30 | done |
-| M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | next |
-| M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | |
+| M8 | Full API: auth, roles, queue, approve/reject, audit, rate limit, decision trace | 2.5 h | Sat 12:00 | done |
+| M9 | Web UI: map, agent detail, queue, impact, audit, about; Bangla/English | 6.5 h | Sat 19:00 | next |
 | M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | |
 | M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | |
 | M12 | Clean-clone test, live check, fixes, tag `submission-initial` | 3 h | Sun 4 Oct 08:00 | |

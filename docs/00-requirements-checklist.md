@@ -97,7 +97,7 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
 
 ## H. Owner decisions (binding)
 
-- [ ] Supabase Postgres and Supabase Auth with roles (analyst, approver) and row-level security (M6, M8)
+- [x] Supabase Postgres and Supabase Auth with roles (analyst, approver) and row-level security (M6, M8; D-022, D-024)
 - [ ] **Deployment:**
   - Vercel (web)
   - Google Cloud Run (API, Docker, continuous deploy from GitHub)
@@ -134,7 +134,7 @@ Planned docs: `03-architecture`, `04-model-card`, `05-evaluation`, `06-responsib
   - fairness table
   - drivers per prediction
   - stress check
-- [ ] **Security and safety** (M7–M8):
+- [x] **Security and safety** (M7–M8; D-023, D-024):
   - role-based access
   - audit log for approvals
   - rate limiting and input validation
