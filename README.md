@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/brand/jogan-light.png" width="160" alt="Jogan · যোগান logo"></p>
+<p align="center"><img src="docs/brand/jogan-light.png" alt="Jogan · যোগান logo"></p>
 
 # Jogan · যোগান
 
