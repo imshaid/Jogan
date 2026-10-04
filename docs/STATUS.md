@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02, after the web UI redesign (D-029)._
+_Last updated: 2026-10-04, at the initial submission (D-030)._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -226,16 +226,27 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - every feature, label, route and number source unchanged; quantities in Inter tabular figures, ids in mono
   - **Checks:** web lint, types and build; the live check's browser steps replayed against `make run` (analyst, Bangla, rewording, approve, reject, approve with a note, audit, 8-step trace) passed; screenshots at 1440 px and 390 px in English and Bangla, collapsed rail and command menu
 
+- **Submission** (4 Oct; D-030)
+  - registered team name **Team Adrenaline** in README, report cover, model card and demo script; the product stays Jogan · যোগান
+  - demo video recorded and shared on Google Drive (anyone with the link): <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link>; 10 min 10 s, 1920×1200, with sound (`ffprobe`); linked in README, report and demo script
+  - report final, no longer a draft: key features (§4.1), intended real-life impact (§8.1) and the problem statement in the guideline's format added for Rulebook §7.3; no result number typed
+  - [`report/report.pdf`](../report/report.pdf): 12 pages, A4, exported from `report/report.md` with headless Chrome; the export script is local only, in `scratch/report-pdf/` (git-ignored)
+  - no slide deck (owner's choice)
+  - **Checks:** `make check` (198 tests); live web app, API `/health` and `/health/db` answered 200; repo public; every GitHub link in the PDF resolves
+  - tag `submission-initial` on the commit that records this
+
 ## Next
 
-**Submission (by about 09:00 on 4 Oct; deadline 10:00 BST)**
+**Submission form (owner, before 10:00 BST on 4 Oct)**
 
-- Video: teammate 2 records it from [`10-demo-script.md`](10-demo-script.md) (at least 5 minutes; features and AI components, Rulebook §7.2) on the redesigned UI (D-029, live after this push), then its link goes into the submission form and the README.
-- Report: team review of [`report/report.md`](../report/report.md), confirm the roles on its cover, add the team's emails only if the owner wants them public, and export to the format the organizers ask for (PDF if needed).
-- **Tag `submission-initial` on the last commit before the deadline** (after the video link and the report are in), then push the tag. Not tagged in M12 on purpose: a tag cannot move without a force-push. In fish: `git tag -a submission-initial -m "Initial submission, AI Dev Fest 2026"; and git push origin submission-initial`
-- Submission form: GitHub link, video, report, any other file the organizers ask for; open each link from a private browser window before submitting (General Rules §6.1).
+- The organizers' form: project title, abstract, report [`report/report.pdf`](../report/report.pdf), video link <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link>, GitHub link <https://github.com/imshaid/Jogan>. No slide deck (owner's choice).
+- Open each link from a private browser window before submitting (General Rules §6.1).
+
+**Before the final (7 Oct)**
+
 - A walkthrough of the docs pack with both teammates, so everyone can explain the design (checklist D).
-- Every number in README, report, UI and video comes from `artifacts/metrics.json` and `artifacts/stress.json` through `make impact` and `make docs`. Re-run `make eval`, then both, after any change to sim, ops, forecast or plan code or configs.
+- Start `docs/ONSITE_LOG.md` on site; one small commit per new requirement, pushed within the allotted time.
+- Every number in README, report, UI and video comes from `artifacts/metrics.json` and `artifacts/stress.json` through `make impact` and `make docs`. Re-run `make eval`, then both, after any change to sim, ops, forecast or plan code or configs. After any change to `report/report.md`, export `report/report.pdf` again (D-030).
 
 ## Milestone plan
 
@@ -254,7 +265,7 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 | M10 | Final eval and stress test, monitoring, keep-alive | 1.5 h | Sat 20:30 | done |
 | M11 | Full README, docs pack, report draft, video script | 3 h | Sat 23:30 | done |
 | M12 | Clean-clone test, live check, fixes (tag at submission) | 3 h | Sun 4 Oct 08:00 | done |
-| – | Buffer and submission form (submit by about 09:00) | 2 h | Sun 10:00 | |
+| – | Buffer and submission form (submit by about 09:00) | 2 h | Sun 10:00 | tagged; form by the owner |
 
 **Cut-line if behind schedule** (drop in this order; the anomaly flag and Gemini narration are done in M7):
 
@@ -291,11 +302,11 @@ Never cut the end-to-end flow: simulator → environment → forecast → dispat
 ## Teammate tasks
 
 - **Teammate 1: Md. Fazle Rabbi (241-15-364)**
-  - Review the report draft [`report/report.md`](../report/report.md) and confirm the roles on its cover.
+  - Read the final report [`report/report.md`](../report/report.md) before the final; tell the owner if a role on its cover is wrong.
   - Collect official public sources on upay and MFS agents (links only, no guessing).
   - Review the Bangla UI strings (`web/lib/i18n.tsx`, `configs/explain/labels.yaml`).
 - **Teammate 2: Md. Afsahul Arefin Talukder (241-15-377)**
-  - Record the video (at least 5 minutes) from [`10-demo-script.md`](10-demo-script.md); rehearse and record on different plan days, never 3 Jun.
+  - ~~Record the video~~ (done: <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link>).
   - Manual QA on the live URL.
   - Clean-clone test on your own laptop, README only, ending with `make run` (the owner's machine passed in M12).
 

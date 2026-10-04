@@ -7,14 +7,14 @@ Every official requirement and owner decision, as a list we can tick. "Where" po
 - the organizers' announcement of the dates and the video length
 - the owner's binding decisions
 
-Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-model-card.md), [`05-evaluation`](05-evaluation.md), [`06-responsible-ai`](06-responsible-ai.md), [`07-product-readiness`](07-product-readiness.md), [`09-deployment`](09-deployment.md), [`10-demo-script`](10-demo-script.md); report draft in [`report/report.md`](../report/report.md).
+Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-model-card.md), [`05-evaluation`](05-evaluation.md), [`06-responsible-ai`](06-responsible-ai.md), [`07-product-readiness`](07-product-readiness.md), [`09-deployment`](09-deployment.md), [`10-demo-script`](10-demo-script.md); report in [`report/report.md`](../report/report.md) and [`report/report.pdf`](../report/report.pdf).
 
 ## A. Deadlines and submission
 
-- [ ] Initial code pushed before **4 Oct 2026 10:00 BST**, tag `submission-initial` on the last commit before the deadline (D-028)
-- [ ] Demo video of **at least 5 minutes** covering the project, its development, how it works, the features and AI components, and its real-world impact (Rulebook §7.2; script done: [`10-demo-script.md`](10-demo-script.md); recording by teammate 2)
-- [ ] Project report on the problem, the idea, the implemented solution, key features, the AI approach, the implementation process and the intended impact (Rulebook §7.3; draft done: [`report/report.md`](../report/report.md); team review, roles and final format before submission)
-- [ ] Public GitHub link submitted through the organizers' form, with any presentation or file format they specify (Rulebook §7.4); check the submission is complete and opens before the deadline (General Rules §6.1)
+- [x] Initial code pushed before **4 Oct 2026 10:00 BST**, tag `submission-initial` on the last commit before the deadline (D-028, D-030)
+- [x] Demo video of **at least 5 minutes** covering the project, its development, how it works, the features and AI components, and its real-world impact (Rulebook §7.2; script: [`10-demo-script.md`](10-demo-script.md); video: <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link>, D-030)
+- [x] Project report on the problem, the idea, the implemented solution, key features, the AI approach, the implementation process and the intended impact (Rulebook §7.3; [`report/report.md`](../report/report.md), exported to [`report/report.pdf`](../report/report.pdf), D-030)
+- [ ] Public GitHub link submitted through the organizers' form, with any presentation or file format they specify (Rulebook §7.4; the form also offers a presentation slide, which the owner chose not to add, D-030); check the submission is complete and opens before the deadline (General Rules §6.1)
 - [ ] On-site, 7 Oct: new requirements implemented and pushed as small commits, logged in `docs/ONSITE_LOG.md`
 
 ## B. GitHub rules (Rulebook §5)
@@ -156,12 +156,13 @@ Docs pack (M11): [`03-architecture`](03-architecture.md), [`04-model-card`](04-m
   - demo script
   - `STATUS.md`
   - `ONSITE_LOG.md`
-- [ ] **Before the deadline:**
+- [ ] **Before the deadline** (all done except the last item, the owner's):
   - live URL tested from a clean browser
   - repo public
   - README complete
   - tag `submission-initial`
-  - report and video script ready
+  - report (Markdown and PDF) and video ready
+  - submission form sent, every link opened from a private window
 - [ ] **On-site readiness:**
   - config-driven code
   - auto-deploy on push
