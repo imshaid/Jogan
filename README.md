@@ -9,6 +9,7 @@
 - **Live web app:** <https://jogan-bd.vercel.app> (one-click demo analyst or approver on the sign-in page)
 - **Live API:** <https://jogan-api-gt7msysppq-as.a.run.app> (`/health`, `/health/db`, interactive docs at `/docs`)
 - **Demo video:** <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link> (Google Drive)
+- **Project report:** [`report/report.pdf`](report/report.pdf) (source: [`report/report.md`](report/report.md))
 
 ## Contents
 
@@ -295,7 +296,7 @@ Team Adrenaline, Department of Computer Science and Engineering, Daffodil Intern
 - Md. Fazle Rabbi (241-15-364)
 - Md. Afsahul Arefin Talukder (241-15-377)
 
-The project report draft is in [`report/report.md`](report/report.md).
+The project report is [`report/report.md`](report/report.md), also as a PDF: [`report/report.pdf`](report/report.pdf).
 
 ## AI usage
 
