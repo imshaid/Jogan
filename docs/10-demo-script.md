@@ -2,6 +2,7 @@
 
 The script for the submission video. The rules ask for **at least 5 minutes** covering the project, its development, what it does, how it works and its real-world impact ([`00-requirements-checklist.md`](00-requirements-checklist.md) §A). This script runs about 7 minutes at a calm speaking pace, so there is room to slow down.
 
+- **The recorded video:** <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link> (Google Drive).
 - **Recorded by:** Md. Afsahul Arefin Talukder (screen and OBS), narrated by the team.
 - **Narration:** written in English below; it may be spoken in Bangla, keeping the meaning and the numbers.
 - **Numbers:** never typed into this script. Every number the narrator says is read from the [numbers sheet](#numbers-sheet) at the end, which `make docs` writes from `artifacts/metrics.json` and `artifacts/stress.json`, or from the impact page on screen, which comes from the same file. A line like *(sheet A: Jogan, lost per 1,000)* means "read that cell".

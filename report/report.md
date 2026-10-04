@@ -10,7 +10,7 @@
 | Md. Fazle Rabbi | 241-15-364 | Report, public sources on MFS agents, Bangla UI review |
 | Md. Afsahul Arefin Talukder | 241-15-377 | Demo video, manual QA, clean-clone test |
 
-Live app: <https://jogan-bd.vercel.app> · API: <https://jogan-api-gt7msysppq-as.a.run.app> · Code: <https://github.com/imshaid/Jogan>
+Live app: <https://jogan-bd.vercel.app> · API: <https://jogan-api-gt7msysppq-as.a.run.app> · Code: <https://github.com/imshaid/Jogan> · Demo video: <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link>
 
 > **All data in this project is simulated.** Jogan is an independent student prototype. It is not an upay product and uses no upay production data.
 

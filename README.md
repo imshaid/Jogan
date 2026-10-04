@@ -8,6 +8,7 @@
 
 - **Live web app:** <https://jogan-bd.vercel.app> (one-click demo analyst or approver on the sign-in page)
 - **Live API:** <https://jogan-api-gt7msysppq-as.a.run.app> (`/health`, `/health/db`, interactive docs at `/docs`)
+- **Demo video:** <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link> (Google Drive)
 
 ## Contents
 
