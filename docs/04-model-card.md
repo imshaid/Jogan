@@ -15,7 +15,7 @@ The machine-learning parts of Jogan: the **peak-drain forecast** (with its calib
 | Settings | `configs/forecast/base.yaml`: 150 rounds, learning rate 0.1, 31 leaves, at least 50 rows per leaf, 63 bins, deterministic. Every number is tagged `ASSUMPTION`; none was tuned on an evaluation seed |
 | Code | `jogan/forecast/` (`panel`, `features`, `targets`, `model`, `backtest`) |
 | Version | the `forecast` config hash in `artifacts/metrics.json` and in every recommendation's trace |
-| Owner | Team Jogan (student prototype, AI Dev Fest 2026) |
+| Owner | Team Adrenaline (student prototype, AI Dev Fest 2026) |
 
 ### Intended use
 

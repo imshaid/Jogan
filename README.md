@@ -288,7 +288,7 @@ Details in [`docs/06-responsible-ai.md`](docs/06-responsible-ai.md).
 
 ## Team
 
-Team Jogan, Department of Computer Science and Engineering, Daffodil International University:
+Team Adrenaline, Department of Computer Science and Engineering, Daffodil International University:
 
 - Md. Shaid Hasan (241-15-360), team leader
 - Md. Fazle Rabbi (241-15-364)

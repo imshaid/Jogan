@@ -2,7 +2,7 @@
 
 **Project report (draft)** · AI Dev Fest 2026 (DIU CPC × upay) · Track 05: Merchant & Agent Intelligence
 
-**Team Jogan**, Department of Computer Science and Engineering, Daffodil International University
+**Team Adrenaline**, Department of Computer Science and Engineering, Daffodil International University
 
 | Member | Student ID | Role |
 |---|---|---|

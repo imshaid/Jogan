@@ -26,7 +26,7 @@ The script for the submission video. The rules ask for **at least 5 minutes** co
 >
 > An agent holds two kinds of money: physical cash for cash-outs and e-float for cash-ins. Today, distributors' runners refill agents on a fixed round, plus calls when an agent is already running dry. But demand is not fixed: it jumps on paydays, remittance days and before Eid.
 >
-> We are Team Jogan from Daffodil International University, and this is Jogan, যোগান: a copilot that tells a distributor, every morning, which agents will run out, and which runner should go where. Everything you will see runs on simulated data; this is a student prototype, not an upay product.
+> We are Team Adrenaline from Daffodil International University, and this is Jogan, যোগান: a copilot that tells a distributor, every morning, which agents will run out, and which runner should go where. Everything you will see runs on simulated data; this is a student prototype, not an upay product.
 
 ### 2. What Jogan does, in one picture (0:50–1:20)
 
