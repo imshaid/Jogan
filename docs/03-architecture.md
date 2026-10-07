@@ -98,7 +98,7 @@ Visits, the agents' own bank trips (seen as e-float transfers) and runner days a
 | Route | Who | What |
 |---|---|---|
 | `GET/HEAD /health`, `/health/db` | anyone | liveness; one database query, cached 60 s |
-| `GET /v1/meta` | anyone | bundle id, plan days with counts |
+| `GET /v1/meta` | anyone | bundle id, plan days with counts, the runner rules the bundle ran under (D-039) |
 | `GET /v1/me` | any signed-in user | user id and role (none for a user without one) |
 | `GET /v1/plans/{day}` | analyst, approver | the day's queue (publishes the day on first request) |
 | `GET /v1/network/{day}` | analyst, approver | every agent's risk and planned visit, for the map |

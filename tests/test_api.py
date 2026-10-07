@@ -19,8 +19,11 @@ from jogan.api.auth import StaticVerifier
 from jogan.api.bundle import Bundle, load_bundle, save_bundle
 from jogan.api.config import load_api_config
 from jogan.api.store import REVIEW_NOTE, MemoryStore, StoreError, SupabaseConfig, SupabaseStore
+from jogan.api.views import runner_settings
 from jogan.explain.config import load_explain_config
 from jogan.explain.narrator import Narrator
+from jogan.ops.config import load_ops_config
+from jogan.sim.config import load_config
 
 USERS = {
     "t-analyst": ("u-analyst", "analyst"),
@@ -342,6 +345,23 @@ def test_meta_counts_every_plan_day(client: TestClient, bundle: Bundle) -> None:
     assert sum(d["visits"] for d in days) == counts["recommendations"]
     assert sum(d["manual_review"] for d in days) == counts["manual_review"]
     assert sum(d["anomaly_flags"] for d in days) == counts["anomaly_flags"]
+
+
+def test_meta_carries_the_runner_rules_the_bundle_was_built_with(
+    client: TestClient, bundle: Bundle
+) -> None:
+    sim = load_config(bundle.meta["profile"])
+    runners = client.get("/v1/meta").json()["runners"]
+    assert runners["shift"] == list(sim.runners.shift)
+    assert runners["visit_minutes"] == sim.runners.visit_minutes
+    assert runners["bag_capacity_tk"] == sim.runners.bag_capacity_tk
+    assert runners["bag_start_tk"] == load_ops_config().env.runner_bag_start_tk
+    assert set(runners["settings"]) == set(sim.geo.settings)
+    assert set(runners["hubs"]) >= set(bundle.territories["territory"])
+    # a bundle built under other configs gets no runner rules rather than wrong ones
+    hashes = {**bundle.meta["config_hashes"], "sim": "0" * 12}
+    stale = dataclasses.replace(bundle, meta={**bundle.meta, "config_hashes": hashes})
+    assert runner_settings(stale) is None
 
 
 def test_the_network_shows_every_agent_and_the_planned_visits(

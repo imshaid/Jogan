@@ -58,7 +58,7 @@ from jogan.api.errors import problem, validation_errors
 from jogan.api.guard import Guard, Limiter, RateLimited, limited
 from jogan.api.store import NOTE_MAX, MemoryStore, Store, StoreError, SupabaseConfig, SupabaseStore
 from jogan.api.trace import decision_trace
-from jogan.api.views import agent, annotate, day_counts, network
+from jogan.api.views import agent, annotate, day_counts, network, runner_settings
 from jogan.explain.config import load_explain_config
 from jogan.explain.narrator import Narrator
 from jogan.explain.template import anomaly_items, facts, render, risk_percent
@@ -157,6 +157,7 @@ def create_app(
         )
     published: set[dt.date] = set()
     days = day_counts(bundle)
+    runners = runner_settings(bundle)
     db_check = {"at": -float("inf"), "ok": False}
     db_lock = threading.Lock()
 
@@ -229,6 +230,7 @@ def create_app(
             "lost_customer_value_tk": m["lost_customer_value_tk"],
             "territories": bundle.territories.to_dict("records"),
             "days": days,
+            "runners": runners,
             "simulated": True,
         }
 

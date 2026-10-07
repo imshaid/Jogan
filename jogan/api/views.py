@@ -14,6 +14,8 @@ from typing import Any
 
 from jogan.api.bundle import EVIDENCE_COLUMNS, Bundle, _plain
 from jogan.explain.template import anomaly_items, feature_text, reason_text
+from jogan.ops.config import load_ops_config
+from jogan.sim.config import load_config
 
 LANGS = ("en", "bn")
 
@@ -62,6 +64,32 @@ def day_counts(bundle: Bundle) -> list[dict[str, Any]]:
         }
         for d in bundle.plan_dates
     ]
+
+
+def runner_settings(bundle: Bundle) -> dict[str, Any] | None:
+    """The runner rules the bundle's world ran under, for the runner screen's times and bag.
+
+    Read from the same sim and ops configs the bundle was built with, so the screen never shows
+    a shift, speed or bag the plan did not use; ``None`` if the configs changed since the build.
+    """
+    sim = load_config(bundle.meta["profile"])
+    ops = load_ops_config()
+    built = bundle.meta["config_hashes"]
+    if built.get("sim") != sim.config_hash() or built.get("ops") != ops.config_hash():
+        return None
+    r = sim.runners
+    return {
+        "shift": list(r.shift),
+        "visit_minutes": r.visit_minutes,
+        "max_visits": r.max_visits,
+        "bag_capacity_tk": r.bag_capacity_tk,
+        "bag_start_tk": ops.env.runner_bag_start_tk,
+        "settings": {
+            name: {"speed_kmh": g.runner_speed_kmh, "road_factor": g.road_factor}
+            for name, g in sim.geo.settings.items()
+        },
+        "hubs": {t.code: {"lat": t.lat, "lon": t.lon} for t in sim.geo.territories},
+    }
 
 
 def network(bundle: Bundle, day: dt.date) -> list[dict[str, Any]]:
