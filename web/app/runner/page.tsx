@@ -395,7 +395,7 @@ function FleetBoard({
                 <span className="min-w-0">
                   <span className="mono block truncate text-[13px] font-semibold">{x.id}</span>
                   <span className="block truncate text-[11px] text-fg-3">
-                    {x.district} · {f.num(x.plan.stops.length)} {t.common.visitsShort}
+                    {x.district} · {r.stopsN(x.plan.stops.length, f.num(x.plan.stops.length))}
                   </span>
                   <span className="mt-0.5 block sm:hidden">
                     <StatusChips runner={x} compact />
