@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-04, at the initial submission (D-030)._
+_Last updated: 2026-10-07, on site (R1, D-031)._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -235,6 +235,10 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - **Checks:** `make check` (198 tests); live web app, API `/health` and `/health/db` answered 200; repo public; every GitHub link in the PDF resolves
   - tag `submission-initial` on the commit that records this
 
+- **On site, 7 Oct** ([`ONSITE_LOG.md`](ONSITE_LOG.md); seven pieces of pre-evaluation feedback, about 2.5 h)
+  - **R1 · Problem relevance** (D-031): README overview, report §1 and the about page now define the problem (who loses what), the two refill channels (runner, agent's own bank trip) and the solution in three steps. `make sizing` → `artifacts/sizing.json` sizes the problem from Bangladesh Bank totals over turned-away rates (ASSUMPTION). `make eval` re-run: it now also reports the turned-away value, the share of agent-days with a loss and agents' own bank trips per policy; every earlier number unchanged. Step 0 of the validation plan measures the real rate on upay's logs
+  - **Checks:** `make check`, web lint, types and build
+
 ## Next
 
 **Submission form (owner, before 10:00 BST on 4 Oct)**
@@ -321,6 +325,7 @@ make baselines PROFILE=dev SEED=0 # three baselines + oracle, break-even vs stat
 make forecast PROFILE=dev SEED=0  # drain forecast backtest → data/dev/seed0/forecast/
 make eval    # final comparison, seeds 1000–1009 → artifacts/metrics.json (about 17 min)
 make eval ARGS="--seeds 0 1 2 3"  # development run → artifacts/eval/metrics_dev.json
+make sizing  # size the problem from Bangladesh Bank totals → artifacts/sizing.json
 make impact  # copy the impact page's numbers from artifacts/metrics.json → web/lib/impact.json
 make docs    # write the numbers blocks in README.md, docs/ and report/ from artifacts/*.json
 make stress  # time Jogan's mornings for 10,000 agents → artifacts/stress.json (about 2 min)

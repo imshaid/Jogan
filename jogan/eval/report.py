@@ -57,6 +57,11 @@ class Records:
     def operations(self, name: str) -> np.ndarray:
         return np.array([r["operations"][name] for r in self.rows], dtype=float)
 
+    def lost_tk(self, side: str | None = None) -> np.ndarray:
+        """Value of the lost requests: cash-out (``CO``), cash-in (``CI``) or both."""
+        sides = (side,) if side else ("CO", "CI")
+        return np.array([sum(r["service"]["lost_tk"][x] for x in sides) for r in self.rows])
+
     def known(self, salary: str = "mid") -> np.ndarray:
         return np.array([r["cost_tk"]["known_total_by_salary"][salary] for r in self.rows])
 
@@ -83,6 +88,12 @@ def policy_table(seeds: list[dict], names: list[str], windows: list[str], level:
                 "runner_visits": mean_interval(r.operations("runner_visits"), level, 1),
                 "runner_km": mean_interval(r.operations("runner_km"), level, 1),
                 "runner_busy_hours": mean_interval(r.operations("runner_busy_hours"), level, 1),
+                "self_refills": mean_interval(r.operations("self_refills"), level, 1),
+                "lost_tk": mean_interval(r.lost_tk(), level, 0),
+                "lost_cash_out_tk": mean_interval(r.lost_tk("CO"), level, 0),
+                "agent_days_with_loss_share": mean_interval(
+                    r.service("agent_days_with_loss_share"), level, 4
+                ),
                 "known_cost_tk": {s: mean_interval(r.known(s), level, 1) for s in SALARIES},
                 "cost_tk": {
                     c: mean_interval(r.cost(c), level, 1)
@@ -99,6 +110,9 @@ def compare(a: Records, b: Records, value_tk: float, level: float) -> dict:
         "lost_per_1000": paired(a.service("lost_per_1000"), b.service("lost_per_1000"), level, 3),
         "lost": paired(a.service("lost"), b.service("lost"), level, 1),
         "runner_km": paired(a.operations("runner_km"), b.operations("runner_km"), level, 1),
+        "self_refills": paired(
+            a.operations("self_refills"), b.operations("self_refills"), level, 1
+        ),
         "known_cost_tk": {s: paired(a.known(s), b.known(s), level, 1) for s in SALARIES},
         "total_cost_tk": {
             s: paired(a.total(value_tk, s), b.total(value_tk, s), level, 1) for s in SALARIES

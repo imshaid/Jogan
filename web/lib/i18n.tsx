@@ -388,6 +388,33 @@ const en = {
   about: {
     title: "How Jogan works",
     lead: "Jogan helps an upay distributor decide each morning which agents a runner should visit, and with how much cash or e-float, before they run dry. People decide; the system prepares the evidence.",
+    problemTitle: "The problem",
+    problemLead: "When an agent's shop runs out of cash or e-float, the customer is turned away, and today nobody sees it coming.",
+    problemCols: { who: "Who", what: "What goes wrong", cost: "What it costs" },
+    problemRows: [
+      {
+        who: "Customer",
+        what: "Comes to cash out a salary or a remittance and the drawer is empty.",
+        cost: "A wasted trip; tries another agent or another provider.",
+      },
+      {
+        who: "Agent (shopkeeper)",
+        what: "Runs out of cash (for a cash-out) or e-float (for a cash-in).",
+        cost: "The commission on every request turned away, and a trip to the bank to refill.",
+      },
+      {
+        who: "Distributor and upay",
+        what: "Runners visit on a fixed round; a call comes only after the shop is already dry.",
+        cost: "Runner time spent where no visit was needed while others wait; customers lost to other providers.",
+      },
+    ],
+    refillTitle: "How agents refill today",
+    refillPoints: [
+      "The distributor's runner, usually at a fixed time, and on a call.",
+      "The shopkeeper's own trip to a nearby bank: only in bank hours, never on Friday, Saturday or a bank holiday. The shop is short-handed while the agent is away, and the cash travels on the street. A drawer that runs dry on a Thursday evening stays dry until Sunday unless a runner comes.",
+      "Neither looks ahead. Jogan adds the forecast, and its evaluation counts both the runner visits and the agents' own bank trips.",
+    ],
+    problemMore: "Size of the problem from Bangladesh Bank data, and how we would measure it on upay's own logs",
     stepsTitle: "From data to a decision",
     steps: [
       {
@@ -821,6 +848,33 @@ const bn: Dict = {
   about: {
     title: "যোগান কীভাবে কাজ করে",
     lead: "যোগান একজন upay ডিস্ট্রিবিউটরকে প্রতিদিন সকালে ঠিক করতে সাহায্য করে কোন এজেন্টের কাছে রানার যাবে, কত ক্যাশ বা ই-ফ্লোট নিয়ে, তাদের টাকা ফুরিয়ে যাওয়ার আগেই। সিদ্ধান্ত নেয় মানুষ; সিস্টেম প্রমাণ সাজিয়ে দেয়।",
+    problemTitle: "সমস্যা",
+    problemLead: "এজেন্টের দোকানে ক্যাশ বা ই-ফ্লোট ফুরিয়ে গেলে গ্রাহককে ফিরিয়ে দিতে হয়, আর আজ কেউ তা আগে থেকে দেখতে পায় না।",
+    problemCols: { who: "কে", what: "কী সমস্যা হয়", cost: "কী ক্ষতি হয়" },
+    problemRows: [
+      {
+        who: "গ্রাহক",
+        what: "বেতন বা রেমিট্যান্সের টাকা তুলতে এসে দেখেন ড্রয়ার খালি।",
+        cost: "আসা-যাওয়া বৃথা; অন্য এজেন্ট বা অন্য সেবার কাছে যান।",
+      },
+      {
+        who: "এজেন্ট (দোকানদার)",
+        what: "ক্যাশ (ক্যাশ-আউটের জন্য) বা ই-ফ্লোট (ক্যাশ-ইনের জন্য) ফুরিয়ে যায়।",
+        cost: "ফিরিয়ে দেওয়া প্রতিটি লেনদেনের কমিশন, আর টাকা আনতে ব্যাংকে যাওয়া।",
+      },
+      {
+        who: "ডিস্ট্রিবিউটর ও upay",
+        what: "রানার নির্দিষ্ট রুটিনে আসে; দোকান খালি হওয়ার পরেই কেবল ফোন আসে।",
+        cost: "যেখানে দরকার নেই সেখানে রানারের সময় যায়, অন্যরা অপেক্ষা করে; গ্রাহক অন্য সেবায় চলে যান।",
+      },
+    ],
+    refillTitle: "এজেন্টরা আজ কীভাবে টাকা আনেন",
+    refillPoints: [
+      "ডিস্ট্রিবিউটরের রানার, সাধারণত নির্দিষ্ট সময়ে, আর ফোন করলে।",
+      "দোকানদার নিজে কাছের ব্যাংকে যান: শুধু ব্যাংকের লেনদেনের সময়ে, শুক্র-শনিবার বা ব্যাংক ছুটির দিনে কখনো নয়। তখন দোকানে লোক কম থাকে, আর নগদ টাকা রাস্তা দিয়ে আনতে হয়। বৃহস্পতিবার সন্ধ্যায় ড্রয়ার খালি হলে রানার না এলে রবিবার পর্যন্ত খালিই থাকে।",
+      "কোনোটাই সামনে তাকিয়ে চলে না। যোগান পূর্বাভাস যোগ করে, আর এর মূল্যায়নে রানারের ভিজিট ও এজেন্টের নিজের ব্যাংক যাত্রা দুটোই গোনা হয়।",
+    ],
+    problemMore: "বাংলাদেশ ব্যাংকের তথ্য থেকে সমস্যার আকার, আর upay-এর নিজের লগে কীভাবে মাপা হবে",
     stepsTitle: "তথ্য থেকে সিদ্ধান্ত",
     steps: [
       {

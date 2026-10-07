@@ -72,6 +72,13 @@
      "n": 10,
      "sign": "lower"
     },
+    "self_refills": {
+     "high": 7.2,
+     "low": 2.2,
+     "mean": 4.7,
+     "n": 10,
+     "sign": "higher"
+    },
     "total_cost_tk": {
      "high": {
       "high": -1730.5,
@@ -166,6 +173,13 @@
      "mean": -1340.0,
      "n": 10,
      "sign": "lower"
+    },
+    "self_refills": {
+     "high": 19.6,
+     "low": -8.8,
+     "mean": 5.4,
+     "n": 10,
+     "sign": "no significant difference"
     },
     "total_cost_tk": {
      "high": {
@@ -264,6 +278,13 @@
      "n": 10,
      "sign": "no significant difference"
     },
+    "self_refills": {
+     "high": 22.0,
+     "low": 3.4,
+     "mean": 12.7,
+     "n": 10,
+     "sign": "higher"
+    },
     "total_cost_tk": {
      "high": {
       "high": -3857.5,
@@ -358,6 +379,13 @@
      "mean": -104.9,
      "n": 10,
      "sign": "no significant difference"
+    },
+    "self_refills": {
+     "high": -21.4,
+     "low": -64.6,
+     "mean": -43.0,
+     "n": 10,
+     "sign": "lower"
     },
     "total_cost_tk": {
      "high": {
@@ -719,6 +747,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": -63.1,
+       "low": -96.7,
+       "mean": -79.9,
+       "n": 10,
+       "sign": "lower"
+      },
       "total_cost_tk": {
        "high": {
         "high": -9493.8,
@@ -811,6 +846,13 @@
        "high": -1957.6,
        "low": -2435.8,
        "mean": -2196.7,
+       "n": 10,
+       "sign": "lower"
+      },
+      "self_refills": {
+       "high": -193.1,
+       "low": -240.1,
+       "mean": -216.6,
        "n": 10,
        "sign": "lower"
       },
@@ -911,6 +953,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 1.1,
+       "low": -16.7,
+       "mean": -7.8,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -6739.5,
@@ -1005,6 +1054,13 @@
        "mean": -1816.5,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 14.2,
+       "low": -37.8,
+       "mean": -11.8,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -1103,6 +1159,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": -3.3,
+       "low": -25.1,
+       "mean": -14.2,
+       "n": 10,
+       "sign": "lower"
+      },
       "total_cost_tk": {
        "high": {
         "high": -3194.6,
@@ -1197,6 +1260,13 @@
        "mean": -2183.1,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 13.4,
+       "low": -41.2,
+       "mean": -13.9,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -1297,6 +1367,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": -53.1,
+       "low": -87.5,
+       "mean": -70.3,
+       "n": 10,
+       "sign": "lower"
+      },
       "total_cost_tk": {
        "high": {
         "high": -91912.9,
@@ -1389,6 +1466,13 @@
        "high": -996.3,
        "low": -1352.6,
        "mean": -1174.4,
+       "n": 10,
+       "sign": "lower"
+      },
+      "self_refills": {
+       "high": -178.0,
+       "low": -218.8,
+       "mean": -198.4,
        "n": 10,
        "sign": "lower"
       },
@@ -1489,6 +1573,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 15.9,
+       "low": -12.3,
+       "mean": 1.8,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -26025.3,
@@ -1583,6 +1674,13 @@
        "mean": -794.2,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 27.4,
+       "low": -14.6,
+       "mean": 6.4,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -1681,6 +1779,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 6.2,
+       "low": -15.4,
+       "mean": -4.6,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -20854.1,
@@ -1775,6 +1880,13 @@
        "mean": -1160.8,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 19.9,
+       "low": -11.3,
+       "mean": 4.3,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -1875,6 +1987,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": -55.8,
+       "low": -87.0,
+       "mean": -71.4,
+       "n": 10,
+       "sign": "lower"
+      },
       "total_cost_tk": {
        "high": {
         "high": -24470.4,
@@ -1967,6 +2086,13 @@
        "high": -1333.8,
        "low": -2000.6,
        "mean": -1667.2,
+       "n": 10,
+       "sign": "lower"
+      },
+      "self_refills": {
+       "high": -193.1,
+       "low": -232.1,
+       "mean": -212.6,
        "n": 10,
        "sign": "lower"
       },
@@ -2067,6 +2193,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 15.2,
+       "low": -13.8,
+       "mean": 0.7,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -8645.5,
@@ -2161,6 +2294,13 @@
        "mean": -1287.0,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 12.3,
+       "low": -27.9,
+       "mean": -7.8,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -2259,6 +2399,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 1.8,
+       "low": -13.2,
+       "mean": -5.7,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -4512.4,
@@ -2353,6 +2500,13 @@
        "mean": -1653.6,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 2.4,
+       "low": -22.2,
+       "mean": -9.9,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -2453,6 +2607,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": -52.6,
+       "low": -88.6,
+       "mean": -70.6,
+       "n": 10,
+       "sign": "lower"
+      },
       "total_cost_tk": {
        "high": {
         "high": -183937.0,
@@ -2545,6 +2706,13 @@
        "high": -438.4,
        "low": -920.0,
        "mean": -679.2,
+       "n": 10,
+       "sign": "lower"
+      },
+      "self_refills": {
+       "high": -186.7,
+       "low": -224.9,
+       "mean": -205.8,
        "n": 10,
        "sign": "lower"
       },
@@ -2645,6 +2813,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 16.7,
+       "low": -13.7,
+       "mean": 1.5,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -51832.2,
@@ -2739,6 +2914,13 @@
        "mean": -299.0,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 15.0,
+       "low": -17.0,
+       "mean": -1.0,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -2837,6 +3019,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 2.1,
+       "low": -11.9,
+       "mean": -4.9,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -40876.1,
@@ -2931,6 +3120,13 @@
        "mean": -665.6,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 14.4,
+       "low": -20.6,
+       "mean": -3.1,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -3031,6 +3227,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": -54.5,
+       "low": -91.1,
+       "mean": -72.8,
+       "n": 10,
+       "sign": "lower"
+      },
       "total_cost_tk": {
        "high": {
         "high": -13374.3,
@@ -3123,6 +3326,13 @@
        "high": -1766.6,
        "low": -2307.5,
        "mean": -2037.0,
+       "n": 10,
+       "sign": "lower"
+      },
+      "self_refills": {
+       "high": -188.7,
+       "low": -222.5,
+       "mean": -205.6,
        "n": 10,
        "sign": "lower"
       },
@@ -3223,6 +3433,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 18.4,
+       "low": -19.8,
+       "mean": -0.7,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -7633.1,
@@ -3317,6 +3534,13 @@
        "mean": -1656.8,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 21.7,
+       "low": -23.3,
+       "mean": -0.8,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -3415,6 +3639,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 2.9,
+       "low": -17.1,
+       "mean": -7.1,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -3753.2,
@@ -3509,6 +3740,13 @@
        "mean": -2023.4,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 13.3,
+       "low": -19.1,
+       "mean": -2.9,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -3609,6 +3847,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": -58.4,
+       "low": -88.8,
+       "mean": -73.6,
+       "n": 10,
+       "sign": "lower"
+      },
       "total_cost_tk": {
        "high": {
         "high": -51042.8,
@@ -3701,6 +3946,13 @@
        "high": -1179.2,
        "low": -1817.8,
        "mean": -1498.5,
+       "n": 10,
+       "sign": "lower"
+      },
+      "self_refills": {
+       "high": -192.4,
+       "low": -224.2,
+       "mean": -208.3,
        "n": 10,
        "sign": "lower"
       },
@@ -3801,6 +4053,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": 14.4,
+       "low": -17.4,
+       "mean": -1.5,
+       "n": 10,
+       "sign": "no significant difference"
+      },
       "total_cost_tk": {
        "high": {
         "high": -16868.9,
@@ -3895,6 +4154,13 @@
        "mean": -1118.3,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 10.9,
+       "low": -17.9,
+       "mean": -3.5,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -3993,6 +4259,13 @@
        "n": 10,
        "sign": "lower"
       },
+      "self_refills": {
+       "high": -0.5,
+       "low": -15.3,
+       "mean": -7.9,
+       "n": 10,
+       "sign": "lower"
+      },
       "total_cost_tk": {
        "high": {
         "high": -12801.2,
@@ -4087,6 +4360,13 @@
        "mean": -1484.9,
        "n": 10,
        "sign": "lower"
+      },
+      "self_refills": {
+       "high": 6.9,
+       "low": -18.1,
+       "mean": -5.6,
+       "n": 10,
+       "sign": "no significant difference"
       },
       "total_cost_tk": {
        "high": {
@@ -8582,55 +8862,55 @@
      "fallbacks": 0,
      "filled_stops": 1295,
      "programs": 162,
-     "seconds": 8.83,
-     "solver_seconds": 0.79
+     "seconds": 9.06,
+     "solver_seconds": 0.821
     },
     "jogan@100": {
      "dropped_stops": 3,
      "fallbacks": 0,
      "filled_stops": 698,
      "programs": 162,
-     "seconds": 11.45,
-     "solver_seconds": 3.766
+     "seconds": 12.0,
+     "solver_seconds": 3.989
     },
     "jogan@20": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 976,
      "programs": 162,
-     "seconds": 10.48,
-     "solver_seconds": 1.736
+     "seconds": 9.86,
+     "solver_seconds": 1.77
     },
     "jogan@200": {
      "dropped_stops": 3,
      "fallbacks": 0,
      "filled_stops": 675,
      "programs": 162,
-     "seconds": 14.66,
-     "solver_seconds": 7.021
+     "seconds": 14.71,
+     "solver_seconds": 7.159
     },
     "jogan@5": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 1173,
      "programs": 162,
-     "seconds": 8.91,
-     "solver_seconds": 0.857
+     "seconds": 9.38,
+     "solver_seconds": 0.992
     },
     "jogan@50": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 795,
      "programs": 162,
-     "seconds": 10.51,
-     "solver_seconds": 2.769
+     "seconds": 11.02,
+     "solver_seconds": 2.953
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.27,
+     "seconds": 7.58,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -8638,8 +8918,8 @@
      "fallbacks": 0,
      "filled_stops": 937,
      "programs": 162,
-     "seconds": 9.78,
-     "solver_seconds": 1.792
+     "seconds": 9.99,
+     "solver_seconds": 1.851
     }
    },
    "1001": {
@@ -8648,55 +8928,55 @@
      "fallbacks": 0,
      "filled_stops": 1268,
      "programs": 162,
-     "seconds": 8.9,
-     "solver_seconds": 0.759
+     "seconds": 9.04,
+     "solver_seconds": 0.764
     },
     "jogan@100": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 741,
      "programs": 162,
-     "seconds": 11.57,
-     "solver_seconds": 3.96
+     "seconds": 12.09,
+     "solver_seconds": 4.213
     },
     "jogan@20": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 1070,
      "programs": 162,
-     "seconds": 9.86,
-     "solver_seconds": 1.314
+     "seconds": 9.41,
+     "solver_seconds": 1.368
     },
     "jogan@200": {
      "dropped_stops": 6,
      "fallbacks": 0,
      "filled_stops": 733,
      "programs": 162,
-     "seconds": 17.69,
-     "solver_seconds": 10.062
+     "seconds": 17.81,
+     "solver_seconds": 10.284
     },
     "jogan@5": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 1185,
      "programs": 162,
-     "seconds": 8.86,
-     "solver_seconds": 0.986
+     "seconds": 9.45,
+     "solver_seconds": 1.114
     },
     "jogan@50": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 806,
      "programs": 162,
-     "seconds": 10.09,
-     "solver_seconds": 2.36
+     "seconds": 10.57,
+     "solver_seconds": 2.533
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.43,
+     "seconds": 7.6,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -8704,8 +8984,8 @@
      "fallbacks": 0,
      "filled_stops": 995,
      "programs": 162,
-     "seconds": 9.26,
-     "solver_seconds": 1.366
+     "seconds": 9.5,
+     "solver_seconds": 1.416
     }
    },
    "1002": {
@@ -8714,55 +8994,55 @@
      "fallbacks": 0,
      "filled_stops": 1311,
      "programs": 162,
-     "seconds": 8.51,
-     "solver_seconds": 0.705
+     "seconds": 8.91,
+     "solver_seconds": 0.739
     },
     "jogan@100": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 782,
      "programs": 162,
-     "seconds": 12.21,
-     "solver_seconds": 4.478
+     "seconds": 12.35,
+     "solver_seconds": 4.661
     },
     "jogan@20": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 1078,
      "programs": 162,
-     "seconds": 9.5,
-     "solver_seconds": 1.558
+     "seconds": 9.69,
+     "solver_seconds": 1.61
     },
     "jogan@200": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 827,
      "programs": 162,
-     "seconds": 16.6,
-     "solver_seconds": 8.869
+     "seconds": 17.12,
+     "solver_seconds": 9.126
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1282,
      "programs": 162,
-     "seconds": 8.91,
-     "solver_seconds": 1.018
+     "seconds": 9.51,
+     "solver_seconds": 1.126
     },
     "jogan@50": {
      "dropped_stops": 3,
      "fallbacks": 0,
      "filled_stops": 907,
      "programs": 162,
-     "seconds": 11.11,
-     "solver_seconds": 3.271
+     "seconds": 11.3,
+     "solver_seconds": 3.362
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.56,
+     "seconds": 8.14,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -8770,8 +9050,8 @@
      "fallbacks": 0,
      "filled_stops": 1051,
      "programs": 162,
-     "seconds": 9.86,
-     "solver_seconds": 1.697
+     "seconds": 10.91,
+     "solver_seconds": 1.837
     }
    },
    "1003": {
@@ -8780,55 +9060,55 @@
      "fallbacks": 0,
      "filled_stops": 1297,
      "programs": 162,
-     "seconds": 8.77,
-     "solver_seconds": 0.824
+     "seconds": 9.51,
+     "solver_seconds": 0.916
     },
     "jogan@100": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 778,
      "programs": 162,
-     "seconds": 12.41,
-     "solver_seconds": 4.681
+     "seconds": 12.67,
+     "solver_seconds": 4.785
     },
     "jogan@20": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 1037,
      "programs": 162,
-     "seconds": 9.12,
-     "solver_seconds": 1.181
+     "seconds": 9.08,
+     "solver_seconds": 1.187
     },
     "jogan@200": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 731,
      "programs": 162,
-     "seconds": 15.48,
-     "solver_seconds": 7.789
+     "seconds": 16.0,
+     "solver_seconds": 8.13
     },
     "jogan@5": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 1168,
      "programs": 162,
-     "seconds": 8.97,
-     "solver_seconds": 1.052
+     "seconds": 9.59,
+     "solver_seconds": 1.17
     },
     "jogan@50": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 932,
      "programs": 162,
-     "seconds": 10.47,
-     "solver_seconds": 2.554
+     "seconds": 10.5,
+     "solver_seconds": 2.599
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.65,
+     "seconds": 8.34,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -8836,8 +9116,8 @@
      "fallbacks": 0,
      "filled_stops": 992,
      "programs": 162,
-     "seconds": 9.75,
-     "solver_seconds": 1.567
+     "seconds": 10.57,
+     "solver_seconds": 1.774
     }
    },
    "1004": {
@@ -8846,55 +9126,55 @@
      "fallbacks": 0,
      "filled_stops": 1334,
      "programs": 162,
-     "seconds": 8.59,
-     "solver_seconds": 0.758
+     "seconds": 8.86,
+     "solver_seconds": 0.837
     },
     "jogan@100": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 816,
      "programs": 162,
-     "seconds": 13.63,
-     "solver_seconds": 5.867
+     "seconds": 13.78,
+     "solver_seconds": 6.007
     },
     "jogan@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1115,
      "programs": 162,
-     "seconds": 9.5,
-     "solver_seconds": 1.717
+     "seconds": 9.91,
+     "solver_seconds": 1.867
     },
     "jogan@200": {
      "dropped_stops": 4,
      "fallbacks": 0,
      "filled_stops": 841,
      "programs": 162,
-     "seconds": 17.55,
-     "solver_seconds": 9.863
+     "seconds": 18.12,
+     "solver_seconds": 10.258
     },
     "jogan@5": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 1235,
      "programs": 162,
-     "seconds": 8.79,
-     "solver_seconds": 0.858
+     "seconds": 9.22,
+     "solver_seconds": 0.986
     },
     "jogan@50": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 958,
      "programs": 162,
-     "seconds": 11.52,
-     "solver_seconds": 3.717
+     "seconds": 11.88,
+     "solver_seconds": 3.851
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.37,
+     "seconds": 8.19,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -8902,8 +9182,8 @@
      "fallbacks": 0,
      "filled_stops": 1081,
      "programs": 162,
-     "seconds": 10.03,
-     "solver_seconds": 2.115
+     "seconds": 10.18,
+     "solver_seconds": 2.2
     }
    },
    "1005": {
@@ -8912,55 +9192,55 @@
      "fallbacks": 0,
      "filled_stops": 1296,
      "programs": 162,
-     "seconds": 8.62,
-     "solver_seconds": 0.692
+     "seconds": 8.89,
+     "solver_seconds": 0.748
     },
     "jogan@100": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 793,
      "programs": 162,
-     "seconds": 11.91,
-     "solver_seconds": 4.298
+     "seconds": 12.08,
+     "solver_seconds": 4.362
     },
     "jogan@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1062,
      "programs": 162,
-     "seconds": 9.47,
-     "solver_seconds": 1.654
+     "seconds": 9.79,
+     "solver_seconds": 1.754
     },
     "jogan@200": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 705,
      "programs": 162,
-     "seconds": 15.5,
-     "solver_seconds": 7.895
+     "seconds": 15.97,
+     "solver_seconds": 8.181
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1186,
      "programs": 162,
-     "seconds": 8.64,
-     "solver_seconds": 0.686
+     "seconds": 9.01,
+     "solver_seconds": 0.769
     },
     "jogan@50": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 886,
      "programs": 162,
-     "seconds": 10.34,
-     "solver_seconds": 2.534
+     "seconds": 10.41,
+     "solver_seconds": 2.523
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.35,
+     "seconds": 8.17,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -8968,8 +9248,8 @@
      "fallbacks": 0,
      "filled_stops": 992,
      "programs": 162,
-     "seconds": 9.95,
-     "solver_seconds": 1.935
+     "seconds": 9.99,
+     "solver_seconds": 1.978
     }
    },
    "1006": {
@@ -8978,55 +9258,55 @@
      "fallbacks": 0,
      "filled_stops": 1221,
      "programs": 162,
-     "seconds": 8.65,
-     "solver_seconds": 0.867
+     "seconds": 8.77,
+     "solver_seconds": 0.893
     },
     "jogan@100": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 727,
      "programs": 162,
-     "seconds": 14.05,
-     "solver_seconds": 6.355
+     "seconds": 14.67,
+     "solver_seconds": 6.692
     },
     "jogan@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1057,
      "programs": 162,
-     "seconds": 9.39,
-     "solver_seconds": 1.399
+     "seconds": 9.43,
+     "solver_seconds": 1.463
     },
     "jogan@200": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 680,
      "programs": 162,
-     "seconds": 15.63,
-     "solver_seconds": 7.965
+     "seconds": 15.86,
+     "solver_seconds": 8.185
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1172,
      "programs": 162,
-     "seconds": 8.84,
-     "solver_seconds": 0.819
+     "seconds": 9.16,
+     "solver_seconds": 0.924
     },
     "jogan@50": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 875,
      "programs": 162,
-     "seconds": 10.52,
-     "solver_seconds": 2.635
+     "seconds": 11.02,
+     "solver_seconds": 2.861
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.29,
+     "seconds": 8.0,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -9034,8 +9314,8 @@
      "fallbacks": 0,
      "filled_stops": 966,
      "programs": 162,
-     "seconds": 10.25,
-     "solver_seconds": 2.006
+     "seconds": 10.41,
+     "solver_seconds": 2.087
     }
    },
    "1007": {
@@ -9044,55 +9324,55 @@
      "fallbacks": 0,
      "filled_stops": 1273,
      "programs": 162,
-     "seconds": 8.67,
-     "solver_seconds": 0.862
+     "seconds": 8.94,
+     "solver_seconds": 0.898
     },
     "jogan@100": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 751,
      "programs": 162,
-     "seconds": 12.61,
-     "solver_seconds": 5.113
+     "seconds": 13.11,
+     "solver_seconds": 5.346
     },
     "jogan@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1048,
      "programs": 162,
-     "seconds": 9.86,
-     "solver_seconds": 2.068
+     "seconds": 10.43,
+     "solver_seconds": 2.21
     },
     "jogan@200": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 734,
      "programs": 162,
-     "seconds": 16.72,
-     "solver_seconds": 9.092
+     "seconds": 17.63,
+     "solver_seconds": 9.537
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1205,
      "programs": 162,
-     "seconds": 8.66,
-     "solver_seconds": 0.873
+     "seconds": 9.17,
+     "solver_seconds": 0.938
     },
     "jogan@50": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 864,
      "programs": 162,
-     "seconds": 11.27,
-     "solver_seconds": 3.549
+     "seconds": 11.84,
+     "solver_seconds": 3.72
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.26,
+     "seconds": 7.95,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -9100,8 +9380,8 @@
      "fallbacks": 0,
      "filled_stops": 931,
      "programs": 162,
-     "seconds": 9.98,
-     "solver_seconds": 2.069
+     "seconds": 10.35,
+     "solver_seconds": 2.165
     }
    },
    "1008": {
@@ -9110,40 +9390,40 @@
      "fallbacks": 0,
      "filled_stops": 1319,
      "programs": 162,
-     "seconds": 8.59,
-     "solver_seconds": 0.677
+     "seconds": 8.58,
+     "solver_seconds": 0.714
     },
     "jogan@100": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 782,
      "programs": 162,
-     "seconds": 11.87,
-     "solver_seconds": 4.166
+     "seconds": 12.16,
+     "solver_seconds": 4.27
     },
     "jogan@20": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 973,
      "programs": 162,
-     "seconds": 9.23,
-     "solver_seconds": 1.393
+     "seconds": 9.22,
+     "solver_seconds": 1.423
     },
     "jogan@200": {
      "dropped_stops": 4,
      "fallbacks": 0,
      "filled_stops": 648,
      "programs": 162,
-     "seconds": 15.99,
-     "solver_seconds": 8.323
+     "seconds": 17.05,
+     "solver_seconds": 9.045
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1190,
      "programs": 162,
-     "seconds": 8.93,
-     "solver_seconds": 0.941
+     "seconds": 9.25,
+     "solver_seconds": 1.01
     },
     "jogan@50": {
      "dropped_stops": 3,
@@ -9151,14 +9431,14 @@
      "filled_stops": 850,
      "programs": 162,
      "seconds": 10.69,
-     "solver_seconds": 2.864
+     "solver_seconds": 2.923
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.1,
+     "seconds": 7.72,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -9166,8 +9446,8 @@
      "fallbacks": 0,
      "filled_stops": 944,
      "programs": 162,
-     "seconds": 9.19,
-     "solver_seconds": 1.512
+     "seconds": 9.63,
+     "solver_seconds": 1.674
     }
    },
    "1009": {
@@ -9176,55 +9456,55 @@
      "fallbacks": 0,
      "filled_stops": 1399,
      "programs": 162,
-     "seconds": 8.8,
-     "solver_seconds": 0.818
+     "seconds": 9.26,
+     "solver_seconds": 0.844
     },
     "jogan@100": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 835,
      "programs": 162,
-     "seconds": 14.03,
-     "solver_seconds": 6.489
+     "seconds": 15.25,
+     "solver_seconds": 7.106
     },
     "jogan@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1118,
      "programs": 162,
-     "seconds": 10.0,
-     "solver_seconds": 2.202
+     "seconds": 10.28,
+     "solver_seconds": 2.233
     },
     "jogan@200": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 817,
      "programs": 162,
-     "seconds": 20.17,
-     "solver_seconds": 12.473
+     "seconds": 21.34,
+     "solver_seconds": 13.05
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1293,
      "programs": 162,
-     "seconds": 9.72,
-     "solver_seconds": 1.863
+     "seconds": 9.93,
+     "solver_seconds": 1.901
     },
     "jogan@50": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 928,
      "programs": 162,
-     "seconds": 12.77,
-     "solver_seconds": 5.027
+     "seconds": 13.27,
+     "solver_seconds": 5.137
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 6.68,
+     "seconds": 7.68,
      "solver_seconds": 0.0
     },
     "jogan_two_sided@20": {
@@ -9232,8 +9512,8 @@
      "fallbacks": 0,
      "filled_stops": 1043,
      "programs": 162,
-     "seconds": 9.71,
-     "solver_seconds": 2.504
+     "seconds": 10.42,
+     "solver_seconds": 2.662
     }
    }
   },
@@ -9246,47 +9526,47 @@
    200.0
   ],
   "profile": "full",
-  "runtime_s": 1018.0,
+  "runtime_s": 1451.7,
   "seed_runtime_s": {
    "1000": {
-    "forecast_s": 117.5,
-    "total_s": 206.7
+    "forecast_s": 160.1,
+    "total_s": 250.7
    },
    "1001": {
-    "forecast_s": 119.4,
-    "total_s": 210.1
+    "forecast_s": 160.6,
+    "total_s": 253.0
    },
    "1002": {
-    "forecast_s": 109.5,
-    "total_s": 201.3
+    "forecast_s": 196.9,
+    "total_s": 292.4
    },
    "1003": {
-    "forecast_s": 109.7,
-    "total_s": 199.3
+    "forecast_s": 198.9,
+    "total_s": 292.3
    },
    "1004": {
-    "forecast_s": 107.3,
-    "total_s": 201.6
+    "forecast_s": 205.1,
+    "total_s": 303.1
    },
    "1005": {
-    "forecast_s": 108.5,
-    "total_s": 197.1
+    "forecast_s": 208.8,
+    "total_s": 300.2
    },
    "1006": {
-    "forecast_s": 105.4,
-    "total_s": 198.1
+    "forecast_s": 196.7,
+    "total_s": 291.4
    },
    "1007": {
-    "forecast_s": 108.5,
-    "total_s": 200.4
+    "forecast_s": 200.0,
+    "total_s": 296.4
    },
    "1008": {
-    "forecast_s": 104.6,
-    "total_s": 194.6
+    "forecast_s": 199.7,
+    "total_s": 292.5
    },
    "1009": {
-    "forecast_s": 107.6,
-    "total_s": 206.8
+    "forecast_s": 203.2,
+    "total_s": 308.0
    }
   },
   "seeds": [
@@ -9393,6 +9673,13 @@
     "n": 10,
     "sign": "lower"
    },
+   "self_refills": {
+    "high": 1.1,
+    "low": -32.1,
+    "mean": -15.5,
+    "n": 10,
+    "sign": "no significant difference"
+   },
    "total_cost_tk": {
     "high": {
      "high": 53891.8,
@@ -9488,6 +9775,13 @@
     "n": 10,
     "sign": "lower"
    },
+   "self_refills": {
+    "high": -40.1,
+    "low": -84.5,
+    "mean": -62.3,
+    "n": 10,
+    "sign": "lower"
+   },
    "total_cost_tk": {
     "high": {
      "high": 102591.4,
@@ -9516,6 +9810,12 @@
  "policies": {
   "fixed_round": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5231,
+     "low": 0.5147,
+     "mean": 0.5189,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18446.7,
@@ -9568,10 +9868,22 @@
      "mean": 13735.1,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 28717835.0,
+     "low": 27702805.0,
+     "mean": 28210320.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 161.459,
      "low": 153.909,
      "mean": 157.684,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 51789084.0,
+     "low": 49479156.0,
+     "mean": 50634120.0,
      "n": 10
     },
     "requests": {
@@ -9597,9 +9909,21 @@
      "low": 3431.5,
      "mean": 3462.1,
      "n": 10
+    },
+    "self_refills": {
+     "high": 435.3,
+     "low": 405.1,
+     "mean": 420.2,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4588,
+     "low": 0.4533,
+     "mean": 0.456,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 34783.7,
@@ -9652,10 +9976,22 @@
      "mean": 19376.1,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 38189218.0,
+     "low": 37144662.0,
+     "mean": 37666940.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 120.871,
      "low": 115.872,
      "mean": 118.371,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 75684229.0,
+     "low": 73338361.0,
+     "mean": 74511295.0,
      "n": 10
     },
     "requests": {
@@ -9681,11 +10017,23 @@
      "low": 6988.1,
      "mean": 7028.0,
      "n": 10
+    },
+    "self_refills": {
+     "high": 1160.3,
+     "low": 1108.7,
+     "mean": 1134.5,
+     "n": 10
     }
    }
   },
   "jogan@0": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5085,
+     "low": 0.4994,
+     "mean": 0.504,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18108.0,
@@ -9738,10 +10086,22 @@
      "mean": 12962.7,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 27149143.0,
+     "low": 26139117.0,
+     "mean": 26644130.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 152.653,
      "low": 144.98,
      "mean": 148.816,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 50211042.0,
+     "low": 48005318.0,
+     "mean": 49108180.0,
      "n": 10
     },
     "requests": {
@@ -9767,9 +10127,21 @@
      "low": 3627.6,
      "mean": 3644.5,
      "n": 10
+    },
+    "self_refills": {
+     "high": 355.7,
+     "low": 324.9,
+     "mean": 340.3,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4404,
+     "low": 0.4312,
+     "mean": 0.4358,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 33887.2,
@@ -9822,10 +10194,22 @@
      "mean": 17980.5,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 35692378.0,
+     "low": 34628982.0,
+     "mean": 35160680.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 112.537,
      "low": 107.144,
      "mean": 109.841,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 73022246.0,
+     "low": 70417724.0,
+     "mean": 71719985.0,
      "n": 10
     },
     "requests": {
@@ -9851,11 +10235,23 @@
      "low": 7435.4,
      "mean": 7474.7,
      "n": 10
+    },
+    "self_refills": {
+     "high": 955.6,
+     "low": 880.2,
+     "mean": 917.9,
+     "n": 10
     }
    }
   },
   "jogan@100": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5088,
+     "low": 0.4986,
+     "mean": 0.5037,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18087.3,
@@ -9908,10 +10304,22 @@
      "mean": 12803.1,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 26727616.0,
+     "low": 25670764.0,
+     "mean": 26199190.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 150.962,
      "low": 142.997,
      "mean": 146.979,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 49800114.0,
+     "low": 47565536.0,
+     "mean": 48682825.0,
      "n": 10
     },
     "requests": {
@@ -9937,9 +10345,21 @@
      "low": 3640.1,
      "mean": 3674.4,
      "n": 10
+    },
+    "self_refills": {
+     "high": 361.4,
+     "low": 338.4,
+     "mean": 349.9,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4385,
+     "low": 0.4294,
+     "mean": 0.434,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 33851.0,
@@ -9992,10 +10412,22 @@
      "mean": 17747.8,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 34943674.0,
+     "low": 33738746.0,
+     "mean": 34341210.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 111.142,
      "low": 105.691,
      "mean": 108.416,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 72455479.0,
+     "low": 69797131.0,
+     "mean": 71126305.0,
      "n": 10
     },
     "requests": {
@@ -10021,11 +10453,23 @@
      "low": 7550.9,
      "mean": 7600.3,
      "n": 10
+    },
+    "self_refills": {
+     "high": 960.2,
+     "low": 912.0,
+     "mean": 936.1,
+     "n": 10
     }
    }
   },
   "jogan@20": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5083,
+     "low": 0.4997,
+     "mean": 0.504,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18075.9,
@@ -10078,10 +10522,22 @@
      "mean": 12870.1,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 26882363.0,
+     "low": 25860917.0,
+     "mean": 26371640.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 151.655,
      "low": 143.853,
      "mean": 147.754,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 49963634.0,
+     "low": 47725806.0,
+     "mean": 48844720.0,
      "n": 10
     },
     "requests": {
@@ -10107,9 +10563,21 @@
      "low": 3618.3,
      "mean": 3651.3,
      "n": 10
+    },
+    "self_refills": {
+     "high": 358.3,
+     "low": 339.3,
+     "mean": 348.8,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4392,
+     "low": 0.4306,
+     "mean": 0.4349,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 33836.5,
@@ -10162,10 +10630,22 @@
      "mean": 17819.5,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 35170306.0,
+     "low": 34096124.0,
+     "mean": 34633215.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 111.616,
      "low": 106.104,
      "mean": 108.86,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 72649092.0,
+     "low": 69958478.0,
+     "mean": 71303785.0,
      "n": 10
     },
     "requests": {
@@ -10191,11 +10671,23 @@
      "low": 7493.3,
      "mean": 7540.7,
      "n": 10
+    },
+    "self_refills": {
+     "high": 949.6,
+     "low": 894.2,
+     "mean": 921.9,
+     "n": 10
     }
    }
   },
   "jogan@200": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5058,
+     "low": 0.498,
+     "mean": 0.5019,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18075.3,
@@ -10248,10 +10740,22 @@
      "mean": 12777.7,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 26661871.0,
+     "low": 25679499.0,
+     "mean": 26170685.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 150.551,
      "low": 142.833,
      "mean": 146.692,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 49860243.0,
+     "low": 47579497.0,
+     "mean": 48719870.0,
      "n": 10
     },
     "requests": {
@@ -10277,9 +10781,21 @@
      "low": 3639.4,
      "mean": 3671.6,
      "n": 10
+    },
+    "self_refills": {
+     "high": 360.1,
+     "low": 339.1,
+     "mean": 349.6,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4378,
+     "low": 0.43,
+     "mean": 0.4339,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 33842.0,
@@ -10332,10 +10848,22 @@
      "mean": 17724.1,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 34864931.0,
+     "low": 33756719.0,
+     "mean": 34310825.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 110.966,
      "low": 105.587,
      "mean": 108.277,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 72566159.0,
+     "low": 69978781.0,
+     "mean": 71272470.0,
      "n": 10
     },
     "requests": {
@@ -10361,11 +10889,23 @@
      "low": 7530.5,
      "mean": 7582.4,
      "n": 10
+    },
+    "self_refills": {
+     "high": 956.1,
+     "low": 901.3,
+     "mean": 928.7,
+     "n": 10
     }
    }
   },
   "jogan@5": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5078,
+     "low": 0.4981,
+     "mean": 0.5029,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18093.6,
@@ -10418,10 +10958,22 @@
      "mean": 12866.1,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 26929153.0,
+     "low": 25921287.0,
+     "mean": 26425220.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 151.608,
      "low": 143.795,
      "mean": 147.701,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 49937421.0,
+     "low": 47720689.0,
+     "mean": 48829055.0,
      "n": 10
     },
     "requests": {
@@ -10447,9 +10999,21 @@
      "low": 3625.4,
      "mean": 3648.3,
      "n": 10
+    },
+    "self_refills": {
+     "high": 361.0,
+     "low": 333.8,
+     "mean": 347.4,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4388,
+     "low": 0.4303,
+     "mean": 0.4346,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 33862.0,
@@ -10502,10 +11066,22 @@
      "mean": 17847.0,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 35325076.0,
+     "low": 34269524.0,
+     "mean": 34797300.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 111.75,
      "low": 106.296,
      "mean": 109.023,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 72567218.0,
+     "low": 69995972.0,
+     "mean": 71281595.0,
      "n": 10
     },
     "requests": {
@@ -10531,11 +11107,23 @@
      "low": 7459.8,
      "mean": 7505.5,
      "n": 10
+    },
+    "self_refills": {
+     "high": 958.6,
+     "low": 899.2,
+     "mean": 928.9,
+     "n": 10
     }
    }
   },
   "jogan@50": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5071,
+     "low": 0.4993,
+     "mean": 0.5032,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18095.5,
@@ -10588,10 +11176,22 @@
      "mean": 12786.2,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 26687842.0,
+     "low": 25747718.0,
+     "mean": 26217780.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 150.6,
      "low": 142.974,
      "mean": 146.787,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 49836262.0,
+     "low": 47582498.0,
+     "mean": 48709380.0,
      "n": 10
     },
     "requests": {
@@ -10617,9 +11217,21 @@
      "low": 3618.1,
      "mean": 3660.6,
      "n": 10
+    },
+    "self_refills": {
+     "high": 360.0,
+     "low": 333.2,
+     "mean": 346.6,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.439,
+     "low": 0.43,
+     "mean": 0.4345,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 33860.4,
@@ -10672,10 +11284,22 @@
      "mean": 17750.8,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 34974935.0,
+     "low": 33896955.0,
+     "mean": 34435945.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 111.255,
      "low": 105.625,
      "mean": 108.44,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 72650207.0,
+     "low": 69825703.0,
+     "mean": 71237955.0,
      "n": 10
     },
     "requests": {
@@ -10701,11 +11325,23 @@
      "low": 7521.6,
      "mean": 7573.2,
      "n": 10
+    },
+    "self_refills": {
+     "high": 951.0,
+     "low": 901.4,
+     "mean": 926.2,
+     "n": 10
     }
    }
   },
   "jogan_greedy@20": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5108,
+     "low": 0.5006,
+     "mean": 0.5057,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18123.5,
@@ -10758,10 +11394,22 @@
      "mean": 12917.8,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 26898870.0,
+     "low": 26022440.0,
+     "mean": 26460655.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 152.283,
      "low": 144.322,
      "mean": 148.302,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 50056887.0,
+     "low": 47740213.0,
+     "mean": 48898550.0,
      "n": 10
     },
     "requests": {
@@ -10787,9 +11435,21 @@
      "low": 3567.1,
      "mean": 3598.4,
      "n": 10
+    },
+    "self_refills": {
+     "high": 354.7,
+     "low": 333.5,
+     "mean": 344.1,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4414,
+     "low": 0.4322,
+     "mean": 0.4368,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 33931.1,
@@ -10842,10 +11502,22 @@
      "mean": 17937.6,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 35303382.0,
+     "low": 34277338.0,
+     "mean": 34790360.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 112.382,
      "low": 106.777,
      "mean": 109.58,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 72935206.0,
+     "low": 70065304.0,
+     "mean": 71500255.0,
      "n": 10
     },
     "requests": {
@@ -10871,11 +11543,23 @@
      "low": 7366.6,
      "mean": 7413.6,
      "n": 10
+    },
+    "self_refills": {
+     "high": 940.1,
+     "low": 892.9,
+     "mean": 916.5,
+     "n": 10
     }
    }
   },
   "jogan_two_sided@20": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5091,
+     "low": 0.5009,
+     "mean": 0.505,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18044.9,
@@ -10928,10 +11612,22 @@
      "mean": 13069.8,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 26993560.0,
+     "low": 25921690.0,
+     "mean": 26457625.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 153.751,
      "low": 146.341,
      "mean": 150.046,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 50421479.0,
+     "low": 48130921.0,
+     "mean": 49276200.0,
      "n": 10
     },
     "requests": {
@@ -10957,9 +11653,21 @@
      "low": 3653.8,
      "mean": 3676.4,
      "n": 10
+    },
+    "self_refills": {
+     "high": 349.6,
+     "low": 322.6,
+     "mean": 336.1,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.446,
+     "low": 0.4379,
+     "mean": 0.442,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 33878.1,
@@ -11012,10 +11720,22 @@
      "mean": 18265.6,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 35097522.0,
+     "low": 33897728.0,
+     "mean": 34497625.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 114.414,
      "low": 108.751,
      "mean": 111.583,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 73897398.0,
+     "low": 71111852.0,
+     "mean": 72504625.0,
      "n": 10
     },
     "requests": {
@@ -11041,11 +11761,23 @@
      "low": 7586.0,
      "mean": 7618.3,
      "n": 10
+    },
+    "self_refills": {
+     "high": 994.9,
+     "low": 934.9,
+     "mean": 964.9,
+     "n": 10
     }
    }
   },
   "oracle": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.4416,
+     "low": 0.4309,
+     "mean": 0.4362,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18529.6,
@@ -11098,10 +11830,22 @@
      "mean": 11222.5,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 23092416.0,
+     "low": 21942114.0,
+     "mean": 22517265.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 132.654,
      "low": 124.99,
      "mean": 128.822,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 43458373.0,
+     "low": 41030747.0,
+     "mean": 42244560.0,
      "n": 10
     },
     "requests": {
@@ -11127,9 +11871,21 @@
      "low": 3520.9,
      "mean": 3555.4,
      "n": 10
+    },
+    "self_refills": {
+     "high": 384.2,
+     "low": 344.4,
+     "mean": 364.3,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.3514,
+     "low": 0.3424,
+     "mean": 0.3469,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 34955.7,
@@ -11182,10 +11938,22 @@
      "mean": 14564.6,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 28846125.0,
+     "low": 27536245.0,
+     "mean": 28191185.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 91.479,
      "low": 86.447,
      "mean": 88.963,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 58954620.0,
+     "low": 56465240.0,
+     "mean": 57709930.0,
      "n": 10
     },
     "requests": {
@@ -11211,11 +11979,23 @@
      "low": 7225.5,
      "mean": 7291.5,
      "n": 10
+    },
+    "self_refills": {
+     "high": 1014.1,
+     "low": 954.3,
+     "mean": 984.2,
+     "n": 10
     }
    }
   },
   "safety_stock": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5132,
+     "low": 0.5046,
+     "mean": 0.5089,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18237.7,
@@ -11268,10 +12048,22 @@
      "mean": 13100.1,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 27646866.0,
+     "low": 26600204.0,
+     "mean": 27123535.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 154.116,
      "low": 146.691,
      "mean": 150.404,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 50707657.0,
+     "low": 48483573.0,
+     "mean": 49595615.0,
      "n": 10
     },
     "requests": {
@@ -11297,9 +12089,21 @@
      "low": 3587.6,
      "mean": 3623.5,
      "n": 10
+    },
+    "self_refills": {
+     "high": 367.3,
+     "low": 328.9,
+     "mean": 348.1,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4452,
+     "low": 0.437,
+     "mean": 0.4411,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 34283.5,
@@ -11352,10 +12156,22 @@
      "mean": 18245.5,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 36707521.0,
+     "low": 35461669.0,
+     "mean": 36084595.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 114.26,
      "low": 108.673,
      "mean": 111.466,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 73850466.0,
+     "low": 71116834.0,
+     "mean": 72483650.0,
      "n": 10
     },
     "requests": {
@@ -11381,11 +12197,23 @@
      "low": 7383.0,
      "mean": 7446.4,
      "n": 10
+    },
+    "self_refills": {
+     "high": 958.0,
+     "low": 901.4,
+     "mean": 929.7,
+     "n": 10
     }
    }
   },
   "threshold": {
    "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5139,
+     "low": 0.5047,
+     "mean": 0.5093,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 18233.2,
@@ -11438,10 +12266,22 @@
      "mean": 13038.7,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 27361764.0,
+     "low": 26409536.0,
+     "mean": 26885650.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 153.678,
      "low": 145.704,
      "mean": 149.691,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 50437986.0,
+     "low": 48268904.0,
+     "mean": 49353445.0,
      "n": 10
     },
     "requests": {
@@ -11467,9 +12307,21 @@
      "low": 3310.4,
      "mean": 3350.2,
      "n": 10
+    },
+    "self_refills": {
+     "high": 365.5,
+     "low": 343.5,
+     "mean": 354.5,
+     "n": 10
     }
    },
    "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4467,
+     "low": 0.4385,
+     "mean": 0.4426,
+     "n": 10
+    },
     "cost_tk": {
      "idle_liquidity": {
       "high": 34334.1,
@@ -11522,10 +12374,22 @@
      "mean": 18187.6,
      "n": 10
     },
+    "lost_cash_out_tk": {
+     "high": 36311654.0,
+     "low": 35209796.0,
+     "mean": 35760725.0,
+     "n": 10
+    },
     "lost_per_1000": {
      "high": 113.798,
      "low": 108.415,
      "mean": 111.106,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 73479991.0,
+     "low": 70984479.0,
+     "mean": 72232235.0,
      "n": 10
     },
     "requests": {
@@ -11550,6 +12414,12 @@
      "high": 6801.8,
      "low": 6691.0,
      "mean": 6746.4,
+     "n": 10
+    },
+    "self_refills": {
+     "high": 958.7,
+     "low": 904.9,
+     "mean": 931.8,
      "n": 10
     }
    }

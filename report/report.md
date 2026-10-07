@@ -33,6 +33,20 @@ In the format of the Student Guideline (§10):
 
 > **For** upay's liquidity-operations analysts and distributor managers, rebalancing of agents' physical cash and e-float on **fixed rounds and calls**, not on a forecast, **causes** agent stock-outs that turn customers away, costing transactions, agent commission and trust, most of all before Eid. **We will build** Jogan, an AI copilot that **uses** agents' transaction and balance histories **to** forecast each agent's liquidity pressure for the next 6–24 hours and recommend human-approved runner dispatches. **Success is measured by** failed customer requests, known cost and the break-even value of a lost customer versus fixed-round (status quo), threshold and safety-stock policies in a seeded operations simulation.
 
+**How big.** Bangladesh Bank publishes what agents served each month, not how many customers they turned away, so we size the problem for a range of turned-away rates. Measuring the real rate on upay's own logs is step 0 of the validation plan (§8.2):
+
+<!-- numbers:sizing -->
+Agents served 52.0 crore cash-out and cash-in requests worth ৳89,672 crore in July 2026, across all MFS providers, about 280 a month per agent (1,856,190 agents, February 2025). Bangladesh Bank does not publish how many were turned away for lack of cash or e-float, so each row is a rate, not a measurement:
+
+| Share of requests turned away | Customers turned away, July 2026 | Value turned away (৳) | Agent commission lost (৳) | Customers turned away, May 2026 (Eid-ul-Azha) | Value turned away (৳) |
+|---|---|---|---|---|---|
+| 1% | 52.5 lakh | 906 crore | 3.7 crore | 58.1 lakh | 1,028 crore |
+| 2% | 106.1 lakh | 1,830 crore | 7.5 crore | 117.4 lakh | 2,077 crore |
+| 5% | 273.7 lakh | 4,720 crore | 19.4 crore | 302.9 lakh | 5,356 crore |
+
+1 lakh = 100,000; 1 crore = 10 million. Commission at ৳4.10 per ৳1,000 (`configs/ops/costs.yaml`). Assumptions: turned-away rates are a sensitivity, not a measurement; a turned-away request has the month's average size; published totals are served requests only (turned away = served * r / (1 - r)); a customer who comes back later is not netted out. Sources: Bangladesh Bank MFS table 9 and agent count (`configs/calibration/bb_mfs_2026.yaml`). Written by `make sizing` to `artifacts/sizing.json`.
+<!-- /numbers -->
+
 ### 1.2 Users
 
 | Role | Need |
@@ -44,6 +58,8 @@ In the format of the Student Guideline (§10):
 ### 1.3 Today's practice
 
 A survey of Bangladeshi agents found that almost all rebalance at their shop through distributor runners who visit "usually at a predetermined time", with some distributors also rebalancing on demand [4]. Jogan's status quo is therefore a **fixed round plus calls**, not a forecast. Our hypothesis, to be validated with upay, is that refills are mostly reactive to that rhythm.
+
+The second channel is the shopkeeper's **own trip to a nearby bank**. It works only in bank transaction hours, 10:00 to 15:00 from 5 April 2026 [22], and not on the Friday–Saturday bank weekend or bank holidays; the shop is short-handed or shut while the agent is away, and the cash travels on the street. A drawer that runs dry on a Thursday evening stays dry until Sunday unless a runner comes. The simulator gives every agent this trip under every policy and counts it (§5.1).
 
 ### 1.4 Contributions
 
@@ -211,6 +227,24 @@ Known cost is runner time and fuel, lost commission and idle liquidity at the mi
 _Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
 <!-- /numbers -->
 
+**How often agents run dry, what it is worth, and their own bank trips.** The simulator knows every customer turned away, what they asked for, and every time an agent went to a bank to refill:
+
+<!-- numbers:problem -->
+| Test window | Fixed round (status quo) | Threshold | Safety stock | **Jogan** |
+|---|---|---|---|---|
+| Requests turned away per 1,000 | 118.4 (115.9 to 120.9) | 111.1 (108.4 to 113.8) | 111.5 (108.7 to 114.3) | 108.9 (106.1 to 111.6) |
+| Requests turned away | 19,376 (18,935 to 19,818) | 18,188 (17,707 to 18,668) | 18,246 (17,771 to 18,720) | 17,820 (17,338 to 18,300) |
+| Agent-days with a customer turned away | 45.6% | 44.3% | 44.1% | 43.5% |
+| Value turned away (৳) | 74,511,295 | 72,232,235 | 72,483,650 | 71,303,785 |
+| of it cash-out (৳) | 37,666,940 | 35,760,725 | 36,084,595 | 34,633,215 |
+| Agent commission lost (৳) | 305,496 | 296,152 | 297,183 | 292,346 |
+| Agents' own bank trips | 1,134 (1,109 to 1,160) | 932 (905 to 959) | 930 (901 to 958) | 922 (894 to 950) |
+
+Agents' own bank trips, Jogan minus each baseline, paired by seed: Fixed round (status quo) -212.6 (-232.1 to -193.1); Threshold -9.9 (-22.2 to 2.4); Safety stock -7.8 (-27.9 to 12.3). An agent goes to a bank only on a bank-open day and in bank hours (`configs/ops/env.yaml`), so a drawer that runs dry on a Friday, a Saturday, a holiday or after the bank closes stays dry until a runner comes.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
 ### 5.2 Hypotheses
 
 The hypotheses were written in the logic chain before the evaluation ran:
@@ -354,7 +388,7 @@ Details and the threat table: [`docs/06-responsible-ai.md`](../docs/06-responsib
 
 ### 8.2 Path to product
 
-The forecast reads one documented table that upay's ledger can produce from agent-hour aggregates; storage sits behind one interface; sign-in maps to two roles. Validation would go: backtest on upay history, then shadow mode (Jogan plans, nobody acts), then a randomised pilot by distributor territory with go/no-go thresholds agreed in advance, measuring failed requests (e-float exactly from the ledger, cash through a proxy such as an agent's "could not serve" button), runner km and agent commission per group. Before a pilot: an equity floor in the optimizer, the runner's bag and arrival time in the program, a runner route view, and an LLM provider approved by upay or templates only. Details: [`docs/07-product-readiness.md`](../docs/07-product-readiness.md).
+The forecast reads one documented table that upay's ledger can produce from agent-hour aggregates; storage sits behind one interface; sign-in maps to two roles. Validation would go: first measure the problem on upay's own logs (how often agents sit with too little cash or e-float, the requests and commission turned away in those hours with the same censoring correction the forecast uses, and agents' own bank trips, checked against a short manual tally at sample agents), then a backtest on upay history, then shadow mode (Jogan plans, nobody acts), then a randomised pilot by distributor territory with go/no-go thresholds agreed in advance, measuring failed requests (e-float exactly from the ledger, cash through a proxy such as an agent's "could not serve" button), runner km and agent commission per group. Before a pilot: an equity floor in the optimizer, the runner's bag and arrival time in the program, a runner route view, and an LLM provider approved by upay or templates only. Details: [`docs/07-product-readiness.md`](../docs/07-product-readiness.md).
 
 ## 9. Conclusion
 
@@ -387,6 +421,7 @@ Jogan was built with Claude Code (Claude Opus 5.5) under the team's review; comm
 19. F. T. Liu, K. M. Ting and Z.-H. Zhou, "Isolation forest", *IEEE ICDM*, 2008.
 20. E. C. Fieller, "Some problems in interval estimation", *Journal of the Royal Statistical Society B* 16(2), 175–185, 1954.
 21. Bangladesh Labour Act 2006, Chapter IX (working hours, wages). <https://www.lawyersnjurists.com/article/the-bangladesh-labour-act-2006-chapter-ix/>; wage timing (s.123): The Daily Star <https://www.thedailystar.net/law-our-rights/news/the-entitlements-the-workers-relating-wages-1890601>
+22. Bank transaction hours 10:00–15:00 from 5 April 2026: Dhaka Tribune <https://www.dhakatribune.com/business/banks/406921/bb-reschedules-bank-transaction-hours>
 
 ## Appendix: reproducing the results
 
@@ -398,5 +433,5 @@ make docs     # the numbers in this report
 ```
 
 <!-- numbers:runtime -->
-`make eval` took 17 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
+`make eval` took 24 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
 <!-- /numbers -->

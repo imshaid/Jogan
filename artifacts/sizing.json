@@ -1,0 +1,99 @@
+{
+ "agents": {
+  "as_of": "2025-02",
+  "count": 1856190
+ },
+ "by_month": {
+  "2026-05": {
+   "by_rate": {
+    "0.01": {
+     "agent_commission_tk": 42145896,
+     "cash_out_requests": 3553166,
+     "cash_out_tk": 5140436364,
+     "requests": 5813023,
+     "tk": 10279486869
+    },
+    "0.02": {
+     "agent_commission_tk": 85151913,
+     "cash_out_requests": 7178845,
+     "cash_out_tk": 10385779592,
+     "requests": 11744680,
+     "tk": 20768759184
+    },
+    "0.05": {
+     "agent_commission_tk": 219602301,
+     "cash_out_requests": 18513863,
+     "cash_out_tk": 26784378947,
+     "requests": 30288912,
+     "tk": 53561536842
+    }
+   },
+   "served": {
+    "cash_out_requests": 351763403,
+    "cash_out_tk": 508903200000.0,
+    "requests": 575489323,
+    "tk": 1017669200000.0
+   }
+  },
+  "2026-07": {
+   "by_rate": {
+    "0.01": {
+     "agent_commission_tk": 37136748,
+     "cash_out_requests": 3117640,
+     "cash_out_tk": 4236516162,
+     "requests": 5252778,
+     "tk": 9057743434
+    },
+    "0.02": {
+     "agent_commission_tk": 75031389,
+     "cash_out_requests": 6298906,
+     "cash_out_tk": 8559491837,
+     "requests": 10612755,
+     "tk": 18300338776
+    },
+    "0.05": {
+     "agent_commission_tk": 193502003,
+     "cash_out_requests": 16244546,
+     "cash_out_tk": 22074478947,
+     "requests": 27369737,
+     "tk": 47195610526
+    }
+   },
+   "served": {
+    "cash_out_requests": 308646376,
+    "cash_out_tk": 419415100000.0,
+    "requests": 520025003,
+    "tk": 896716600000.0
+   }
+  }
+ },
+ "commission_per_1000_tk": {
+  "CI": 4.1,
+  "CO": 4.1
+ },
+ "meta": {
+  "assumptions": [
+   "turned-away rates are a sensitivity, not a measurement",
+   "a turned-away request has the month's average size",
+   "published totals are served requests only (turned away = served * r / (1 - r))",
+   "a customer who comes back later is not netted out"
+  ],
+  "generated_by": "make sizing (python -m jogan.eval.sizing)",
+  "sources": {
+   "agents": "https://www.bb.org.bd/en/index.php/financialactivity/mfsdata",
+   "commission": "configs/ops/costs.yaml",
+   "limits": "https://www.bssnews.net/business/258749",
+   "tab9": "https://www.bb.org.bd/econdata/fin_digitalfstat/tab9.pdf"
+  }
+ },
+ "months": {
+  "eid": "2026-05",
+  "reference": "2026-07"
+ },
+ "rates": [
+  0.01,
+  0.02,
+  0.05
+ ],
+ "requests_per_agent_month": 280.2
+}

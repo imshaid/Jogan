@@ -1,0 +1,10 @@
+# Size of the problem nationally, from official figures (`make sizing`, jogan/eval/sizing.py).
+# Every number is tagged SOURCE (verified, link), DERIVED (computed in code) or ASSUMPTION.
+# Agent transactions, the agent count and the months come from
+# configs/calibration/bb_mfs_2026.yaml (SOURCE, Bangladesh Bank); the agent commission from
+# configs/ops/costs.yaml (SOURCE, 2022). Nothing in those files is copied here.
+
+# Share of agent requests turned away for lack of cash or e-float. No public source reports it,
+# so the sizing is a sensitivity over these rates; measuring the real rate on upay's own logs is
+# step 0 of the pilot (docs/07-product-readiness.md).
+turned_away_rates: [0.01, 0.02, 0.05] # ASSUMPTION

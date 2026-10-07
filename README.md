@@ -17,15 +17,60 @@
 
 ## Overview
 
-**Problem.** An MFS agent's shop needs two kinds of money: **physical cash** and **e-float** (the agent's digital balance). A cash-out drains cash and fills e-float; a cash-in does the reverse. When either runs out, the agent has a **stock-out**: the customer is turned away, the agent loses commission and trust suffers. Demand is lumpy (salary days, remittance days, Eid), and a distributor's runners can visit only so many shops a day. Our working hypothesis, to be validated with upay, is that refills today are mostly a fixed round plus reaction to calls.
+**Problem.** When an MFS agent's shop runs out of cash or e-float, the customer is turned away, and today nobody sees it coming.
 
-**Solution.** Every morning Jogan:
+An agent's shop holds two kinds of money: **physical cash** and **e-float** (the agent's digital balance). A cash-out drains cash and fills e-float; a cash-in does the reverse. When one side runs dry, the agent has a **stock-out**:
 
-1. forecasts each agent's **peak drain** of cash and e-float over the next 6, 12 and 24 hours, with calibrated intervals;
-2. turns the forecast into a **stock-out chance** and a recommended top-up for the side at risk;
-3. plans the runners' visits with an optimizer that weighs lost customers against runner time, fuel and idle money;
-4. explains each visit in English and Bangla from structured evidence, and sends uncertain cases to manual review;
-5. puts the plan in a queue where a **human approver** approves or rejects each visit, with every decision in an append-only audit log.
+| Who | What goes wrong | What it costs |
+|---|---|---|
+| Customer | Comes to cash out a salary or a remittance and the drawer is empty | A wasted trip; tries another agent or another provider |
+| Agent (shopkeeper) | Runs out of cash (cash-out) or e-float (cash-in) | The commission on every request turned away, and a trip to the bank to refill |
+| Distributor and upay | Runners visit on a fixed round; a call comes only after the shop is already dry | Runner time and fuel spent on shops that did not need a visit while others wait; customers lost to other providers |
+
+**How agents refill today.** Two channels, and neither looks ahead:
+
+1. **The distributor's runner** visits the shop "usually at a predetermined time", and some distributors also come on a call. A survey of 2,800 Bangladeshi agents found that 96% rebalance this way ([ANA Bangladesh, 2014](https://www.microsave.net/wp-content/uploads/2014/11/Agent-Network-Accelerator-Bangladesh-Country-Report-2014.pdf)).
+2. **The shopkeeper's own trip to a nearby bank.** It works only in bank transaction hours, 10:00 to 15:00 ([Bangladesh Bank, from 5 Apr 2026](https://www.dhakatribune.com/business/banks/406921/bb-reschedules-bank-transaction-hours)), and never on Friday, Saturday or a bank holiday. While the agent is away the shop is short-handed or shut, and the cash travels on the street. A drawer that runs dry on a Thursday evening stays dry until Sunday unless a runner comes. Jogan's simulator models this trip for every agent, under every policy, and counts it (below).
+
+**How big it is.** Bangladesh Bank publishes what agents served each month, not how many customers they turned away. So we size the problem for a range of turned-away rates:
+
+<!-- numbers:sizing -->
+Agents served 52.0 crore cash-out and cash-in requests worth ৳89,672 crore in July 2026, across all MFS providers, about 280 a month per agent (1,856,190 agents, February 2025). Bangladesh Bank does not publish how many were turned away for lack of cash or e-float, so each row is a rate, not a measurement:
+
+| Share of requests turned away | Customers turned away, July 2026 | Value turned away (৳) | Agent commission lost (৳) | Customers turned away, May 2026 (Eid-ul-Azha) | Value turned away (৳) |
+|---|---|---|---|---|---|
+| 1% | 52.5 lakh | 906 crore | 3.7 crore | 58.1 lakh | 1,028 crore |
+| 2% | 106.1 lakh | 1,830 crore | 7.5 crore | 117.4 lakh | 2,077 crore |
+| 5% | 273.7 lakh | 4,720 crore | 19.4 crore | 302.9 lakh | 5,356 crore |
+
+1 lakh = 100,000; 1 crore = 10 million. Commission at ৳4.10 per ৳1,000 (`configs/ops/costs.yaml`). Assumptions: turned-away rates are a sensitivity, not a measurement; a turned-away request has the month's average size; published totals are served requests only (turned away = served * r / (1 - r)); a customer who comes back later is not netted out. Sources: Bangladesh Bank MFS table 9 and agent count (`configs/calibration/bb_mfs_2026.yaml`). Written by `make sizing` to `artifacts/sizing.json`.
+<!-- /numbers -->
+
+**How often, in our simulated network.** In the simulator we know every customer who was turned away, what they wanted and how often agents went to the bank themselves. Over the evaluation's test window, which includes Eid-ul-Azha:
+
+<!-- numbers:problem -->
+| Test window | Fixed round (status quo) | Threshold | Safety stock | **Jogan** |
+|---|---|---|---|---|
+| Requests turned away per 1,000 | 118.4 (115.9 to 120.9) | 111.1 (108.4 to 113.8) | 111.5 (108.7 to 114.3) | 108.9 (106.1 to 111.6) |
+| Requests turned away | 19,376 (18,935 to 19,818) | 18,188 (17,707 to 18,668) | 18,246 (17,771 to 18,720) | 17,820 (17,338 to 18,300) |
+| Agent-days with a customer turned away | 45.6% | 44.3% | 44.1% | 43.5% |
+| Value turned away (৳) | 74,511,295 | 72,232,235 | 72,483,650 | 71,303,785 |
+| of it cash-out (৳) | 37,666,940 | 35,760,725 | 36,084,595 | 34,633,215 |
+| Agent commission lost (৳) | 305,496 | 296,152 | 297,183 | 292,346 |
+| Agents' own bank trips | 1,134 (1,109 to 1,160) | 932 (905 to 959) | 930 (901 to 958) | 922 (894 to 950) |
+
+Agents' own bank trips, Jogan minus each baseline, paired by seed: Fixed round (status quo) -212.6 (-232.1 to -193.1); Threshold -9.9 (-22.2 to 2.4); Safety stock -7.8 (-27.9 to 12.3). An agent goes to a bank only on a bank-open day and in bank hours (`configs/ops/env.yaml`), so a drawer that runs dry on a Friday, a Saturday, a holiday or after the bank closes stays dry until a runner comes.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
+**Measuring it on real data.** upay's ledger records the transactions that were served, not the customer who walked away. Step 0 of our validation plan measures the real rate from data upay already holds: the hours each agent sat with too little cash or e-float, times the demand expected in those hours (the same censoring correction Jogan's forecast trains on, D-020), checked against a short manual tally at a sample of agents. See [`docs/07-product-readiness.md`](docs/07-product-readiness.md) §5.
+
+**Solution.** Jogan is a morning copilot for the distributor's liquidity desk, in three steps:
+
+1. **Predict.** For every agent, the chance of running out of cash or e-float in the next 6, 12 and 24 hours, from a calibrated forecast of the **peak drain**.
+2. **Plan.** Which shops each runner should visit today, in what order and with how much, weighing a customer turned away against runner time, fuel and idle money (newsvendor need + an optimizer per territory).
+3. **Approve.** A manager approves or rejects each visit, with the reason in English and Bangla. Uncertain cases go to manual review, and every decision lands in an append-only audit log. The AI explains; it never decides.
 
 **Purpose.** Fewer customers turned away for the same or less runner effort, with every recommendation traceable to its data, model and config version. The whole chain is measured in a simulated operations environment against three simple policies over several seeds, and the losing cases are reported next to the wins.
 
@@ -146,7 +191,7 @@ Exact versions are pinned in [`uv.lock`](uv.lock) and [`web/package-lock.json`](
 Hardware: the tests and the `tiny` and `dev` profiles are light. The heavy commands, as last run:
 
 <!-- numbers:runtime -->
-`make eval` took 17 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
+`make eval` took 24 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
 <!-- /numbers -->
 
 ## Installation and setup
@@ -196,6 +241,7 @@ make history PROFILE=dev SEED=0    # status-quo operations log
 make baselines PROFILE=dev SEED=0  # three baselines + oracle on one world
 make forecast PROFILE=dev SEED=0   # forecast backtest
 make eval                          # final comparison, seeds 1000–1009 → artifacts/metrics.json
+make sizing                        # problem size from Bangladesh Bank figures → artifacts/sizing.json
 make impact                        # impact page numbers → web/lib/impact.json
 make docs                          # numbers in README and docs ← artifacts
 make stress                        # 10,000-agent timing → artifacts/stress.json

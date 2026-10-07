@@ -5,7 +5,7 @@ UV ?= uv
 PROFILE ?= dev
 SEED ?= 0
 
-.PHONY: help setup lint format test check data history baselines forecast eval impact docs stress bundle api run test-db clean
+.PHONY: help setup lint format test check data history baselines forecast eval sizing impact docs stress bundle api run test-db clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -44,6 +44,9 @@ forecast: ## Backtest the drain forecast on the status-quo log (PROFILE, SEED; a
 
 eval: ## Final policy comparison over the evaluation seeds → artifacts/metrics.json (ARGS for dev runs)
 	$(UV) run python -m jogan.eval $(ARGS)
+
+sizing: ## Size the problem nationally from Bangladesh Bank figures → artifacts/sizing.json
+	$(UV) run python -m jogan.eval.sizing
 
 impact: ## Copy the impact page's numbers from artifacts/metrics.json → web/lib/impact.json
 	$(UV) run python -m jogan.eval.web

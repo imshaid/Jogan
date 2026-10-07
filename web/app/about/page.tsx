@@ -26,6 +26,42 @@ function AboutView() {
     <div className="space-y-6">
       <PageHeader title={a.title} subtitle={a.lead} />
 
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <Panel title={a.problemTitle}>
+            <p className="text-sm font-medium">{a.problemLead}</p>
+            <dl className="mt-3 divide-y divide-line text-sm">
+              {a.problemRows.map((r) => (
+                <div key={r.who} className="grid grid-cols-1 gap-1 py-2.5 sm:grid-cols-[9rem_1fr_1fr] sm:gap-3">
+                  <dt className="font-semibold">{r.who}</dt>
+                  <dd className="text-fg-2">
+                    <span className="eyebrow block text-fg-3">{a.problemCols.what}</span>
+                    {r.what}
+                  </dd>
+                  <dd className="text-fg-2">
+                    <span className="eyebrow block text-fg-3">{a.problemCols.cost}</span>
+                    {r.cost}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Panel>
+        </div>
+        <div className="lg:col-span-2">
+          <Panel title={a.refillTitle}>
+            <Bullets items={a.refillPoints} />
+            <a
+              href={`${REPO}#overview`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+            >
+              {a.problemMore} <ExternalLink aria-hidden className="size-3.5" />
+            </a>
+          </Panel>
+        </div>
+      </div>
+
       <section aria-labelledby="steps" className="rounded-2xl border border-line bg-tray p-1">
         <h2 id="steps" className="eyebrow px-3 py-2.5 text-fg-2">
           {a.stepsTitle}

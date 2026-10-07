@@ -7,7 +7,8 @@
     <!-- /numbers -->
 
 in ``README.md``, ``docs/*.md`` and ``report/*.md`` from ``artifacts/metrics.json`` (``make
-eval``) and ``artifacts/stress.json`` (``make stress``). Nothing is estimated here: every value is
+eval``), ``artifacts/stress.json`` (``make stress``) and ``artifacts/sizing.json`` (``make
+sizing``). Nothing is estimated here: every value is
 a copy of an artifact value, rounded for reading. Prose outside the blocks carries no result
 numbers. A test regenerates every file and compares it with the committed one, so a stale number
 fails CI.
@@ -24,6 +25,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from jogan.eval.sizing import SIZING
 from jogan.eval.web import BASELINES, METRICS, ROOT, SALARY
 
 STRESS = ROOT / "artifacts" / "stress.json"
@@ -51,6 +53,7 @@ METHODS = {
 class Sources:
     metrics: dict[str, Any]
     stress: dict[str, Any]
+    sizing: dict[str, Any]
 
     @property
     def jogan(self) -> str:
@@ -601,6 +604,99 @@ def runtime(s: Sources) -> str:
     )
 
 
+def _crore(x: float, digits: int = 0) -> str:
+    return f"{num(x / 1e7, digits)} crore"
+
+
+def _lakh(x: float, digits: int = 1) -> str:
+    return f"{num(x / 1e5, digits)} lakh"
+
+
+def _month(m: str) -> str:
+    return date.fromisoformat(f"{m}-01").strftime("%B %Y")
+
+
+def sizing(s: Sources) -> str:
+    """What each turned-away rate would mean nationally, from Bangladesh Bank's monthly totals."""
+    z = s.sizing
+    ref, eid = z["months"]["reference"], z["months"]["eid"]
+    served = z["by_month"][ref]["served"]
+    agents = z["agents"]
+    lines = [
+        f"Agents served {_crore(served['requests'], 1)} cash-out and cash-in requests worth "
+        f"৳{_crore(served['tk'])} in {_month(ref)}, across all MFS providers, about "
+        f"{num(z['requests_per_agent_month'])} a month per agent ({num(agents['count'])} agents, "
+        f"{_month(agents['as_of'])}). Bangladesh Bank does not publish how many were turned away "
+        "for lack of cash or e-float, so each row is a rate, not a measurement:",
+        "",
+    ]
+    header = [
+        "Share of requests turned away",
+        f"Customers turned away, {_month(ref)}",
+        "Value turned away (৳)",
+        "Agent commission lost (৳)",
+        f"Customers turned away, {_month(eid)} (Eid-ul-Azha)",
+        "Value turned away (৳)",
+    ]
+    rows = []
+    for r in z["rates"]:
+        a, b = (z["by_month"][m]["by_rate"][f"{r:g}"] for m in (ref, eid))
+        rows.append(
+            [
+                pct(r),
+                _lakh(a["requests"]),
+                _crore(a["tk"]),
+                _crore(a["agent_commission_tk"], 1),
+                _lakh(b["requests"]),
+                _crore(b["tk"]),
+            ]
+        )
+    co = z["commission_per_1000_tk"]["CO"]
+    notes = [
+        "",
+        f"1 lakh = 100,000; 1 crore = 10 million. Commission at ৳{co:.2f} per ৳1,000 "
+        "(`configs/ops/costs.yaml`). Assumptions: " + "; ".join(z["meta"]["assumptions"]) + ". "
+        "Sources: Bangladesh Bank MFS table 9 and agent count "
+        "(`configs/calibration/bb_mfs_2026.yaml`). Written by `make sizing` to "
+        "`artifacts/sizing.json`.",
+    ]
+    return "\n".join(lines + table(header, rows) + notes)
+
+
+def problem(s: Sources) -> str:
+    """How often agents run dry in the simulated network, what it costs, and own bank trips."""
+    m = s.metrics
+    names = (*BASELINES, s.jogan)
+    p = {n: m["policies"][n]["test"] for n in names}
+    metrics = [
+        ("Requests turned away per 1,000", lambda x: ci(x["lost_per_1000"], 1)),
+        ("Requests turned away", lambda x: ci(x["lost"])),
+        (
+            "Agent-days with a customer turned away",
+            lambda x: pct(x["agent_days_with_loss_share"]["mean"], 1),
+        ),
+        ("Value turned away (৳)", lambda x: num(x["lost_tk"]["mean"])),
+        ("of it cash-out (৳)", lambda x: num(x["lost_cash_out_tk"]["mean"])),
+        ("Agent commission lost (৳)", lambda x: num(x["cost_tk"]["lost_commission"]["mean"])),
+        ("Agents' own bank trips", lambda x: ci(x["self_refills"])),
+    ]
+    header = ["Test window", *(NAMES.get(n, "**Jogan**") for n in names)]
+    rows = [[label, *(f(p[n]) for n in names)] for label, f in metrics]
+    versus = m["comparison"]["by_value"][_value(s)]
+    trips = {b: versus[b]["test"]["self_refills"] for b in BASELINES}
+    notes = [
+        "",
+        "Agents' own bank trips, Jogan minus each baseline, paired by seed: "
+        + "; ".join(f"{NAMES[b]} {ci(trips[b], 1)}" for b in BASELINES)
+        + ". An agent goes to a bank only on a bank-open day and in bank hours "
+        "(`configs/ops/env.yaml`), so a drawer that runs dry on a Friday, a Saturday, a holiday "
+        "or after the bank closes stays dry until a runner comes.",
+        "",
+        _scope(s),
+    ]
+    return "\n".join(table(header, rows) + notes)
+
+
 RENDERERS: dict[str, Callable[[Sources], str]] = {
     "ablations": ablations,
     "anomaly": anomaly,
@@ -616,7 +712,9 @@ RENDERERS: dict[str, Callable[[Sources], str]] = {
     "headline": headline,
     "hypotheses": hypotheses,
     "limits": limits,
+    "problem": problem,
     "runtime": runtime,
+    "sizing": sizing,
     "stress": stress,
 }
 
@@ -633,8 +731,8 @@ def fill(text: str, s: Sources) -> str:
     return BLOCK.sub(sub, text)
 
 
-def load(metrics: Path = METRICS, stress_path: Path = STRESS) -> Sources:
-    return Sources(json.loads(metrics.read_text()), json.loads(stress_path.read_text()))
+def load(metrics: Path = METRICS, stress_path: Path = STRESS, sizing: Path = SIZING) -> Sources:
+    return Sources(*(json.loads(p.read_text()) for p in (metrics, stress_path, sizing)))
 
 
 def main(argv: list[str] | None = None) -> None:

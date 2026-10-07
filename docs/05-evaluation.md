@@ -72,6 +72,24 @@ Where the known cost goes, per policy:
 Means over seeds in ৳, middle runner salary, test window.
 <!-- /numbers -->
 
+**How often agents run dry, what it is worth, and agents' own bank trips.** The simulator knows every customer turned away and what they asked for, and every time an agent went to a bank to refill. An agent goes when one side falls below a share of a typical day, after a delay, and only in bank hours on bank-open days (`configs/ops/env.yaml`, [`02-data-assumptions.md`](02-data-assumptions.md) §6). The trip happens under every policy; runners come on top of it.
+
+<!-- numbers:problem -->
+| Test window | Fixed round (status quo) | Threshold | Safety stock | **Jogan** |
+|---|---|---|---|---|
+| Requests turned away per 1,000 | 118.4 (115.9 to 120.9) | 111.1 (108.4 to 113.8) | 111.5 (108.7 to 114.3) | 108.9 (106.1 to 111.6) |
+| Requests turned away | 19,376 (18,935 to 19,818) | 18,188 (17,707 to 18,668) | 18,246 (17,771 to 18,720) | 17,820 (17,338 to 18,300) |
+| Agent-days with a customer turned away | 45.6% | 44.3% | 44.1% | 43.5% |
+| Value turned away (৳) | 74,511,295 | 72,232,235 | 72,483,650 | 71,303,785 |
+| of it cash-out (৳) | 37,666,940 | 35,760,725 | 36,084,595 | 34,633,215 |
+| Agent commission lost (৳) | 305,496 | 296,152 | 297,183 | 292,346 |
+| Agents' own bank trips | 1,134 (1,109 to 1,160) | 932 (905 to 959) | 930 (901 to 958) | 922 (894 to 950) |
+
+Agents' own bank trips, Jogan minus each baseline, paired by seed: Fixed round (status quo) -212.6 (-232.1 to -193.1); Threshold -9.9 (-22.2 to 2.4); Safety stock -7.8 (-27.9 to 12.3). An agent goes to a bank only on a bank-open day and in bank hours (`configs/ops/env.yaml`), so a drawer that runs dry on a Friday, a Saturday, a holiday or after the bank closes stays dry until a runner comes.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
 ## 3. The lost-customer value and the salary
 
 Jogan at each setting of the lost-customer value, and its total cost against each baseline when lost requests are priced at that same value:
@@ -217,7 +235,7 @@ make check    # tests fail if a copy is stale
 ```
 
 <!-- numbers:runtime -->
-`make eval` took 17 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
+`make eval` took 24 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
 <!-- /numbers -->
 
 `artifacts/metrics.json` records the config hashes and library versions it was made with (`meta`); the same commit and configs give the same numbers. Development runs (`make eval ARGS="--seeds 0 1 2 3"`) write `artifacts/eval/metrics_dev.json` instead and never overwrite the final file.

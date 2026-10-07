@@ -35,6 +35,7 @@ data/
 artifacts/*
 !artifacts/metrics.json
 !artifacts/stress.json
+!artifacts/sizing.json
 !artifacts/figures/
 *.parquet
 *.feather

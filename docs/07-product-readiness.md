@@ -6,6 +6,22 @@ Is Jogan more than a demo? This page answers the guideline's product questions (
 
 Every MFS cash-out needs physical cash at an agent's shop and every cash-in needs e-float. Agents rebalance through distributor runners on a fixed rhythm plus calls (D-016), demand peaks on paydays, remittance days and before both Eids, and a customer may cash out a large amount in one go. When a side runs dry the customer is turned away, the agent loses commission and the brand loses trust. The scale and the peaks, with sources, are in [`01-logic-chain.md`](01-logic-chain.md) §3. The problem recurs every day at every agent; the cost concentrates on a few days a year that are known in advance.
 
+Agents also refill themselves at a nearby bank, but only in bank transaction hours (10:00 to 15:00) on Sunday to Thursday, leaving the shop while they go. Jogan's environment models that trip for every agent under every policy ([`05-evaluation.md`](05-evaluation.md) §2).
+
+**How big.** Bangladesh Bank publishes what agents served each month, not how many customers were turned away, so the size is a range over turned-away rates. Step 0 below measures the real rate.
+
+<!-- numbers:sizing -->
+Agents served 52.0 crore cash-out and cash-in requests worth ৳89,672 crore in July 2026, across all MFS providers, about 280 a month per agent (1,856,190 agents, February 2025). Bangladesh Bank does not publish how many were turned away for lack of cash or e-float, so each row is a rate, not a measurement:
+
+| Share of requests turned away | Customers turned away, July 2026 | Value turned away (৳) | Agent commission lost (৳) | Customers turned away, May 2026 (Eid-ul-Azha) | Value turned away (৳) |
+|---|---|---|---|---|---|
+| 1% | 52.5 lakh | 906 crore | 3.7 crore | 58.1 lakh | 1,028 crore |
+| 2% | 106.1 lakh | 1,830 crore | 7.5 crore | 117.4 lakh | 2,077 crore |
+| 5% | 273.7 lakh | 4,720 crore | 19.4 crore | 302.9 lakh | 5,356 crore |
+
+1 lakh = 100,000; 1 crore = 10 million. Commission at ৳4.10 per ৳1,000 (`configs/ops/costs.yaml`). Assumptions: turned-away rates are a sensitivity, not a measurement; a turned-away request has the month's average size; published totals are served requests only (turned away = served * r / (1 - r)); a customer who comes back later is not netted out. Sources: Bangladesh Bank MFS table 9 and agent count (`configs/calibration/bb_mfs_2026.yaml`). Written by `make sizing` to `artifacts/sizing.json`.
+<!-- /numbers -->
+
 ## 2. AI beats simple rules (on simulated data)
 
 Jogan was compared with the status quo and two stronger rules on the same simulated customers, over seeds never used in development ([`05-evaluation.md`](05-evaluation.md)):
@@ -57,6 +73,12 @@ On real data, e-float stock-outs are exact (the balance is in upay's ledger); ca
 
 **Plan:**
 
+0. **Measure the problem first** (two weeks, before any model runs): the pre-evaluation asked for the real frequency and financial impact of liquidity failures, and this step produces them from data upay already holds:
+   - **frequency:** agent-hours with cash or e-float below one typical hour of outflow, per agent per month, by territory, setting and size, and on paydays and before Eid;
+   - **turned-away requests:** the demand expected in those hours (from the same agent's unconstrained hours) minus what was served, the censoring correction Jogan's forecast already uses (D-020);
+   - **financial impact:** turned-away value times the commission rate (agent), the same plus upay's fee share (upay), and runner km and hours per rebalance (distributor);
+   - **agents' own bank trips:** e-float bought or sold outside runner visits (how a bank trip shows in the ledger is an ASSUMPTION to confirm with upay), by hour and weekday, and the requests turned away while the bank was closed;
+   - **check:** a "could not serve" tally kept by hand for two weeks at a sample of agents, to calibrate the estimate.
 1. **Backtest on history.** Run the forecast on at least a year of upay's agent-hour aggregates (so training holds both Eids) with the same time-based splits and the same leakage test; report coverage per group and Brier score, as in the model card. A coverage failure stops here.
 2. **Shadow mode** (a few weeks, a few territories). Jogan plans every morning; nobody acts on it; distributors work as usual. Compare Jogan's predicted stock-outs with what happened (e-float exactly, cash through the proxy), and Jogan's proposed visits with the actual rounds.
 3. **Randomised pilot by distributor territory.** Pair similar territories; one of each pair uses Jogan's queue with an approver, the other keeps its rounds. Measure the primary and cost metrics per territory, with the agent-group breakdown.
@@ -96,7 +118,8 @@ Covered in [`06-responsible-ai.md`](06-responsible-ai.md): synthetic data only a
 
 | Gap | Why it matters | Next step |
 |---|---|---|
-| Real data | every result is simulated | backtest on upay history (section 5, step 1) |
+| Real data | every result is simulated | measure the problem, then backtest on upay history (section 5, steps 0 and 1) |
+| The agent's own bank trip as a planned action | the planner sends a runner or nothing; it never suggests "refill at the bank before it closes" to an agent near a bank | add the bank trip as a cheaper option in the dispatch program, priced by the agent's time away from the shop (D-031) |
 | Equity in the optimizer | H4 fails for urban agents | service floor per group (D-002 #9) |
 | Runner's bag and arrival time in the program | a visit may not fit what the runner carries, or arrive too late | add both constraints (D-021) |
 | Shared cash drawer | cash is less certain than modelled | model cash as uncertain (D-002 #11) |
