@@ -4,7 +4,7 @@ import { CheckCircle2, CircleSlash, MinusCircle, TriangleAlert, XCircle } from "
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
-import { BarIntervals, DataTable, IntervalPlot, type IntervalRow } from "@/components/charts";
+import { BarIntervals, DataTable, IntervalPlot, PairedBars, type IntervalRow } from "@/components/charts";
 import { Public } from "@/components/shell";
 import { cx, PageHeader, Panel, Provenance, Segmented, TableToggle } from "@/components/ui";
 import impact from "@/lib/impact.json";
@@ -21,6 +21,18 @@ type Metric = "lost_per_1000" | "runner_km" | "known_cost_tk";
 const POLICY_ORDER = ["fixed_round", "threshold", "safety_stock", impact.jogan, "oracle"] as const;
 const BASELINES = impact.baselines as ("fixed_round" | "threshold" | "safety_stock")[];
 const METRICS: Metric[] = ["lost_per_1000", "runner_km", "known_cost_tk"];
+
+const KPIS = [
+  "failed_requests",
+  "value_turned_away_tk",
+  "cash_out_turned_away_tk",
+  "agent_commission_lost_tk",
+  "runner_km",
+  "runner_cost_tk",
+  "agents_own_bank_trips",
+  "known_cost_tk",
+] as const;
+type Kpi = (typeof KPIS)[number];
 
 const policyKey = (p: string) => (p === impact.jogan ? "jogan" : p);
 
@@ -109,6 +121,10 @@ function ImpactView() {
           />
         </div>
       </div>
+
+      <BusinessPanel w={w} />
+
+      <EventsPanel />
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <LostByPolicy w={w} />
@@ -207,7 +223,7 @@ function DiffTile({
 }) {
   const { t } = useLang();
   return (
-    <div className="flex flex-col rounded-2xl border border-line bg-tray p-1">
+    <div className="anim-rise flex flex-col rounded-2xl border border-line bg-tray p-1">
       <div className="flex-1 rounded-xl border border-line bg-surface px-4 py-3.5 shadow-card">
         <div className="eyebrow text-fg-3">{label}</div>
         <div className={cx("num mt-2 leading-none font-semibold tracking-[-0.02em]", compact ? "text-[26px]" : "text-[34px]")}>
@@ -274,6 +290,115 @@ function VersusPanel({ w, fmt }: { w: Window; fmt: Record<Metric, (v: number) =>
             </div>
           );
         })}
+      </div>
+    </Panel>
+  );
+}
+
+// How the plan meets Bangladesh's calendar (D-035): visits a day and losses per day type, the
+// status quo against Jogan. Two charts, one measure each; a table view of both.
+const DAY_TYPES = ["eid", "pre_eid", "payday", "holiday", "bank_weekend", "ordinary"] as const;
+
+function EventsPanel() {
+  const { t, f } = useLang();
+  const e = t.impact.events;
+  const [table, setTable] = useState(false);
+  const ev = impact.events as Record<string, { days: number; policies: Record<string, Record<string, Interval>>; versus_quo: Record<string, Interval> }>;
+  const kinds = DAY_TYPES.filter((k) => k in ev);
+  const rows = (m: "visits_per_day" | "lost_per_1000") =>
+    kinds.map((k) => ({
+      key: k,
+      label: `${e.types[k]} · ${e.days(f.num(ev[k].days))}`,
+      a: ev[k].policies.fixed_round[m].mean,
+      b: ev[k].policies[impact.jogan][m].mean,
+    }));
+  const quo = t.impact.policiesShort.fixed_round;
+  return (
+    <Panel title={e.title} aside={<TableToggle open={table} onToggle={() => setTable((x) => !x)} />}>
+      <p className="mb-4 max-w-3xl text-sm text-fg-2">{e.lead}</p>
+      {table ? (
+        <DataTable
+          caption={e.title}
+          head={[e.type, e.visits, e.visitsDiff, e.lost, e.lostDiff]}
+          rows={kinds.map((k) => {
+            const p = ev[k].policies;
+            const v = ev[k].versus_quo;
+            return [
+              e.types[k],
+              `${f.num(p.fixed_round.visits_per_day.mean, 1)} / ${f.num(p[impact.jogan].visits_per_day.mean, 1)}`,
+              f.signed(v.visits_per_day.mean, 1),
+              `${f.num(p.fixed_round.lost_per_1000.mean, 1)} / ${f.num(p[impact.jogan].lost_per_1000.mean, 1)}`,
+              f.signed(v.lost_per_1000.mean, 1),
+            ];
+          })}
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div>
+            <h3 className="eyebrow mb-2 text-fg-3">{e.visits}</h3>
+            <PairedBars rows={rows("visits_per_day")} aLabel={quo} bLabel="Jogan" format={(v) => f.num(v, 0)} />
+          </div>
+          <div>
+            <h3 className="eyebrow mb-2 text-fg-3">{e.lost}</h3>
+            <PairedBars rows={rows("lost_per_1000")} aLabel={quo} bLabel="Jogan" format={(v) => f.num(v, 0)} />
+          </div>
+        </div>
+      )}
+      <p className="mt-3 text-xs text-fg-3">{e.note}</p>
+    </Panel>
+  );
+}
+
+// Business KPIs per 1,000 agents a month, Jogan minus a baseline (D-033); negative is a saving.
+function BusinessPanel({ w }: { w: Window }) {
+  const { t, f } = useLang();
+  const biz = impact.business;
+  const best = impact.fairness.best_baseline as "threshold";
+  const fmt = (k: Kpi, v: number) => (k.endsWith("_tk") ? (v > 0 ? "+" : "") + f.tk(v) : f.signed(v, 0));
+  const cell = (k: Kpi, iv: Interval) => (
+    <td className="px-4 py-2.5 align-top">
+      <div className="num font-semibold">{fmt(k, iv.mean)}</div>
+      <div className="num hidden text-xs text-fg-3 sm:block">{t.impact.interval(fmt(k, iv.low), fmt(k, iv.high))}</div>
+      <Verdict iv={iv} />
+    </td>
+  );
+  const vs = (b: "fixed_round" | "threshold") => biz.versus[b][w].kpis;
+  const saving = vs("fixed_round").known_cost_tk.per_1000_agents_month as Interval;
+  return (
+    <Panel title={t.impact.business.title} aside={<Provenance kind="evaluation" />} bodyClassName="p-0">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm sm:min-w-[34rem]">
+          <thead className="eyebrow text-left text-fg-3">
+            <tr className="border-b border-line">
+              <th scope="col" className="px-4 py-2.5 font-medium">
+                {t.impact.business.kpi}
+              </th>
+              <th scope="col" className="px-4 py-2.5 font-medium">
+                {t.impact.heroVs(t.impact.policiesShort.fixed_round)}
+              </th>
+              <th scope="col" className="px-4 py-2.5 font-medium">
+                {t.impact.heroVs(t.impact.policiesShort[best])}
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {KPIS.map((k) => (
+              <tr key={k}>
+                <th scope="row" className="px-4 py-2.5 text-left align-top font-medium">
+                  {t.impact.business.kpis[k]}
+                </th>
+                {cell(k, vs("fixed_round")[k].per_1000_agents_month as Interval)}
+                {cell(k, vs(best)[k].per_1000_agents_month as Interval)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="space-y-1.5 border-t border-line px-4 py-3 text-sm text-fg-2">
+        <p className="font-medium text-fg">
+          {t.impact.business.roi(f.tk(-saving.mean), f.tk(-saving.high), f.tk(-saving.low))}
+        </p>
+        <p className="text-xs">{t.impact.business.note(f.num(biz.agents))}</p>
       </div>
     </Panel>
   );

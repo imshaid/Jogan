@@ -161,6 +161,72 @@ body {
   overflow: hidden;
 }
 
+/* Motion (on-site polish, D-038): short, eased, and only on entry, so data never moves while it
+   is being read. The reduced-motion rule below turns all of it off. */
+@keyframes jg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes jg-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes jg-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes jg-draw {
+  from {
+    stroke-dashoffset: var(--jg-len, 1000);
+  }
+}
+@keyframes jg-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+.anim-page {
+  animation: jg-rise 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.anim-rise {
+  animation: jg-rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+.anim-grow-x {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+  animation: jg-grow-x 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+.anim-grow-y {
+  transform-origin: 50% 100%;
+  animation: jg-grow-y 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 25ms);
+}
+.anim-draw {
+  stroke-dasharray: var(--jg-len, 1000);
+  animation: jg-draw 1.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.anim-pop {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: jg-pop 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 80ms + 300ms);
+}
+.lift {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.lift:hover {
+  transform: translateY(-1px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

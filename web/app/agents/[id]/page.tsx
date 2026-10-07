@@ -21,8 +21,9 @@ import {
   StatusBadge,
   TableToggle,
 } from "@/components/ui";
+import { RISK_BANDS } from "@/lib/format";
 import type { AgentDay, AuditEntry, Recommendation, TraceStep } from "@/lib/api";
-import { useAgent, useDay, useMeta, usePlan, useTrace } from "@/lib/hooks";
+import { useAgent, useDay, useMeta, useNetwork, usePlan, useTrace } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
 
 const CASH = "#0c55a4";
@@ -263,9 +264,70 @@ function AgentView() {
             )}
             <p className="mt-3 text-xs leading-relaxed text-fg-3">{t.anomaly.note}</p>
           </Panel>
+
+          <PeerSwap id={id} day={day} />
         </div>
       </div>
     </div>
+  );
+}
+
+// Peer swap idea (on-site R5, D-035): a nearby agent at risk on the other side holds what this
+// agent lacks, so the two could swap cash for e-float directly. Advisory and not evaluated.
+const PEER_KM = 3;
+
+function PeerSwap({ id, day }: { id: string; day: string | null }) {
+  const { t, f } = useLang();
+  const network = useNetwork(day);
+  const peers = useMemo(() => {
+    const all = network.data?.plan_date === day ? network.data.agents : [];
+    const me = all.find((a) => a.agent_id === id);
+    if (!me) return null;
+    const side = me.p_stockout_cash >= me.p_stockout_efloat ? "cash" : "efloat";
+    const mine = side === "cash" ? me.p_stockout_cash : me.p_stockout_efloat;
+    if (mine < RISK_BANDS.medium) return { side, list: [] };
+    const r = Math.PI / 180;
+    const km = (a: { lat: number; lon: number }) =>
+      2 * 6371 * Math.asin(Math.sqrt(
+        Math.sin(((a.lat - me.lat) * r) / 2) ** 2 +
+          Math.cos(me.lat * r) * Math.cos(a.lat * r) * Math.sin(((a.lon - me.lon) * r) / 2) ** 2,
+      ));
+    const other = (a: (typeof all)[number]) => (side === "cash" ? a.p_stockout_efloat : a.p_stockout_cash);
+    const list = all
+      .filter((a) => a.agent_id !== id && a.territory === me.territory && other(a) >= RISK_BANDS.medium)
+      .map((a) => ({ a, km: km(a), p: other(a) }))
+      .filter((x) => x.km <= PEER_KM)
+      .sort((x, y) => x.km - y.km)
+      .slice(0, 3);
+    return { side, list };
+  }, [network.data, day, id]);
+
+  if (!peers) return null;
+  const s = t.peer;
+  return (
+    <Panel title={s.title} aside={<Provenance kind="assumption" />}>
+      {peers.list.length === 0 ? (
+        <p className="text-sm text-fg-2">{s.none(f.num(PEER_KM))}</p>
+      ) : (
+        <>
+          <p className="text-sm text-fg-2">{peers.side === "cash" ? s.leadCash : s.leadEfloat}</p>
+          <ul className="mt-2.5 space-y-2">
+            {peers.list.map(({ a, km, p }) => (
+              <li key={a.agent_id} className="flex items-center gap-3 rounded-lg border border-line bg-tray/60 px-3 py-2 text-sm">
+                <Link href={`/agents/${a.agent_id}?day=${day}`} className="mono font-semibold hover:underline">
+                  {a.agent_id}
+                </Link>
+                <span className="num text-xs text-fg-3">{f.num(km, 1)} km</span>
+                <span className="ml-auto">
+                  <RiskBadge p={p} side={peers.side === "cash" ? "efloat" : "cash"} compact />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p className="mt-3 text-xs leading-relaxed text-fg-3">{s.note}</p>
+    </Panel>
   );
 }
 

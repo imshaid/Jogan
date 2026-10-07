@@ -40,6 +40,7 @@ function AuditView() {
         }
       />
       <ErrorNotice error={audit.error} onRetry={audit.reload} />
+      {items && <Oversight items={items} />}
       <section className="rounded-2xl border border-line bg-tray p-1">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-2.5 py-1.5">
           <label className="flex items-center gap-2 text-xs text-fg-3">
@@ -157,5 +158,65 @@ function AuditRow({ entry: a }: { entry: AuditEntry }) {
         )}
       </td>
     </tr>
+  );
+}
+
+// Human-override monitoring (on-site R7, D-037): from the audit rows already loaded, the share of
+// decisions that were rejections against the review threshold in docs/06-responsible-ai.md §10.2.
+const OVERRIDE_ALERT = 0.3; // ASSUMPTION, as in the monitoring table
+
+function Oversight({ items }: { items: AuditEntry[] }) {
+  const { t, f } = useLang();
+  const o = t.audit.oversight;
+  const approved = items.filter((a) => a.action === "recommendation.approved");
+  const rejected = items.filter((a) => a.action === "recommendation.rejected").length;
+  const decided = approved.length + rejected;
+  const noted = approved.filter((a) => a.detail?.manual_review === true).length;
+  const people = new Set(items.filter((a) => a.actor_role === "approver").map((a) => a.actor)).size;
+  const published = items.filter((a) => a.action === "plan.published").length;
+  const rate = decided ? rejected / decided : 0;
+  const tiles = [
+    [o.decided, f.num(decided)],
+    [o.approved, f.num(approved.length)],
+    [o.rejected, f.num(rejected)],
+    [o.noted, f.num(noted)],
+    [o.approvers, f.num(people)],
+    [o.published, f.num(published)],
+  ];
+  return (
+    <section className="rounded-2xl border border-line bg-tray p-1" aria-labelledby="oversight">
+      <div className="flex items-center justify-between px-3 py-2.5">
+        <h2 id="oversight" className="eyebrow text-fg-2">
+          {o.title}
+        </h2>
+        <span className="text-[11px] text-fg-3">{o.scope(f.num(items.length))}</span>
+      </div>
+      <div className="rounded-xl border border-line bg-surface p-4 shadow-card">
+        <dl className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+          {tiles.map(([k, v], i) => (
+            <div key={k} className="anim-rise flex flex-col justify-between" style={{ ["--i" as string]: i }}>
+              <dt className="eyebrow text-fg-3">{k}</dt>
+              <dd className="num mt-1 text-xl font-semibold">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        {decided > 0 && (
+          <div className="mt-4">
+            <div className="flex items-baseline justify-between text-xs text-fg-2">
+              <span>{o.rate}</span>
+              <span className="num font-semibold text-fg">{f.pct(rate, 0)}</span>
+            </div>
+            <div className="relative mt-1.5 flex h-2.5 gap-[2px] overflow-hidden rounded-full" role="img" aria-label={`${o.approved} ${approved.length}, ${o.rejected} ${rejected}`}>
+              <span className="anim-grow-x h-full rounded-l-full bg-brand" style={{ width: `${(1 - rate) * 100}%` }} />
+              <span className="h-full rounded-r-full bg-line-strong" style={{ width: `${rate * 100}%` }} />
+              <span aria-hidden className="absolute inset-y-[-3px] w-[2px] bg-ink" style={{ left: `${(1 - OVERRIDE_ALERT) * 100}%` }} />
+            </div>
+            <p className="mt-2 text-xs text-fg-2">
+              {rate > OVERRIDE_ALERT ? o.over(f.pct(OVERRIDE_ALERT)) : o.under(f.pct(OVERRIDE_ALERT))}
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

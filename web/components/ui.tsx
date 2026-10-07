@@ -113,8 +113,8 @@ export function MiniBars({ values, active }: { values: number[]; active?: number
       {values.map((v, i) => (
         <span
           key={i}
-          className={cx("w-[3px] rounded-full", i === active ? "bg-ink" : "bg-line-strong")}
-          style={{ height: `${Math.max(10, (v / max) * 100)}%` }}
+          className={cx("anim-grow-y w-[3px] rounded-full", i === active ? "bg-ink" : "bg-line-strong")}
+          style={{ height: `${Math.max(10, (v / max) * 100)}%`, ["--i" as string]: i }}
         />
       ))}
     </span>
@@ -136,7 +136,7 @@ export function Stat({
   spark?: { values: number[]; active?: number };
 }) {
   return (
-    <div className="flex min-w-0 flex-col rounded-2xl border border-line bg-tray p-1">
+    <div className="anim-rise lift flex min-w-0 flex-col rounded-2xl border border-line bg-tray p-1">
       <div className="flex min-w-0 flex-1 flex-col justify-between gap-2.5 rounded-xl border border-line bg-surface px-3.5 pt-3 pb-3 shadow-card">
         <div className="eyebrow line-clamp-2 text-fg-3">{label}</div>
         <div className="flex items-end justify-between gap-2">

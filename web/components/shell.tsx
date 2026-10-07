@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   BarChart3,
+  Bike,
   ChevronRight,
   CodeXml,
   Eye,
@@ -95,6 +96,7 @@ function useNav() {
     const items: NavItem[] = [
       { href: "/", label: t.nav.network, Icon: MapIcon, keepDay: true, section: ops },
       { href: "/queue", label: t.nav.queue, Icon: ListChecks, keepDay: true, section: ops },
+      { href: "/runner", label: t.nav.runner, Icon: Bike, keepDay: true, section: ops },
       { href: "/audit", label: t.nav.audit, Icon: ScrollText, keepDay: false, section: ops },
       { href: "/impact", label: t.nav.impact, Icon: BarChart3, keepDay: false, section: ev },
       { href: "/about", label: t.nav.about, Icon: Info, keepDay: false, section: ev },
@@ -393,6 +395,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useLang();
   const [rail, toggleRail] = useRail();
   const [command, setCommand] = useState(false);
+  const pathname = usePathname();
 
   // Ctrl/⌘ K anywhere, or "/" outside a text field, opens the command menu
   useEffect(() => {
@@ -459,7 +462,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           {t.simulated}
         </div>
         <main id="main" className="mx-auto max-w-360 px-4 pt-6 pb-28 sm:px-6 lg:px-8 lg:pt-8 lg:pb-12">
-          {children}
+          <div key={pathname} className="anim-page">
+            {children}
+          </div>
         </main>
       </div>
       <Suspense fallback={null}>

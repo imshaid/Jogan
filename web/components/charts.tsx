@@ -396,6 +396,8 @@ export function BarIntervals({ rows, format }: { rows: IntervalRow[]; format: (v
               <path
                 d={`M${plotL},${cy - 9} h${bw - 4} a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h${-(bw - 4)} z`}
                 fill={color}
+                className="anim-grow-x"
+                style={{ ["--i" as string]: i }}
               />
               <line x1={sx(r.low)} x2={sx(r.high)} y1={cy} y2={cy} stroke={INK} strokeWidth={1.5} />
               <line x1={sx(r.low)} x2={sx(r.low)} y1={cy - 4} y2={cy + 4} stroke={INK} strokeWidth={1.5} />
@@ -475,6 +477,98 @@ export function DataTable({
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// Two thin bars per row, a baseline in grey and Jogan in blue, with values at the right and a
+// hover card (on-site, D-038). One measure per chart: a second measure gets its own chart.
+export const PAIR_COLORS = { a: "#bdbcb6", b: "#0c55a4" } as const;
+export type PairRow = { key: string; label: string; a: number; b: number };
+
+export function PairedBars({
+  rows,
+  aLabel,
+  bLabel,
+  format,
+}: {
+  rows: PairRow[];
+  aLabel: string;
+  bLabel: string;
+  format: (v: number) => string;
+}) {
+  const [attach, width] = useWidth();
+  const [hover, setHover] = useState<string | null>(null);
+  const rowH = 42;
+  const barH = 10;
+  const labelW = Math.min(190, Math.max(110, width * 0.36));
+  const valueW = 52;
+  const plotL = labelW + 8;
+  const plotR = Math.max(plotL + 40, width - valueW - 6);
+  const max = Math.max(1e-9, ...rows.flatMap((r) => [r.a, r.b])) * 1.04;
+  const sx = (v: number) => plotL + (Math.max(v, 0) / max) * (plotR - plotL);
+  const bar = (y: number, v: number) => {
+    const w = Math.max(5, sx(v) - plotL);
+    return `M${plotL},${y} h${w - 4} a4,4 0 0 1 4,4 v${barH - 8} a4,4 0 0 1 -4,4 h${-(w - 4)} z`;
+  };
+  const total = rows.length * rowH;
+  return (
+    <div>
+      <Legend
+        items={[
+          { name: aLabel, color: PAIR_COLORS.a, kind: "box" },
+          { name: bLabel, color: PAIR_COLORS.b, kind: "box" },
+        ]}
+      />
+      <div ref={attach} className="relative mt-2">
+        <svg width={width} height={total} viewBox={`0 0 ${width} ${total}`} className="block" aria-hidden>
+          <line x1={plotL} x2={plotL} y1={0} y2={total} stroke="#d7d6d1" />
+          {rows.map((r, i) => {
+            const y = i * rowH + (rowH - 2 * barH - 2) / 2;
+            const on = hover === r.key;
+            return (
+              <g key={r.key} onPointerEnter={() => setHover(r.key)} onPointerLeave={() => setHover(null)}>
+                <rect x={0} y={i * rowH} width={width} height={rowH} fill={on ? HOVER : "transparent"} />
+                <path d={bar(y, r.a)} fill={PAIR_COLORS.a} className="anim-grow-x" style={{ ["--i" as string]: i }} />
+                <path d={bar(y + barH + 2, r.b)} fill={PAIR_COLORS.b} className="anim-grow-x" style={{ ["--i" as string]: i + 1 }} />
+                <text x={width} y={y + barH / 2} dy="0.32em" textAnchor="end" fontSize={11} fill={AXIS_TEXT} className="num">
+                  {format(r.a)}
+                </text>
+                <text x={width} y={y + barH * 1.5 + 2} dy="0.32em" textAnchor="end" fontSize={11} fill={INK} fontWeight={700} className="num">
+                  {format(r.b)}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+        <div className="pointer-events-none absolute top-0 left-0" style={{ width: labelW }}>
+          {rows.map((r) => (
+            <div key={r.key} className="flex items-center text-xs leading-tight text-fg-2" style={{ height: rowH }}>
+              <span className="line-clamp-2">{r.label}</span>
+            </div>
+          ))}
+        </div>
+        {hover &&
+          (() => {
+            const i = rows.findIndex((x) => x.key === hover);
+            const r = rows[i];
+            return (
+              <div
+                role="status"
+                className="pointer-events-none absolute right-0 z-10 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs shadow-pop"
+                style={{ top: (i + 1) * rowH }}
+              >
+                <div className="font-medium">{r.label}</div>
+                <div className="num text-fg-2">
+                  {aLabel}: {format(r.a)}
+                </div>
+                <div className="num font-semibold">
+                  {bLabel}: {format(r.b)}
+                </div>
+              </div>
+            );
+          })()}
+      </div>
     </div>
   );
 }

@@ -68,7 +68,7 @@ function AboutView() {
         </h2>
         <ol className="grid grid-cols-1 gap-1 md:grid-cols-2 xl:grid-cols-4">
           {a.steps.map((s, i) => (
-            <li key={s.t} className="relative rounded-xl border border-line bg-surface p-4 shadow-card">
+            <li key={s.t} className="anim-rise relative rounded-xl border border-line bg-surface p-4 shadow-card" style={{ ["--i" as string]: i }}>
               <div className="flex items-center gap-2.5">
                 <span
                   className={
