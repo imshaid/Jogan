@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-07, on site (R1–R7, D-031 to D-037)._
+_Last updated: 2026-10-07, on site (R1–R7 and polish, D-031 to D-038)._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -243,6 +243,7 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - **R5 · Innovation** (D-035): `events`: visits a day and losses per 1,000 per Bangladesh day type (Eid, pre-Eid, paydays and remittances, holidays, bank weekends); peer swap idea on the agent page (labelled, not evaluated)
   - **R6 · Scale and integration** (D-036): `JoganMidday`, a 14:00 re-forecast for surprise rushes, evaluated as the variant `jogan_midday@20`; README section on scale and integration
   - **R7 · Responsible AI and security** (D-037): README section in four parts; `06-responsible-ai` gains an access-control matrix and §10 (agent-data protection, model monitoring with thresholds and actions, override and escalation, kill switch)
+  - **Polish** (D-038): motion and new charts in the web app, a human-oversight panel on the audit log; an urban value factor tried on dev seeds, no effect, reverted
   - **Checks:** `make check`, web lint, types and build
 
 ## Next

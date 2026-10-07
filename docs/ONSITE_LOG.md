@@ -105,3 +105,8 @@ New requirements from the pre-evaluation, in the order we worked on them. Each e
 - **README:** the responsible-AI section now has four clear parts: data security and privacy (no personal data by design, HTTPS, RLS, Secret Manager, keyless deploys, what the LLM may see), access control, human oversight with override and escalation, and monitoring and transparency.
 - **`06-responsible-ai`:** an access-control matrix (every action against anonymous, analyst, approver and the server, and what enforces it); a new §10 for operating a pilot: agent-data classification and protection with retention; eight model-monitoring signals with thresholds and actions; and five override and escalation steps ending in a kill switch back to fixed rounds. Report §7 summarises it.
 - **Honest scope:** what is enforced today is named with its component; the monitoring job, an escalate button and a runner role are listed as not built.
+
+## Polish and follow-up (after R7)
+
+- **Web app motion and charts** (D-038): page transitions, bars that grow from the baseline, an animated route sketch on the runner screen, the calendar-response charts on the impact page (with a table view), a business-KPI table that fits a phone, and a human-oversight panel on the audit log (decisions, approvals, rejections, notes, approvers and the override rate against its review threshold).
+- **Urban agents** (R2, R3): a per-setting value factor was tried on development seeds and did not move urban losses, so it was reverted and recorded (D-038).
