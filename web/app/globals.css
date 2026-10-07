@@ -151,6 +151,16 @@ body {
   height: 28px;
   color: var(--text-2);
 }
+.map-tip .maplibregl-popup-content {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.map-tip .maplibregl-popup-tip {
+  display: none;
+}
 .maplibregl-ctrl-attrib {
   font-size: 11px;
 }
@@ -159,6 +169,96 @@ body {
   box-shadow: 0 1px 2px rgb(17 17 19 / 0.08);
   border: 1px solid var(--line);
   overflow: hidden;
+}
+
+/* time after the shift end on the runner timelines */
+.hatch {
+  background: repeating-linear-gradient(135deg, var(--bg-sunken) 0 3px, transparent 3px 7px);
+}
+
+/* Runner route pins (HTML markers on the route map). MapLibre moves the outer element, so the
+   pop-in and the halo live on the inner button. */
+.route-pin {
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  animation: jg-pop 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 55ms + 350ms);
+}
+.route-pin__dot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--upay-blue);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font: 700 12px/1 var(--font-inter), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 1px 4px rgb(5 6 8 / 0.28);
+  transition:
+    transform 0.18s ease,
+    background-color 0.25s ease;
+}
+.route-pin:hover .route-pin__dot,
+.route-pin[data-selected] .route-pin__dot {
+  transform: scale(1.18);
+}
+.route-pin[data-selected] .route-pin__dot {
+  outline: 2px solid var(--upay-ink);
+  outline-offset: 2px;
+}
+.route-pin[data-state="next"] .route-pin__dot {
+  border-color: #fff;
+  background: var(--upay-blue);
+  color: #fff;
+}
+.route-pin[data-state="done"] .route-pin__dot {
+  border-color: var(--mark-muted);
+  background: var(--bg-sunken);
+  color: var(--text-2);
+}
+.route-pin[data-state="pending"] {
+  width: 18px;
+  height: 18px;
+}
+.route-pin[data-state="pending"] .route-pin__dot,
+.route-pin[data-state="waiting"] .route-pin__dot {
+  border: 2px dashed var(--text-2);
+  background: var(--yellow-50);
+  box-shadow: none;
+}
+.route-pin__halo {
+  position: absolute;
+  inset: 0;
+  display: none;
+  border-radius: 999px;
+  background: var(--upay-blue);
+}
+.route-pin[data-state="next"] .route-pin__halo {
+  display: block;
+  animation: jg-halo 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.route-pin--hub {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--upay-ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 2px 6px rgb(5 6 8 / 0.35);
+  animation-delay: 200ms;
 }
 
 /* Motion (on-site polish, D-038): short, eased, and only on entry, so data never moves while it
@@ -227,11 +327,183 @@ body {
   transform: translateY(-1px);
 }
 
+/* Live and transitional layer (D-039). Entry motion stays short; the only motion that repeats
+   marks something live (the status dot, the next stop, the loading bar) and is small. */
+@keyframes jg-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-sunken) 30%, #f7f7f5 50%, var(--bg-sunken) 70%);
+  background-size: 300% 100%;
+  animation: jg-shimmer 1.4s ease-in-out infinite;
+}
+
+/* a line drawn from its start: give the path pathLength="1" */
+@keyframes jg-draw-1 {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.anim-draw-1 {
+  stroke-dasharray: 1 1;
+  animation: jg-draw-1 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 120ms);
+}
+@keyframes jg-fade {
+  from {
+    opacity: 0;
+  }
+}
+.anim-fade {
+  animation: jg-fade 0.5s ease both;
+  animation-delay: calc(var(--i, 0) * 40ms + var(--d, 0ms));
+}
+
+/* blocks that rise in when scrolled into view; animations inside wait until then */
+[data-reveal] {
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+[data-reveal]:not([data-shown]) {
+  opacity: 0;
+  transform: translateY(14px);
+}
+[data-reveal]:not([data-shown]) * {
+  animation-play-state: paused !important;
+}
+
+/* a status that changed while on screen */
+@keyframes jg-badge {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+.anim-badge {
+  animation: jg-badge 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* a row whose data just changed (a decision, a refreshed value) */
+@keyframes jg-flash {
+  from {
+    background-color: var(--yellow-50);
+    box-shadow: inset 3px 0 0 var(--upay-yellow);
+  }
+}
+.anim-flash {
+  animation: jg-flash 2.4s ease-out both;
+}
+
+/* the live status dot */
+@keyframes jg-ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+.live-ping {
+  animation: jg-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* the next stop and the most urgent agents on maps */
+@keyframes jg-halo {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+.halo {
+  animation: jg-halo 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* the loading bar at the top of the page */
+@keyframes jg-progress {
+  0% {
+    transform: translateX(-100%) scaleX(0.4);
+  }
+  60% {
+    transform: translateX(20%) scaleX(0.7);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.4);
+  }
+}
+.top-progress {
+  width: 100%;
+  transform-origin: 0 50%;
+  animation: jg-progress 1.2s ease-in-out infinite;
+}
+
+@keyframes jg-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.toast-timer {
+  animation: jg-timer linear both;
+}
+
+@keyframes jg-ring {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-12deg);
+  }
+  60% {
+    transform: rotate(8deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+}
+.bell-ring {
+  transform-origin: 50% 10%;
+  animation: jg-ring 0.7s ease both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  /* looping marks stand still instead of flickering */
+  .skeleton,
+  .live-ping,
+  .halo,
+  .route-pin__halo,
+  .top-progress {
+    animation: none !important;
+  }
+  .top-progress {
+    transform: none;
+    opacity: 0.6;
   }
 }

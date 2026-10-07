@@ -5,6 +5,7 @@ import { useCallback } from "react";
 
 import { api, type Meta, type Recommendation } from "./api";
 import { mutate, useResource } from "./data";
+import { markOwnDecision } from "./live";
 import { useSession } from "./session";
 
 export const keys = {
@@ -63,6 +64,8 @@ export function useDecide() {
   const { token } = useSession();
   return useCallback(
     async (rec: Recommendation, decision: "approved" | "rejected", note?: string) => {
+      // before the call, so the activity poll never announces this decision back to its maker
+      markOwnDecision(rec.id);
       const updated = await api.decide(token!, rec.id, decision, note);
       const merged: Recommendation = {
         ...rec,

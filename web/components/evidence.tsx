@@ -6,6 +6,7 @@ import { useState } from "react";
 import { api, type Driver, type Explanation, type Recommendation, type Review } from "@/lib/api";
 import { useDecide } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
+import { toast } from "@/lib/live";
 import { useSession } from "@/lib/session";
 
 import { Button, cx, ErrorNotice, Provenance, StatusBadge } from "./ui";
@@ -35,8 +36,11 @@ export function DriverList({ drivers }: { drivers: Driver[] }) {
             <div aria-hidden className="relative mt-1.5 h-1.5 rounded-full bg-sunken">
               <span className="absolute inset-y-[-2px] left-1/2 w-px bg-line-strong" />
               <span
-                className={cx("absolute inset-y-0 rounded-full", up ? "left-1/2 bg-warn-mark" : "right-1/2 bg-brand")}
-                style={{ width: `${w}%` }}
+                className={cx(
+                  "anim-grow-x absolute inset-y-0 rounded-full",
+                  up ? "left-1/2 bg-warn-mark" : "right-1/2 bg-brand",
+                )}
+                style={{ width: `${w}%`, transformOrigin: up ? "0 50%" : "100% 50%" }}
               />
             </div>
           </li>
@@ -163,6 +167,11 @@ export function DecisionControls({
       const r = await decide(rec, decision, withNote);
       setNoteOpen(false);
       setNote("");
+      toast({
+        tone: decision === "approved" ? "ok" : "info",
+        title: decision === "approved" ? t.live.ownApproved(rec.agent_id) : t.live.ownRejected(rec.agent_id),
+        body: t.live.ownBody,
+      });
       onDecided?.(r);
     } catch (e) {
       setError(e);

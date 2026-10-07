@@ -118,7 +118,20 @@ export type Meta = {
   lost_customer_value_tk: number;
   territories: Territory[];
   days: DayCount[];
+  // null when the API's configs differ from the ones the bundle was built with (D-039)
+  runners?: RunnerSettings | null;
   simulated: true;
+};
+
+// The runner rules the served world ran under (configs/sim runners and geo, configs/ops env).
+export type RunnerSettings = {
+  shift: [number, number];
+  visit_minutes: number;
+  max_visits: number;
+  bag_capacity_tk: number;
+  bag_start_tk: number;
+  settings: Record<string, { speed_kmh: number; road_factor: number }>;
+  hubs: Record<string, { lat: number; lon: number }>;
 };
 
 export type DayCount = { date: string; visits: number; manual_review: number; anomaly_flags: number };

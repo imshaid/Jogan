@@ -4,11 +4,14 @@ import { Lock } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { Ago } from "@/components/live";
+import { Tween } from "@/components/motion";
 import { Staff } from "@/components/shell";
 import { cx, Empty, ErrorNotice, PageHeader, Segmented, Select, Skeleton, TH, THEAD } from "@/components/ui";
 import type { AuditEntry } from "@/lib/api";
 import { useAudit } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
+import { usePoll } from "@/lib/live";
 
 const LIMITS = ["50", "100", "200"] as const;
 
@@ -26,6 +29,11 @@ function AuditView() {
   const [action, setAction] = useState("all");
   const audit = useAudit(Number(limit));
   const items = audit.data?.items;
+  // live: new rows arrive every 15 s while the page is open, and flash once
+  usePoll(audit.refresh, 15_000, !!items);
+  const [baseline, setBaseline] = useState<number | null>(null);
+  if (items && baseline === null) setBaseline(items[0]?.id ?? 0);
+  const syncedAt = audit.updatedAt;
   const actions = useMemo(() => [...new Set((items ?? []).map((a) => a.action))].sort(), [items]);
   const shown = (items ?? []).filter((a) => action === "all" || a.action === action);
 
@@ -37,6 +45,17 @@ function AuditView() {
           <span className="inline-flex items-center gap-1.5">
             <Lock aria-hidden className="size-3.5" /> {t.audit.subtitle}
           </span>
+        }
+        actions={
+          syncedAt ? (
+            <span className="inline-flex items-center gap-1.5 text-xs text-fg-3">
+              <span aria-hidden className="relative flex size-2">
+                <span className="live-ping absolute inset-0 rounded-full bg-ok-text" />
+                <span className="relative size-2 rounded-full bg-ok-text" />
+              </span>
+              {t.live.live} · {t.live.synced} <Ago at={syncedAt} />
+            </span>
+          ) : null
         }
       />
       <ErrorNotice error={audit.error} onRetry={audit.reload} />
@@ -93,7 +112,7 @@ function AuditView() {
                   </tr>
                 )}
                 {shown.map((a) => (
-                  <AuditRow key={a.id} entry={a} />
+                  <AuditRow key={a.id} entry={a} fresh={baseline !== null && a.id > baseline} />
                 ))}
               </tbody>
             </table>
@@ -104,7 +123,7 @@ function AuditView() {
   );
 }
 
-function AuditRow({ entry: a }: { entry: AuditEntry }) {
+function AuditRow({ entry: a, fresh }: { entry: AuditEntry; fresh: boolean }) {
   const { t, f, lang } = useLang();
   const d = a.detail;
   const agent = typeof d.agent_id === "string" ? d.agent_id : null;
@@ -116,7 +135,7 @@ function AuditRow({ entry: a }: { entry: AuditEntry }) {
         ? ["text-fg-2", "bg-fg-3"]
         : ["text-brand", "bg-brand"];
   return (
-    <tr className="border-b border-line align-top transition-colors last:border-0 hover:bg-tray/50">
+    <tr className={cx("border-b border-line align-top transition-colors last:border-0 hover:bg-tray/50", fresh && "anim-flash")}>
       <td className="num px-4 py-2.5 text-fg-3">{a.id}</td>
       <td className="num px-3 py-2.5 whitespace-nowrap">{f.when(a.at)}</td>
       <td className="px-3 py-2.5">
@@ -176,13 +195,13 @@ function Oversight({ items }: { items: AuditEntry[] }) {
   const published = items.filter((a) => a.action === "plan.published").length;
   const rate = decided ? rejected / decided : 0;
   const tiles = [
-    [o.decided, f.num(decided)],
-    [o.approved, f.num(approved.length)],
-    [o.rejected, f.num(rejected)],
-    [o.noted, f.num(noted)],
-    [o.approvers, f.num(people)],
-    [o.published, f.num(published)],
-  ];
+    [o.decided, decided],
+    [o.approved, approved.length],
+    [o.rejected, rejected],
+    [o.noted, noted],
+    [o.approvers, people],
+    [o.published, published],
+  ] as const;
   return (
     <section className="rounded-2xl border border-line bg-tray p-1" aria-labelledby="oversight">
       <div className="flex items-center justify-between px-3 py-2.5">
@@ -196,7 +215,9 @@ function Oversight({ items }: { items: AuditEntry[] }) {
           {tiles.map(([k, v], i) => (
             <div key={k} className="anim-rise flex flex-col justify-between" style={{ ["--i" as string]: i }}>
               <dt className="eyebrow text-fg-3">{k}</dt>
-              <dd className="num mt-1 text-xl font-semibold">{v}</dd>
+              <dd className="mt-1 text-xl font-semibold">
+                <Tween value={v} format={(x) => f.num(x)} from={0} />
+              </dd>
             </div>
           ))}
         </dl>
@@ -207,8 +228,8 @@ function Oversight({ items }: { items: AuditEntry[] }) {
               <span className="num font-semibold text-fg">{f.pct(rate, 0)}</span>
             </div>
             <div className="relative mt-1.5 flex h-2.5 gap-[2px] overflow-hidden rounded-full" role="img" aria-label={`${o.approved} ${approved.length}, ${o.rejected} ${rejected}`}>
-              <span className="anim-grow-x h-full rounded-l-full bg-brand" style={{ width: `${(1 - rate) * 100}%` }} />
-              <span className="h-full rounded-r-full bg-line-strong" style={{ width: `${rate * 100}%` }} />
+              <span className="anim-grow-x h-full rounded-l-full bg-brand transition-[width] duration-700" style={{ width: `${(1 - rate) * 100}%` }} />
+              <span className="h-full rounded-r-full bg-line-strong transition-[width] duration-700" style={{ width: `${rate * 100}%` }} />
               <span aria-hidden className="absolute inset-y-[-3px] w-[2px] bg-ink" style={{ left: `${(1 - OVERRIDE_ALERT) * 100}%` }} />
             </div>
             <p className="mt-2 text-xs text-fg-2">

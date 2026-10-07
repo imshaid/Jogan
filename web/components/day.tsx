@@ -108,7 +108,7 @@ export function Timeline({ meta, day, onChange }: { meta: Meta; day: string; onC
       </header>
       <div className="rounded-xl border border-line bg-surface px-3 pt-4 pb-2 shadow-card">
         <div className="flex items-end gap-1 overflow-x-auto pb-1" role="group" aria-label={t.network.timeline}>
-          {meta.days.map((d) => {
+          {meta.days.map((d, col) => {
             const selected = d.date === day;
             const label = `${f.day(d.date)}: ${d.visits ? `${f.num(d.visits)} ${t.common.visitsShort}` : t.common.noRunners}`;
             // blocks filled bottom-up, left then right, so the top row shows the remainder
@@ -125,7 +125,7 @@ export function Timeline({ meta, day, onChange }: { meta: Meta; day: string; onC
                   selected ? "bg-brand-tint" : "hover:bg-tray",
                 )}
               >
-                <span aria-hidden className="grid grid-flow-row grid-cols-2 gap-0.5">
+                <span aria-hidden className="anim-grow-y grid grid-flow-row grid-cols-2 gap-0.5" style={{ ["--i" as string]: col }}>
                   {Array.from({ length: ROWS * 2 }, (_, k) => {
                     const row = ROWS - 1 - Math.floor(k / 2);
                     const on = row * 2 + (k % 2) < filled;
@@ -133,7 +133,7 @@ export function Timeline({ meta, day, onChange }: { meta: Meta; day: string; onC
                       <span
                         key={k}
                         className={cx(
-                          "size-1.75 rounded-[1.5px] transition-colors",
+                          "size-1.75 rounded-[1.5px] transition-colors duration-300",
                           !on ? "bg-sunken" : selected ? "bg-brand" : "bg-mark-muted group-hover:bg-fg-2",
                         )}
                       />

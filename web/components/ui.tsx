@@ -1,8 +1,10 @@
 "use client";
 
 import { AlertTriangle, Bot, Check, ChevronDown, Clock3, FileText, Flag, FlaskConical, Inbox, Sparkles, X } from "lucide-react";
+import { motion } from "motion/react";
 import {
   useEffect,
+  useId,
   useState,
   type ButtonHTMLAttributes,
   type ReactNode,
@@ -12,6 +14,8 @@ import {
 import { ApiError, type Status } from "@/lib/api";
 import { RISK_SHAPE, riskLevel, type RiskLevel } from "@/lib/format";
 import { useLang } from "@/lib/i18n";
+
+import { useReveal } from "./motion";
 
 export function cx(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(" ");
@@ -36,7 +40,7 @@ export function Button({
   return (
     <button
       className={cx(
-        "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100",
         size === "sm" ? "h-8 px-2.5 text-[13px]" : "h-9 px-3.5 text-sm",
         BUTTON[variant],
         className,
@@ -87,8 +91,9 @@ export function Panel({
   footer?: ReactNode;
   id?: string;
 }) {
+  const reveal = useReveal<HTMLElement>();
   return (
-    <section className={cx("flex flex-col rounded-2xl border border-line bg-tray p-1", className)} aria-labelledby={id}>
+    <section {...reveal} className={cx("flex flex-col rounded-2xl border border-line bg-tray p-1", className)} aria-labelledby={id}>
       {(title || aside) && (
         <header className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-3 py-1.5">
           {title && (
@@ -185,6 +190,8 @@ export function RiskBadge({ p, side, compact }: { p: number; side?: string; comp
 
 export function StatusBadge({ status }: { status: Status }) {
   const { t } = useLang();
+  // a status that changes while on screen pops once (a decision here or in another session)
+  const [initial] = useState(status);
   const style = {
     pending: "border-accent/70 bg-accent-tint text-ink",
     approved: "border-ok-text/20 bg-ok-tint text-ok-text",
@@ -193,9 +200,11 @@ export function StatusBadge({ status }: { status: Status }) {
   const Icon = { pending: Clock3, approved: Check, rejected: X }[status];
   return (
     <span
+      key={status}
       className={cx(
         "inline-flex items-center gap-1 rounded-full border py-0.5 pr-2 pl-1.5 text-xs font-semibold whitespace-nowrap",
         style,
+        status !== initial && "anim-badge",
       )}
     >
       <Icon aria-hidden className="size-3.5" strokeWidth={2.5} />
@@ -267,6 +276,8 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void;
   size?: "sm" | "md";
 }) {
+  // the white pill slides to the chosen option (one layout id per control)
+  const pill = useId();
   return (
     <div role="group" aria-label={label} className="inline-flex max-w-full overflow-x-auto rounded-lg bg-sunken p-0.5">
       {options.map((o) => (
@@ -276,14 +287,20 @@ export function Segmented<T extends string>({
           aria-pressed={value === o.value}
           onClick={() => onChange(o.value)}
           className={cx(
-            "inline-flex items-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-colors",
+            "relative inline-flex items-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-colors",
             size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-[13px]",
-            value === o.value
-              ? "bg-surface text-fg shadow-xs ring-1 ring-line"
-              : "text-fg-2 hover:text-fg",
+            value === o.value ? "text-fg" : "text-fg-2 hover:text-fg",
           )}
         >
-          {o.label}
+          {value === o.value && (
+            <motion.span
+              layoutId={pill}
+              aria-hidden
+              className="absolute inset-0 rounded-md bg-surface shadow-xs ring-1 ring-line"
+              transition={{ type: "spring", bounce: 0.18, duration: 0.4 }}
+            />
+          )}
+          <span className="relative inline-flex items-center gap-1.5">{o.label}</span>
         </button>
       ))}
     </div>
@@ -324,7 +341,7 @@ export const TH = "eyebrow px-3 py-2.5 text-left font-medium text-fg-3 whitespac
 export const THEAD = "border-b border-line bg-tray";
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden className={cx("animate-pulse rounded-lg bg-sunken", className)} />;
+  return <div aria-hidden className={cx("skeleton rounded-lg", className)} />;
 }
 
 // One way to show an API refusal. A 429 counts down its Retry-After before offering a retry.

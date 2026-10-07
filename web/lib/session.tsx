@@ -6,6 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api, supabase, type Role } from "./api";
 import { LOCAL_AUTH } from "./config";
 import { clearCache } from "./data";
+import { resetActivity } from "./live";
 
 // Who is signed in: a Supabase session, or on a local run (LOCAL_AUTH) one of the in-memory
 // API's fixed tokens, which are the role names themselves (jogan/api/app.py `from_env`).
@@ -109,6 +110,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       await supabase.auth.signOut();
     }
     clearCache();
+    resetActivity();
     setRole(null);
   }, []);
 

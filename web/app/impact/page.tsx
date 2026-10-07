@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
 import { BarIntervals, DataTable, IntervalPlot, PairedBars, type IntervalRow } from "@/components/charts";
+import { Tween } from "@/components/motion";
 import { Public } from "@/components/shell";
 import { cx, PageHeader, Panel, Provenance, Segmented, TableToggle } from "@/components/ui";
 import impact from "@/lib/impact.json";
@@ -90,7 +91,7 @@ function ImpactView() {
             <div className="eyebrow text-fg-3">{t.impact.hero}</div>
             <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="text-[56px] leading-none font-semibold tracking-[-0.03em] text-brand tabular-nums">
-                {f.signed(vsQuo.mean, 1)}
+                <Tween value={vsQuo.mean} format={(v) => f.signed(v, 1)} from={0} />
               </span>
               <span className="text-sm text-fg-2">{t.impact.heroUnit}</span>
             </div>
@@ -176,7 +177,7 @@ function HeroBars({ w }: { w: Window }) {
           <dt className={cx("truncate", r.key === "jogan" ? "font-semibold text-fg" : "text-fg-2")}>{r.label}</dt>
           <span aria-hidden className="h-2.5 rounded-full bg-sunken">
             <span
-              className={cx("block h-full rounded-full", r.key === "jogan" ? "bg-brand" : "bg-mark-muted")}
+              className={cx("anim-grow-x block h-full rounded-full transition-[width] duration-700", r.key === "jogan" ? "bg-brand" : "bg-mark-muted")}
               style={{ width: `${(r.v / max) * 100}%` }}
             />
           </span>
@@ -227,7 +228,7 @@ function DiffTile({
       <div className="flex-1 rounded-xl border border-line bg-surface px-4 py-3.5 shadow-card">
         <div className="eyebrow text-fg-3">{label}</div>
         <div className={cx("num mt-2 leading-none font-semibold tracking-[-0.02em]", compact ? "text-[26px]" : "text-[34px]")}>
-          {format(iv.mean)}
+          <Tween value={iv.mean} format={format} from={0} />
         </div>
         <div className="num mt-2 text-xs text-fg-3">{t.impact.interval(format(iv.low), format(iv.high))}</div>
       </div>

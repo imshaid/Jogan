@@ -19,6 +19,7 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
+import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -32,6 +33,7 @@ import { useLang } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 
 import { CommandDialog, type Command } from "./command";
+import { ActivityMenu, ActivitySync, LiveStatus, Toaster, TopProgress } from "./live";
 import { Button, cx, ErrorNotice, IconButton, Segmented, Skeleton } from "./ui";
 
 const REPO = "https://github.com/imshaid/Jogan";
@@ -150,20 +152,28 @@ function NavLinks() {
                       aria-current={active ? "page" : undefined}
                       title={item.label}
                       className={cx(
-                        "flex h-9 items-center gap-2.5 rounded-lg border px-2.5 text-sm transition-colors rail:justify-center rail:px-0",
-                        active
-                          ? "border-line bg-surface font-medium text-fg shadow-xs"
-                          : "border-transparent text-fg-2 hover:bg-sunken/70 hover:text-fg",
+                        "relative flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors rail:justify-center rail:px-0",
+                        active ? "font-medium text-fg" : "text-fg-2 hover:bg-sunken/70 hover:text-fg",
                       )}
                     >
+                      {active && (
+                        <motion.span
+                          layoutId="nav-active"
+                          aria-hidden
+                          className="absolute inset-0 rounded-lg border border-line bg-surface shadow-xs"
+                          transition={{ type: "spring", bounce: 0.15, duration: 0.45 }}
+                        >
+                          <span className="absolute top-2 bottom-2 -left-3 w-0.75 rounded-r-full bg-accent rail:hidden" />
+                        </motion.span>
+                      )}
                       <item.Icon
                         aria-hidden
-                        className={cx("size-4.5 shrink-0", active ? "text-brand" : "text-fg-3")}
+                        className={cx("relative size-4.5 shrink-0", active ? "text-brand" : "text-fg-3")}
                         strokeWidth={1.8}
                       />
-                      <span className="min-w-0 flex-1 truncate rail:sr-only">{item.label}</span>
+                      <span className="relative min-w-0 flex-1 truncate rail:sr-only">{item.label}</span>
                       {badge !== undefined && (
-                        <span className="num rounded-md bg-accent px-1.5 text-[11px] leading-5 font-semibold text-ink rail:hidden">
+                        <span className="num relative rounded-md bg-accent px-1.5 text-[11px] leading-5 font-semibold text-ink rail:hidden">
                           {f.num(badge)}
                           <span className="sr-only"> {t.queue.summary.pending}</span>
                         </span>
@@ -342,17 +352,25 @@ function MobileNav() {
         {nav.map((item) => {
           const active = isActive(item.href, pathname);
           return (
-            <li key={item.href} className={cx("min-w-0", active ? "flex-[2.4]" : "flex-1")}>
+            <li key={item.href} className={cx("min-w-0 transition-[flex-grow] duration-300", active ? "flex-[2.4]" : "flex-1")}>
               <Link
                 href={href(item)}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "flex h-11 items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors",
-                  active ? "bg-ink text-white" : "text-fg-2 hover:bg-sunken hover:text-fg",
+                  "relative flex h-11 items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors",
+                  active ? "text-white" : "text-fg-2 hover:bg-sunken hover:text-fg",
                 )}
               >
-                <item.Icon aria-hidden className="size-5 shrink-0" strokeWidth={1.8} />
-                <span className={active ? "truncate" : "sr-only"}>{item.label}</span>
+                {active && (
+                  <motion.span
+                    layoutId="tab-active"
+                    aria-hidden
+                    className="absolute inset-0 rounded-full bg-ink"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.45 }}
+                  />
+                )}
+                <item.Icon aria-hidden className="relative size-5 shrink-0" strokeWidth={1.8} />
+                <span className={active ? "relative truncate" : "sr-only"}>{item.label}</span>
               </Link>
             </li>
           );
@@ -393,6 +411,8 @@ function CommandLayer({ open, setOpen, rail, toggleRail }: { open: boolean; setO
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useLang();
+  const { session, role } = useSession();
+  const staff = !!session && !!role;
   const [rail, toggleRail] = useRail();
   const [command, setCommand] = useState(false);
   const pathname = usePathname();
@@ -445,6 +465,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Breadcrumb />
           </Suspense>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <span className="hidden sm:inline-flex">
+              <LiveStatus />
+            </span>
+            <span className="sm:hidden">
+              <LiveStatus compact />
+            </span>
             <span className="lg:hidden">
               <IconButton label={t.cmd.label} onClick={() => setCommand(true)}>
                 <Search aria-hidden className="size-4" />
@@ -453,6 +479,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="hidden md:inline-flex">
               <SimulatedBadge />
             </span>
+            {staff && <ActivityMenu />}
             <LangSwitch />
             <span aria-hidden className="hidden h-6 w-px bg-line sm:block" />
             <UserMenu />
@@ -470,7 +497,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Suspense fallback={null}>
         <MobileNav />
         <CommandLayer open={command} setOpen={setCommand} rail={rail} toggleRail={toggleRail} />
+        <TopProgress />
       </Suspense>
+      <Toaster />
+      {staff && <ActivitySync />}
     </div>
   );
 }
@@ -524,7 +554,7 @@ function BlockArt() {
   return (
     <div aria-hidden className="flex items-end gap-1.25">
       {BLOCKS.map((h, i) => (
-        <div key={i} className="flex flex-col-reverse gap-1.25">
+        <div key={i} className="anim-grow-y flex flex-col-reverse gap-1.25" style={{ ["--i" as string]: i * 2 }}>
           {Array.from({ length: 10 }, (_, k) => (
             <span
               key={k}

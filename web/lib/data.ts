@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 // A small client cache: one entry per resource key, shared by every component that reads it,
 // with in-flight requests deduplicated. A refetch keeps the previous data on screen.
-type Entry = { data?: unknown; error?: unknown; loading: boolean };
+// `quiet` marks a background refresh (live sync): the data stays on screen and no loading bar shows.
+type Entry = { data?: unknown; error?: unknown; loading: boolean; quiet?: boolean; at?: number };
 
 const entries = new Map<string, Entry>();
 const listeners = new Set<() => void>();
@@ -24,22 +25,51 @@ function subscribe(l: () => void) {
 // previous frame while the next key loads instead of flashing empty.
 const lastOf = (group: string) => `last:${group}`;
 
-export function load<T>(key: string, fetcher: () => Promise<T>, force = false, group?: string): Promise<void> {
+export function load<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  force = false,
+  group?: string,
+  quiet = false,
+): Promise<void> {
   const prev = entries.get(key);
-  if (prev && !force && (prev.loading || (prev.data !== undefined && !prev.error))) return Promise.resolve();
-  entries.set(key, { data: prev?.data, loading: true });
+  if (prev?.loading) return Promise.resolve();
+  if (prev && !force && prev.data !== undefined && !prev.error) return Promise.resolve();
+  entries.set(key, { data: prev?.data, error: quiet ? prev?.error : undefined, loading: true, quiet });
   emit();
   return fetcher().then(
     (data) => {
-      entries.set(key, { data, loading: false });
+      entries.set(key, { data, loading: false, at: Date.now() });
       if (group) entries.set(lastOf(group), { data, loading: false });
       emit();
     },
     (error) => {
-      entries.set(key, { data: prev?.data, error, loading: false });
+      // a failed background refresh keeps the last good data and says nothing
+      const kept = quiet && prev?.data !== undefined;
+      entries.set(key, kept ? { ...prev, loading: false, quiet: false } : { data: prev?.data, error, loading: false });
       emit();
     },
   );
+}
+
+// Refresh a resource in the background, only if some view has loaded it already.
+const fetchers = new Map<string, { fetcher: () => Promise<unknown>; group?: string }>();
+
+export function refresh(key: string) {
+  const known = fetchers.get(key);
+  if (known && entries.get(key)?.data !== undefined) return load(key, known.fetcher, true, known.group, true);
+  return Promise.resolve();
+}
+
+export function cachedKeys(prefix: string) {
+  return [...entries.keys()].filter((k) => k.startsWith(prefix) && entries.get(k)?.data !== undefined);
+}
+
+// True while a view waits for data it does not have yet (the top loading bar).
+const isBusy = () => [...entries.values()].some((e) => e.loading && !e.quiet);
+
+export function useBusy() {
+  return useSyncExternalStore(subscribe, isBusy, () => false);
 }
 
 export function mutate<T>(key: string, change: (data: T) => T) {
@@ -51,6 +81,7 @@ export function mutate<T>(key: string, change: (data: T) => T) {
 
 export function clearCache() {
   entries.clear();
+  fetchers.clear();
   emit();
 }
 
@@ -72,6 +103,10 @@ export type Resource<T> = {
   error: unknown;
   loading: boolean;
   reload: () => void;
+  // a background refresh that keeps the data on screen (live sync)
+  refresh: () => void;
+  // when the data on screen was fetched (ms since the epoch)
+  updatedAt: number | undefined;
 };
 
 export function useResource<T>(
@@ -96,16 +131,23 @@ export function useResource<T>(
     () => undefined,
   );
   useEffect(() => {
-    if (key) load(key, () => latest.current(), fresh, group);
+    if (!key) return;
+    fetchers.set(key, { fetcher: () => latest.current(), group });
+    load(key, () => latest.current(), fresh, group);
   }, [key, group, fresh]);
   const reload = useCallback(() => {
     if (key) load(key, () => latest.current(), true, group);
+  }, [key, group]);
+  const refreshMe = useCallback(() => {
+    if (key) load(key, () => latest.current(), true, group, true);
   }, [key, group]);
   return {
     data: entry?.data as T | undefined,
     previous: (entry?.data ?? last?.data) as T | undefined,
     error: entry?.error,
-    loading: !!entry?.loading || (key !== null && entry === undefined),
+    loading: (!!entry?.loading && !entry.quiet) || (key !== null && entry === undefined),
     reload,
+    refresh: refreshMe,
+    updatedAt: entry?.at,
   };
 }

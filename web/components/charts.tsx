@@ -38,7 +38,7 @@ export function Legend({ items }: { items: { name: string; color: string; kind?:
   );
 }
 
-function useWidth() {
+export function useWidth() {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(640);
   useEffect(() => {
@@ -137,17 +137,28 @@ export function ProbabilityChart({
           ) : null,
         )}
         {selected !== undefined && (
-          <rect x={x(selected) - 7} y={m.top} width={14} height={h} fill="#eef4fb" rx={3} />
+          <rect
+            x={x(selected) - 7}
+            y={m.top}
+            width={14}
+            height={h}
+            fill="#eef4fb"
+            rx={3}
+            style={{ transition: "x 0.35s cubic-bezier(0.2, 0.7, 0.2, 1)" }}
+          />
         )}
         {series.map((s) => (
           <path
             key={s.key}
             d={path(s.values)}
+            pathLength={1}
             fill="none"
             stroke={s.color}
             strokeWidth={2}
             strokeLinejoin="round"
             strokeLinecap="round"
+            className="anim-draw-1"
+            style={{ ["--i" as string]: series.indexOf(s) }}
           />
         ))}
         {marks &&

@@ -1,6 +1,6 @@
 "use client";
 
-import type { GeoJSONSource, Map as MlMap } from "maplibre-gl";
+import type { GeoJSONSource, Map as MlMap, Popup } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 
 import type { NetworkAgent } from "@/lib/api";
@@ -92,6 +92,8 @@ export function NetworkMap({
   onSelect,
   label,
   onError,
+  pulse = [],
+  hoverText,
 }: {
   agents: NetworkAgent[];
   side: RiskSide;
@@ -100,13 +102,17 @@ export function NetworkMap({
   onSelect: (id: string | null) => void;
   label: string;
   onError: () => void;
+  // the most urgent agents, marked with a slow pulse (the "highest risk" list beside the map)
+  pulse?: string[];
+  // the hover card's text for one agent
+  hoverText?: (a: NetworkAgent) => string;
 }) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MlMap | null>(null);
   const [ready, setReady] = useState(false);
-  const latest = useRef({ agents, side, onSelect, onError });
+  const latest = useRef({ agents, side, onSelect, onError, hoverText });
   useEffect(() => {
-    latest.current = { agents, side, onSelect, onError };
+    latest.current = { agents, side, onSelect, onError, hoverText };
   });
 
   // create the map once; MapLibre touches window, so it loads in the browser only
@@ -158,6 +164,20 @@ export function NetworkMap({
           },
         });
         instance.addLayer({
+          id: "pulse",
+          type: "circle",
+          source: SOURCE,
+          filter: ["in", ["get", "id"], ["literal", []]],
+          paint: {
+            "circle-radius": 10,
+            "circle-color": COLORS.high,
+            "circle-opacity": 0.25,
+            "circle-stroke-width": 0,
+            "circle-radius-transition": { duration: 0 },
+            "circle-opacity-transition": { duration: 0 },
+          },
+        });
+        instance.addLayer({
           id: "agents",
           type: "symbol",
           source: SOURCE,
@@ -189,11 +209,21 @@ export function NetworkMap({
           const hit = instance?.queryRenderedFeatures(e.point, { layers: ["agents"] }) ?? [];
           if (!hit.length) latest.current.onSelect(null);
         });
-        instance.on("mouseenter", "agents", () => {
-          if (instance) instance.getCanvas().style.cursor = "pointer";
+        // a small hover card with the agent and its stock-out chance
+        const tip: Popup = new ml.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: "map-tip" });
+        instance.on("mousemove", "agents", (e) => {
+          if (!instance) return;
+          instance.getCanvas().style.cursor = "pointer";
+          const id = e.features?.[0]?.properties?.id;
+          const a = latest.current.agents.find((x) => x.agent_id === id);
+          const text = a && latest.current.hoverText?.(a);
+          if (!a || !text) return;
+          tip.setLngLat([a.lon, a.lat]).setText(text).addTo(instance);
         });
         instance.on("mouseleave", "agents", () => {
-          if (instance) instance.getCanvas().style.cursor = "";
+          if (!instance) return;
+          instance.getCanvas().style.cursor = "";
+          tip.remove();
         });
         map.current = instance;
         setReady(true);
@@ -220,9 +250,36 @@ export function NetworkMap({
   }, [ready, show]);
 
   useEffect(() => {
-    if (!ready || !map.current) return;
-    map.current.setFilter("selected", ["==", ["get", "id"], selected ?? ""]);
+    const m = map.current;
+    if (!ready || !m) return;
+    m.setFilter("selected", ["==", ["get", "id"], selected ?? ""]);
+    const a = latest.current.agents.find((x) => x.agent_id === selected);
+    if (!a) return;
+    // bring a chosen agent into view (from the map or the list beside it)
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    m.easeTo({ center: [a.lon, a.lat], zoom: Math.max(m.getZoom(), 9), duration: reduce ? 0 : 800 });
   }, [ready, selected]);
+
+  // the pulse: radius and opacity breathe on a 1.8 s cycle; still with reduced motion
+  const pulseKey = pulse.join(",");
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    m.setFilter("pulse", ["in", ["get", "id"], ["literal", pulseKey ? pulseKey.split(",") : []]]);
+    if (!pulseKey || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const t0 = performance.now();
+    const step = (now: number) => {
+      const k = ((now - t0) % 1800) / 1800;
+      const zoom = m.getZoom();
+      const base = zoom < 8 ? 7 : zoom < 11 ? 10 : 13;
+      m.setPaintProperty("pulse", "circle-radius", base + k * base * 1.6);
+      m.setPaintProperty("pulse", "circle-opacity", 0.35 * (1 - k));
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [ready, pulseKey]);
 
   // MapLibre makes its container position: relative, so the sizing box wraps it
   return (

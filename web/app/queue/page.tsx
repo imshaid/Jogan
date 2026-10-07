@@ -1,11 +1,15 @@
 "use client";
 
 import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Info, Search } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Fragment, Suspense, useMemo, useState, type ReactNode } from "react";
 
 import { DayControl } from "@/components/day";
 import { DecisionControls, DriverList, ExplanationBlock, ReasonList } from "@/components/evidence";
+import { Ago } from "@/components/live";
+import { Tween } from "@/components/motion";
 import { Staff } from "@/components/shell";
 import {
   AnomalyBadge,
@@ -26,6 +30,7 @@ import {
 import type { Recommendation, Status } from "@/lib/api";
 import { useAnomalies, useDay, useMeta, usePlan } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
+import { useActivity, usePoll } from "@/lib/live";
 import { useSession } from "@/lib/session";
 
 export default function Page() {
@@ -49,10 +54,18 @@ function QueueView() {
   const [day, setDay] = useDay(meta.data);
   const plan = usePlan(day);
   const anomalies = useAnomalies(day);
-  const [status, setStatus] = useState<StatusFilter>("all");
+  // links from other pages can open the queue filtered (?q=runner or agent, ?status=pending)
+  const params = useSearchParams();
+  const askedStatus = params.get("status");
+  const [status, setStatus] = useState<StatusFilter>(
+    askedStatus === "pending" || askedStatus === "approved" || askedStatus === "rejected" ? askedStatus : "all",
+  );
   const [territory, setTerritory] = useState("all");
   const [reviewOnly, setReviewOnly] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(params.get("q") ?? "");
+  const activity = useActivity();
+  // decisions from other sessions arrive through the activity feed; a slow refresh catches the rest
+  usePoll(plan.refresh, 60_000, !!plan.data);
   const [open, setOpen] = useState<Record<number, boolean>>({});
   const [pageAt, setPageAt] = useState({ key: "", page: 0 });
 
@@ -113,6 +126,8 @@ function QueueView() {
       )}
 
       <ErrorNotice error={plan.error} onRetry={plan.reload} />
+
+      {items && items.length > 0 && <DecisionProgress counts={counts} total={items.length} syncedAt={activity.syncedAt} />}
 
       <section className="rounded-2xl border border-line bg-tray p-1">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-2 py-1.5">
@@ -301,8 +316,17 @@ function Row({
 }) {
   const { t, f } = useLang();
   const ev = r.evidence;
+  // a decision made while the row is on screen (here or in another session) flashes it once
+  const [initial] = useState(r.status);
   return (
-    <tr className={cx("border-b border-line align-top transition-colors", open ? "bg-tray" : "hover:bg-tray/50")}>
+    <tr
+      key={r.status}
+      className={cx(
+        "border-b border-line align-top transition-colors",
+        open ? "bg-tray" : "hover:bg-tray/50",
+        r.status !== initial && "anim-flash",
+      )}
+    >
       <td className="px-3 py-3 pl-4">
         <Link
           href={`/agents/${r.agent_id}?day=${r.plan_date}`}
@@ -375,8 +399,9 @@ function Card({
 }) {
   const { t, f } = useLang();
   const ev = r.evidence;
+  const [initial] = useState(r.status);
   return (
-    <li className={cx("p-3", open && "bg-tray")}>
+    <li key={r.status} className={cx("p-3", open && "bg-tray", r.status !== initial && "anim-flash")}>
       <div className="flex gap-3">
         <span aria-hidden className="w-0.75 shrink-0 rounded-full bg-ink" />
         <div className="min-w-0 flex-1">
@@ -460,5 +485,74 @@ function Why({ rec, day }: { rec: Recommendation; day: string }) {
         </Link>
       </WhyCard>
     </div>
+  );
+}
+
+// The day's decisions so far: approved, rejected and still waiting, as one bar that moves as
+// decisions arrive (from this tab or another session).
+function DecisionProgress({
+  counts,
+  total,
+  syncedAt,
+}: {
+  counts: { pending: number; approved: number; rejected: number };
+  total: number;
+  syncedAt: number | null;
+}) {
+  const { t, f } = useLang();
+  const q = t.queue.progress;
+  const decided = counts.approved + counts.rejected;
+  const parts = [
+    { key: "approved", n: counts.approved, cls: "bg-brand", label: t.status.approved },
+    { key: "rejected", n: counts.rejected, cls: "bg-mark-muted", label: t.status.rejected },
+    { key: "pending", n: counts.pending, cls: "bg-accent-soft", label: t.status.pending },
+  ];
+  return (
+    <section className="rounded-2xl border border-line bg-tray p-1" aria-label={q.title}>
+      <div className="rounded-xl border border-line bg-surface px-4 py-3.5 shadow-card">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <div className="flex items-baseline gap-2">
+            <span className="text-[22px] leading-none font-semibold tracking-tight">
+              <Tween value={decided} format={(v) => f.num(v)} />
+            </span>
+            <span className="text-sm text-fg-2">{q.decided(f.num(total))}</span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-xs text-fg-3">
+            <span aria-hidden className="relative flex size-2">
+              <span className="live-ping absolute inset-0 rounded-full bg-ok-text" />
+              <span className="relative size-2 rounded-full bg-ok-text" />
+            </span>
+            {t.live.live}
+            {syncedAt && (
+              <>
+                {" · "}
+                {t.live.synced} <Ago at={syncedAt} />
+              </>
+            )}
+          </span>
+        </div>
+        <div className="mt-3 flex h-2.5 gap-[2px] overflow-hidden rounded-full bg-sunken" role="img" aria-label={parts.map((x) => `${x.label} ${x.n}`).join(", ")}>
+          {parts.map((x) =>
+            x.n ? (
+              <motion.span
+                key={x.key}
+                className={cx("h-full first:rounded-l-full last:rounded-r-full", x.cls)}
+                initial={{ width: 0 }}
+                animate={{ width: `${(x.n / total) * 100}%` }}
+                transition={{ type: "spring", bounce: 0, duration: 0.8 }}
+              />
+            ) : null,
+          )}
+        </div>
+        <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-fg-2">
+          {parts.map((x) => (
+            <li key={x.key} className="flex items-center gap-1.5">
+              <span aria-hidden className={cx("inline-block size-2.5 rounded-[3px]", x.cls)} />
+              {x.label} <span className="num font-semibold text-fg">{f.num(x.n)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }

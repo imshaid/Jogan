@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 
 import { DayControl, Timeline } from "@/components/day";
+import { ActivityList, Ago } from "@/components/live";
+import { Tween } from "@/components/motion";
 import { NetworkMap, sideP, type RiskSide, type ShowFilter } from "@/components/network-map";
 import { Staff } from "@/components/shell";
 import {
@@ -23,9 +25,10 @@ import {
   THEAD,
 } from "@/components/ui";
 import type { DayCount, Meta, NetworkAgent, Recommendation } from "@/lib/api";
-import { RISK_BANDS, RISK_SHAPE } from "@/lib/format";
+import { RISK_BANDS, RISK_SHAPE, riskLevel } from "@/lib/format";
 import { useDay, useMeta, useNetwork, usePlan } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
+import { usePoll, useActivity } from "@/lib/live";
 
 export default function Page() {
   return (
@@ -56,6 +59,8 @@ function NetworkView() {
   const [show, setShow] = useState<ShowFilter>("all");
   const [selected, setSelected] = useState<string | null>(null);
   const [mapFailed, setMapFailed] = useState(false);
+  // the pending count follows decisions from the activity feed; a slow refresh catches the rest
+  usePoll(plan.refresh, 60_000, !!plan.data);
 
   const agents = network.previous?.agents;
   const recs = useMemo(() => new Map((plan.data?.items ?? []).map((r) => [r.agent_id, r])), [plan.data]);
@@ -70,6 +75,7 @@ function NetworkView() {
     };
   }, [agents, side]);
   const pending = plan.data?.items.filter((r) => r.status === "pending").length;
+  const urgent = useMemo(() => topRisk(agents, side).map((a) => a.agent_id), [agents, side]);
 
   if (meta.error) return <ErrorNotice error={meta.error} onRetry={meta.reload} />;
   if (!meta.data || !day) return <Skeleton className="h-96 w-full" />;
@@ -89,7 +95,7 @@ function NetworkView() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
         <Stat
           label={t.network.kpiAgents}
-          value={stats ? f.num(stats.agents) : "…"}
+          value={stats ? <Tween value={stats.agents} format={(v) => f.num(v)} from={0} /> : "…"}
           hint={t.network.kpiTerritories(f.num(meta.data.territories.length))}
         />
         <Stat
@@ -98,13 +104,13 @@ function NetworkView() {
               <span aria-hidden>{RISK_SHAPE.high}</span> {t.network.kpiHigh}
             </>
           }
-          value={stats ? f.num(stats.high) : "…"}
+          value={stats ? <Tween value={stats.high} format={(v) => f.num(v)} from={0} /> : "…"}
           hint={side === "max" ? t.risk.higherSide : side === "cash" ? t.common.cash : t.common.efloat}
           tone="danger"
         />
         <Stat
           label={t.network.kpiVisits}
-          value={stats ? f.num(stats.visits) : "…"}
+          value={stats ? <Tween value={stats.visits} format={(v) => f.num(v)} from={0} /> : "…"}
           spark={spark(days, i, "visits")}
           hint={
             delta === null ? (
@@ -119,20 +125,20 @@ function NetworkView() {
         />
         <Stat
           label={t.network.kpiReview}
-          value={stats ? f.num(stats.review) : "…"}
+          value={stats ? <Tween value={stats.review} format={(v) => f.num(v)} from={0} /> : "…"}
           tone="warn"
           spark={spark(days, i, "manual_review")}
           hint={stats ? t.network.kpiOfVisits(f.num(stats.visits)) : undefined}
         />
         <Stat
           label={t.network.kpiFlags}
-          value={stats ? f.num(stats.flags) : "…"}
+          value={stats ? <Tween value={stats.flags} format={(v) => f.num(v)} from={0} /> : "…"}
           spark={spark(days, i, "anomaly_flags")}
           hint={t.anomaly.advisory}
         />
         <Stat
           label={t.network.kpiPending}
-          value={pending === undefined ? "…" : f.num(pending)}
+          value={pending === undefined ? "…" : <Tween value={pending} format={(v) => f.num(v)} from={0} />}
           hint={
             <Link href={`/queue?day=${day}`} className="inline-flex items-center gap-0.5 font-medium text-brand hover:underline">
               {t.nav.queue} <ArrowUpRight aria-hidden className="size-3.5" />
@@ -146,70 +152,75 @@ function NetworkView() {
       <ErrorNotice error={network.error} onRetry={network.reload} />
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
-        <section className="rounded-2xl border border-line bg-tray p-1" aria-label={t.network.mapLabel}>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-2.5 py-1.5">
-            <div className="flex items-center gap-2 text-xs text-fg-3">
-              <span className="hidden sm:inline">{t.network.riskOn}</span>
-              <Segmented<RiskSide>
-                label={t.network.riskOn}
-                size="sm"
-                value={side}
-                onChange={setSide}
-                options={[
-                  { value: "max", label: t.risk.higherSide },
-                  { value: "cash", label: t.common.cash },
-                  { value: "efloat", label: t.common.efloat },
-                ]}
-              />
-            </div>
-            <div className="flex items-center gap-2 text-xs text-fg-3">
-              <span className="hidden sm:inline">{t.network.show}</span>
-              <Segmented<ShowFilter>
-                label={t.network.show}
-                size="sm"
-                value={show}
-                onChange={setShow}
-                options={[
-                  { value: "all", label: t.network.showAll },
-                  { value: "visits", label: t.network.showVisits },
-                  { value: "high", label: t.network.showHigh },
-                ]}
-              />
-            </div>
-            <span className="ml-auto">
-              <Provenance kind="prediction" />
-            </span>
-          </div>
-          <div className="relative h-110 overflow-hidden rounded-xl border border-line bg-sunken shadow-card sm:h-145">
-            {agents ? (
-              <NetworkMap
-                agents={agents}
-                side={side}
-                show={show}
-                selected={selected}
-                onSelect={setSelected}
-                label={t.network.mapLabel}
-                onError={() => setMapFailed(true)}
-              />
-            ) : (
-              <Skeleton className="absolute inset-0 rounded-none" />
-            )}
-            {mapFailed && (
-              <div className="absolute inset-x-4 top-4 flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-fg-2 shadow-pop">
-                <MapPinOff aria-hidden className="size-4" />
-                {t.network.mapError}
+        <div className="min-w-0 space-y-5">
+          <section className="rounded-2xl border border-line bg-tray p-1" aria-label={t.network.mapLabel}>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-2.5 py-1.5">
+              <div className="flex items-center gap-2 text-xs text-fg-3">
+                <span className="hidden sm:inline">{t.network.riskOn}</span>
+                <Segmented<RiskSide>
+                  label={t.network.riskOn}
+                  size="sm"
+                  value={side}
+                  onChange={setSide}
+                  options={[
+                    { value: "max", label: t.risk.higherSide },
+                    { value: "cash", label: t.common.cash },
+                    { value: "efloat", label: t.common.efloat },
+                  ]}
+                />
               </div>
-            )}
-            {chosen && day && (
-              <AgentCard agent={chosen} rec={recs.get(chosen.agent_id)} day={day} onClose={() => setSelected(null)} />
-            )}
-            <Legend />
-          </div>
-        </section>
+              <div className="flex items-center gap-2 text-xs text-fg-3">
+                <span className="hidden sm:inline">{t.network.show}</span>
+                <Segmented<ShowFilter>
+                  label={t.network.show}
+                  size="sm"
+                  value={show}
+                  onChange={setShow}
+                  options={[
+                    { value: "all", label: t.network.showAll },
+                    { value: "visits", label: t.network.showVisits },
+                    { value: "high", label: t.network.showHigh },
+                  ]}
+                />
+              </div>
+              <span className="ml-auto">
+                <Provenance kind="prediction" />
+              </span>
+            </div>
+            <div className="relative h-110 overflow-hidden rounded-xl border border-line bg-sunken shadow-card sm:h-145">
+              {agents ? (
+                <NetworkMap
+                  agents={agents}
+                  side={side}
+                  show={show}
+                  selected={selected}
+                  onSelect={setSelected}
+                  label={t.network.mapLabel}
+                  onError={() => setMapFailed(true)}
+                  pulse={urgent}
+                  hoverText={(a) => `${a.agent_id} · ${f.pct(sideP(a, side))} ${t.risk[riskLevel(sideP(a, side))].toLowerCase()}`}
+                />
+              ) : (
+                <Skeleton className="absolute inset-0 rounded-none" />
+              )}
+              {mapFailed && (
+                <div className="absolute inset-x-4 top-4 flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-fg-2 shadow-pop">
+                  <MapPinOff aria-hidden className="size-4" />
+                  {t.network.mapError}
+                </div>
+              )}
+              {chosen && day && (
+                <AgentCard agent={chosen} rec={recs.get(chosen.agent_id)} day={day} onClose={() => setSelected(null)} />
+              )}
+              <Legend />
+            </div>
+          </section>
+          <TerritoryTable meta={meta.data} agents={agents} side={side} />
+        </div>
 
         <div className="space-y-5">
-          <TerritoryTable meta={meta.data} agents={agents} side={side} />
           <HighRiskList agents={agents} side={side} day={day} recs={recs} onPick={setSelected} />
+          <ActivityPanel />
         </div>
       </div>
     </div>
@@ -366,6 +377,50 @@ function TerritoryTable({ meta, agents, side }: { meta: Meta; agents?: NetworkAg
 
 const TOP = 8;
 
+// The most urgent agents of the morning: listed beside the map and pulsing on it.
+function topRisk(agents: NetworkAgent[] | undefined, side: RiskSide) {
+  return (agents ?? [])
+    .filter((a) => sideP(a, side) >= RISK_BANDS.high)
+    .sort((a, b) => sideP(b, side) - sideP(a, side))
+    .slice(0, TOP);
+}
+
+// Decisions as they happen, from the audit log (every session, every 15 s).
+function ActivityPanel() {
+  const { t } = useLang();
+  const a = useActivity();
+  return (
+    <Panel
+      title={
+        <>
+          <span aria-hidden className="relative flex size-2">
+            <span className="live-ping absolute inset-0 rounded-full bg-ok-text" />
+            <span className="relative size-2 rounded-full bg-ok-text" />
+          </span>
+          {t.live.feed}
+        </>
+      }
+      aside={
+        a.syncedAt ? (
+          <span className="text-[11px] text-fg-3">
+            {t.live.synced} <Ago at={a.syncedAt} />
+          </span>
+        ) : null
+      }
+      bodyClassName="p-1.5"
+      footer={t.live.feedNote}
+    >
+      {a.items.length ? (
+        <div className="max-h-72 overflow-y-auto">
+          <ActivityList items={a.items} limit={8} />
+        </div>
+      ) : (
+        <p className="px-2.5 py-4 text-sm text-fg-2">{t.live.empty}</p>
+      )}
+    </Panel>
+  );
+}
+
 function HighRiskList({
   agents,
   side,
@@ -380,10 +435,7 @@ function HighRiskList({
   onPick: (id: string) => void;
 }) {
   const { t } = useLang();
-  const top = (agents ?? [])
-    .filter((a) => sideP(a, side) >= RISK_BANDS.high)
-    .sort((a, b) => sideP(b, side) - sideP(a, side))
-    .slice(0, TOP);
+  const top = topRisk(agents, side);
   return (
     <Panel
       title={t.network.highRiskList}
