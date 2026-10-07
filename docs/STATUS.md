@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-07, on site (R1–R7 and polish, D-031 to D-038)._
+_Last updated: 2026-10-07, on site (R1–R7, polish, live app and runner board; D-031 to D-039)._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -244,7 +244,13 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
   - **R6 · Scale and integration** (D-036): `JoganMidday`, a 14:00 re-forecast for surprise rushes, evaluated as the variant `jogan_midday@20`; README section on scale and integration
   - **R7 · Responsible AI and security** (D-037): README section in four parts; `06-responsible-ai` gains an access-control matrix and §10 (agent-data protection, model monitoring with thresholds and actions, override and escalation, kill switch)
   - **Polish** (D-038): motion and new charts in the web app, a human-oversight panel on the audit log; an urban value factor tried on dev seeds, no effect, reverted
-  - **Checks:** `make check`, web lint, types and build
+  - **Live app and runner board** (D-039, owner request):
+    - live layer (`web/lib/live.ts`, `web/components/live.tsx`): the audit log polled every 15 s while visible; decisions from another session raise a notice, the bell count and a row flash, and refresh that day's plan; API and database status with round trip in the header; a loading bar; about 6 requests a minute per open tab, with back-off
+    - motion (`motion` 14.0.0, new dependency, verified on npm): sliding nav and segmented indicators, number tweens, toasts, panels and charts that play when scrolled into view; reduced motion respected
+    - runner page rebuilt: a dispatch board (every runner on one clock, shift-end and bag warnings), one runner's route on a MapLibre map (hub, numbered stops, the next one pulsing, waiting stops dashed), arrival times, cash to load, a cash-in-the-bag chart against the bag limit, a stop-by-stop schedule, a phone checklist kept on the device, Google Maps legs of four stops; shortest or urgent-first order; a full-plan preview before approvals
+    - API: `/v1/meta` carries the runner rules from the bundle's own sim and ops configs (none if the hashes differ); 1 new test
+    - network page: map pulses on the most urgent agents, fly-to and a hover card, live activity panel; queue: decision progress bar, `?q=` and `?status=` links (used by the runner page)
+  - **Checks:** `make check` (205 tests), web lint, types and build; `make run` in headless Chrome at 1440 and 390 px, English and Bangla: a decision made through the API showed up in an open queue within 15 s (notice, bell, row), an own decision raised its notice, no console errors
 
 ## Next
 

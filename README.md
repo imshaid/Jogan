@@ -16,9 +16,10 @@
 1. Open <https://jogan-bd.vercel.app> and under **Demo accounts** on the sign-in page click **Approver** (no sign-up needed).
 2. **Network:** every agent on the map, shaped by stock-out risk; use **Play through the days** on the timeline to watch 28 mornings of planned visits.
 3. **Visit queue:** open **Why?** on a visit for its reasons in English or Bangla, then **Approve** or **Reject**. A visit tagged **⚑ Manual review** asks for a note first.
-4. **Runner route:** the phone screen a runner would carry on the road: that day's approved stops in order, how much cash to hand over or collect, and directions.
+4. **Runner routes:** the fleet for the day on one clock, then one runner's route on a map with arrival times, the cash to load and the cash in the bag after each stop, and a phone checklist (next stop, hand over or collect, directions, mark done). **Full plan (preview)** shows the route before approvals.
 5. **Agent page:** click an agent id for the stock-out chance over time, the forecast against the balance and the 8-step decision trace.
 6. **Audit log** shows every decision; **Impact** shows the evaluation and the business KPIs; **How it works** explains the problem and the method. **বাংলা** switches the whole app.
+7. **Live:** open the queue in two windows and decide a visit in one: within about 15 seconds the other shows it (a notice, the bell, the row and the counts update). The header shows the API and database status.
 
 Everything also runs locally with `make run` ([Run and build](#run-and-build)).
 
