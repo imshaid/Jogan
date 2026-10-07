@@ -54,6 +54,7 @@ anomaly_features:
   volume: {unit: ratio, en: transactions against the agent's usual, bn: সাধারণের তুলনায় লেনদেন}
   ticket: {unit: ratio, en: cash-out size against the agent's usual, bn: সাধারণের তুলনায় ক্যাশ-আউটের আকার}
   burst: {unit: ratio, en: busiest hour of cash-outs against the usual, bn: সাধারণের তুলনায় সবচেয়ে ব্যস্ত ঘণ্টার ক্যাশ-আউট}
+  hour_tk: {unit: ratio, en: cash-out taka in the busiest hour against the usual, bn: সাধারণের তুলনায় সবচেয়ে ব্যস্ত ঘণ্টার ক্যাশ-আউটের টাকা}
 
 # Values of categorical and flag features.
 values:

@@ -10,12 +10,18 @@ arrived by ``now``; nothing reads the simulator's truth. Per agent and day:
 - ``ticket``: the mean cash-out against the agent's own mean, divided by the territory's
   median that day;
 - ``burst``: the busiest hour's cash-out count against its usual count, ``(n + 1) / (λ + 1)``,
-  divided by the territory's median that day.
+  divided by the territory's median that day;
+- ``hour_tk``: the busiest hour's cash-out taka against the usual taka in that hour, smoothed
+  by one of the agent's own mean cash-outs, ``(x + t) / (μ + t)``, divided by the territory's
+  median that day. Splitting a large cash-out into several just under a round amount (D-032)
+  adds only a few requests to an hour, so ``burst`` barely moves, but many times the hour's
+  usual taka.
 
-Only excess counts: ``volume``, ``ticket`` and ``burst`` enter as ``log(max(x, 1))``. A quiet
-day is mostly an agent that ran dry (served flows are censored), which the liquidity forecast
-already handles. One Isolation Forest (Liu, Ting and Zhou 2008; scikit-learn) per setting
-scores these three on the training days. Two rules cover what a forest misses (D-023):
+Only excess counts: ``volume``, ``ticket``, ``burst`` and ``hour_tk`` enter as
+``log(max(x, 1))``. A quiet day is mostly an agent that ran dry (served flows are censored),
+which the liquidity forecast already handles. One Isolation Forest (Liu, Ting and Zhou 2008;
+scikit-learn) per setting scores these four on the training days. Two rules cover what a
+forest misses (D-023):
 
 - transactions outside opening hours: zero on nearly every training day, so the forest's
   sub-samples almost never hold a value to split on;
@@ -42,8 +48,9 @@ from sklearn.ensemble import IsolationForest
 from jogan.explain.config import Anomaly
 from jogan.forecast.panel import Panel
 
-FEATURES = ("night_n", "volume", "ticket", "burst")
-FOREST = ("volume", "ticket", "burst")  # the Isolation Forest's inputs; night_n is a rule
+FEATURES = ("night_n", "volume", "ticket", "burst", "hour_tk")
+# the Isolation Forest's inputs; night_n is a rule
+FOREST = ("volume", "ticket", "burst", "hour_tk")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -109,6 +116,7 @@ def day_features(
     seen_h = _window(avail.astype(float), days)  # arrived records per hour of day
     lam = _window(count, days) / np.maximum(seen_h, 1.0)
     lam_co = _window(co_n, days) / np.maximum(seen_h, 1.0)
+    lam_tk = _window(co_tk, days) / np.maximum(seen_h, 1.0)
     history = _window(avail.any(axis=2).astype(float), days)
 
     expected = (lam * avail).sum(axis=2)
@@ -117,6 +125,8 @@ def day_features(
         own_ticket = _window(co_tk.sum(axis=2), days) / _window(co_n.sum(axis=2), days)
         ticket = co_tk.sum(axis=2) / co_n.sum(axis=2) / own_ticket
     burst = np.where(avail, (co_n + 1.0) / (lam_co + 1.0), 0.0).max(axis=2)
+    t = np.where(np.isfinite(own_ticket) & (own_ticket > 0), own_ticket, 1.0)[..., None]
+    hour_tk = np.where(avail, (co_tk + t) / (lam_tk + t), 0.0).max(axis=2)
 
     arrived = avail.mean(axis=2)
     valid = (arrived >= cfg.min_arrived_share) & (history >= cfg.min_history_days)
@@ -124,12 +134,14 @@ def day_features(
     volume = _territory_median(volume, valid & np.isfinite(volume), territory)
     ticket = _territory_median(ticket, valid & np.isfinite(ticket), territory)
     burst = _territory_median(burst, valid, territory)
+    hour_tk = _territory_median(hour_tk, valid, territory)
     values = {
         "night_n": night_n,
         # no cash-out or no profile: neither feature says anything unusual
         "volume": np.where(np.isfinite(volume) & (volume > 0), volume, 1.0),
         "ticket": np.where(np.isfinite(ticket) & (ticket > 0), ticket, 1.0),
         "burst": np.where(np.isfinite(burst) & (burst > 0), burst, 1.0),
+        "hour_tk": np.where(np.isfinite(hour_tk) & (hour_tk > 0), hour_tk, 1.0),
     }
     return DayFeatures(values, valid)
 
