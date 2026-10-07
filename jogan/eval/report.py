@@ -24,6 +24,7 @@ from typing import Any
 
 import numpy as np
 
+from jogan.eval.business import business_kpis, events
 from jogan.eval.run import ABLATIONS, jogan_key
 from jogan.eval.stats import break_even, mean_interval, paired
 from jogan.ops.policies import BASELINES, UPPER_BOUND
@@ -140,6 +141,8 @@ def build_report(
     jogan = jogan_key(default_tk)
     names = [*BASELINES, UPPER_BOUND, *(jogan_key(v) for v in values)]
     names += [jogan_key(default_tk, a) for a in ABLATIONS]
+    midday_key = jogan_key(default_tk, "midday")
+    names += [midday_key]
     policies = policy_table(seeds, names, windows, level)
 
     comparison: dict[str, Any] = {}
@@ -167,6 +170,27 @@ def build_report(
         w: compare(Records(seeds, jogan, w), Records(seeds, UPPER_BOUND, w), default_tk, level)
         for w in windows
     }
+    # the midday check (D-036): the variant minus Jogan, and minus the status quo
+    midday: dict[str, Any] = {
+        "key": midday_key,
+        "visits_per_seed": mean_interval(
+            [s["jogan_diagnostics"][midday_key]["midday_visits"] for s in seeds], level, 1
+        ),
+    }
+    for w in windows:
+        m = Records(seeds, midday_key, w)
+        midday[w] = {
+            "vs_jogan": compare(m, Records(seeds, jogan, w), default_tk, level)
+            | {
+                "runner_visits": paired(
+                    m.operations("runner_visits"),
+                    Records(seeds, jogan, w).operations("runner_visits"),
+                    level,
+                    1,
+                )
+            },
+            "vs_status_quo": compare(m, Records(seeds, BASELINES[0], w), default_tk, level),
+        }
 
     best = min(BASELINES, key=lambda b: Records(seeds, b, test).service("lost_per_1000").mean())
     fairness: dict[str, Any] = {"best_baseline": best, "groups": {}}
@@ -195,6 +219,9 @@ def build_report(
         "does_not_win": does_not_win,
         "forecast": forecast,
         "anomaly": anomaly_summary([s["anomaly"] for s in seeds]),
+        "business": business_kpis(seeds, jogan, BASELINES, windows, level),
+        "events": events(seeds, jogan, BASELINES, test, level),
+        "midday": midday,
     }
 
 
@@ -230,6 +257,8 @@ def anomaly_summary(per_seed: list[dict]) -> dict:
             k: _mean_known([s["precision_at_k"][k] for s in per_seed]) for k in ks
         },
         "windows_by_pattern": by_pattern,
+        # injected split cash-outs served (a turned-away one is never logged), pooled (D-032)
+        "split_served": [sum(s["split_served"][i] for s in per_seed) for i in (0, 1)],
         "per_seed": per_seed,
     }
 

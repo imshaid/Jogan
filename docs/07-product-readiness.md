@@ -123,6 +123,7 @@ Covered in [`06-responsible-ai.md`](06-responsible-ai.md): synthetic data only a
 | Equity in the optimizer | H4 fails for urban agents | service floor per group (D-002 #9) |
 | Runner's bag and arrival time in the program | a visit may not fit what the runner carries, or arrive too late | add both constraints (D-021) |
 | Shared cash drawer | cash is less certain than modelled | model cash as uncertain (D-002 #11) |
-| Runner app and agent SMS | approved visits must reach the field | a route view and a templated SMS |
+| Runner app and agent SMS | approved visits must reach the field | the runner route screen exists (on site, D-034); next: store the program's own route and arrival times, a runner role that sees only its stops, and a templated SMS |
+| Peer swaps between agents | neighbours at risk on opposite sides could swap cash for e-float without a runner | the agent page lists candidates (D-035); next: confirm the rules with upay, then add the swap as an option in the program and evaluate it |
 | Anomaly flag on structuring | it misses most split cash-outs | transaction-level features and labelled cases |
 | LLM provider | the free tier's terms suit simulated data only | an approved provider, or templates only |

@@ -310,9 +310,10 @@ _Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test win
 |---|---|---|
 | Night activity | 6 | 6 |
 | Unexplained spike | 6 | 3 |
-| Split cash-outs | 9 | 1 |
+| Split cash-outs | 9 | 3 |
 
-168,000 test agent-days; 1,219 flagged (0.7%), 48 of them on injected anomalies: precision 3.9% against a base rate of 0.08%. Precision at 5 / 10 / 20 per seed, averaged: 0.30 / 0.36 / 0.22. Injected windows with at least one flag: 10 of 21.
+168,000 test agent-days; 1,196 flagged (0.7%), 51 of them on injected anomalies: precision 4.3% against a base rate of 0.08%. Precision at 5 / 10 / 20 per seed, averaged: 0.24 / 0.36 / 0.22. Injected windows with at least one flag: 12 of 21.
+Of the 346 injected split cash-outs in the test windows, 18 (5%) were served; the rest found the drawer short and were turned away, which leaves no record for the flag to see.
 <!-- /numbers -->
 
 ### 5.7 Scale
@@ -336,7 +337,7 @@ _Timing only, on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads). Source: `ar
 - **Some groups are served worse than by the best baseline (Threshold).** Lost requests per 1,000, Jogan minus Threshold: `urban` and `DHK` (the same agents) 1.03 (0.01 to 2.06).
 - **Forecast intervals are off their nominal coverage by more than 5 points in 45 cells** (by side, horizon, interval and agent group), 4 of them over all agents.
 - **The oracle is still ahead:** Jogan minus the oracle, 19.9 (19.1 to 20.7) lost requests per 1,000.
-- **The anomaly flag is weak on structuring:** split cash-outs found in 1 of 9 injected windows; precision 3.9% against a base rate of 0.08%.
+- **The anomaly flag is weak on structuring:** split cash-outs found in 3 of 9 injected windows; precision 4.3% against a base rate of 0.08%.
 - **62 group-level comparisons** (across lost-customer values and baselines) show no significant win or a baseline as good or better (`does_not_win` in `artifacts/metrics.json`).
 <!-- /numbers -->
 
@@ -374,6 +375,8 @@ Also not in Jogan's favour, or not measured:
 - Every output is labelled Prediction, Template, AI-written, Assumption or Evaluation; risk is never shown by colour alone.
 - Fairness by group is measured and its failures reported.
 
+For a pilot on real data (on-site addition, D-037), the same document defines an access-control matrix (who may read, decide, publish or change what, and what enforces it), how each kind of agent data is classified and protected (no customer data is ever ingested; balances, locations and anomaly flags are confidential), the model monitoring run each morning (interval coverage per group, Brier score against a simple forecast, data gaps, input drift, the approvers' override rate, the anomaly flag rate, optimizer fallbacks), each with an alert threshold and an action, and the override and escalation steps, ending in a kill switch back to fixed rounds.
+
 Details and the threat table: [`docs/06-responsible-ai.md`](../docs/06-responsible-ai.md).
 
 ## 8. Intended impact and path to product
@@ -385,6 +388,27 @@ Details and the threat table: [`docs/06-responsible-ai.md`](../docs/06-responsib
 - **Distributors:** runner time and fuel spent where a visit avoids the most failed requests, and a short queue to approve instead of a fixed round.
 - **upay:** more successful transactions and more trust in the service, with every recommendation traceable and every decision audited, from agent-level aggregates only (no customer data).
 - **Measured the same way in a pilot:** failed requests per 1,000, runner km and visits, agent commission, and each of them per agent group.
+
+In business terms (on-site addition, D-033), from the same evaluation runs:
+
+<!-- numbers:business -->
+| KPI (Jogan minus baseline; negative is a saving) | vs status quo, 28-day test window | vs status quo, per 1,000 agents a month | vs Threshold, per 1,000 agents a month |
+|---|---|---|---|
+| Failed transactions | -1,557 (-1,644 to -1,469) | -2,780 (-2,936 to -2,623) | -657 (-789 to -526) |
+| Transaction value turned away (৳) | -3,207,510 (-3,523,530 to -2,891,490) | -5,727,696 (-6,292,018 to -5,163,375) | -1,657,946 (-2,049,604 to -1,266,289) |
+| of it cash-out (৳) | -3,033,725 (-3,176,928 to -2,890,522) | -5,417,366 (-5,673,087 to -5,161,646) | -2,013,411 (-2,225,843 to -1,800,979) |
+| Agent commission lost (৳) | -13,151 (-14,446 to -11,855) | -23,484 (-25,797 to -21,170) | -6,798 (-8,403 to -5,192) |
+| Runner km | -1,667 (-2,001 to -1,334) | -2,977 (-3,572 to -2,382) | -2,953 (-3,362 to -2,544) |
+| Runner cost, time and fuel (৳) | -5,752 (-7,967 to -3,537) | -10,271 (-14,227 to -6,316) | -2,822 (-5,080 to -564) |
+| Agents' own bank trips | -213 (-232 to -193) | -380 (-414 to -345) | -18 (-40 to 4) |
+| Known cost (৳) | -19,823 (-22,859 to -16,787) | -35,398 (-40,820 to -29,976) | -10,448 (-13,327 to -7,568) |
+
+**Return on investment.** Against the status quo, Jogan's known cost is lower by ৳35,398 per 1,000 agents a month (95% interval ৳29,976 to ৳40,820), before any value is put on a customer kept. So it pays for itself while running it (cloud, an analyst and an approver's time) costs less than that; every customer kept is extra. The running cost was not measured.
+
+Paired by seed; scaled from the simulated network of 600 agents to 1,000 agents and 30 days. Known cost is runner time and fuel, lost commission and idle liquidity at the middle runner salary. Transaction value turned away is what customers asked for and did not get; upay's own fee on it is not public and is not priced.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
 
 ### 8.2 Path to product
 
@@ -433,5 +457,5 @@ make docs     # the numbers in this report
 ```
 
 <!-- numbers:runtime -->
-`make eval` took 24 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
+`make eval` took 26 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
 <!-- /numbers -->

@@ -109,8 +109,8 @@ Approving a flagged visit needs a written note, enforced in the database functio
 
 | | |
 |---|---|
-| What it flags | An agent-day with unusual **excess** activity: transactions outside opening hours, volume against the agent's own hour-of-day profile, mean cash-out size against the agent's own, the busiest hour's cash-outs against their usual count |
-| Normalisation | The last three are divided by the territory's median that day, so a payday or an Eid that lifts everyone is not unusual |
+| What it flags | An agent-day with unusual **excess** activity: transactions outside opening hours, volume against the agent's own hour-of-day profile, mean cash-out size against the agent's own, the busiest hour's cash-outs against their usual count, and the busiest hour's cash-out taka against its usual taka (added on site for split cash-outs, D-032) |
+| Normalisation | The last four are divided by the territory's median that day, so a payday or an Eid that lifts everyone is not unusual |
 | Algorithm | Isolation Forest per setting (scikit-learn 1.9.1, 200 trees, 256 samples), flag above the 99.5% quantile of the setting's training scores; plus two rules: any night transaction, and any feature above its setting's training maximum |
 | Data | The observed log only; each morning scores the previous day from the records that have arrived |
 | Use | **Advisory.** It never acts: it puts the agent's visit under manual review and lists the agent for a person to look at |
@@ -123,9 +123,10 @@ Results on the test window of every evaluation seed, against the injected patter
 |---|---|---|
 | Night activity | 6 | 6 |
 | Unexplained spike | 6 | 3 |
-| Split cash-outs | 9 | 1 |
+| Split cash-outs | 9 | 3 |
 
-168,000 test agent-days; 1,219 flagged (0.7%), 48 of them on injected anomalies: precision 3.9% against a base rate of 0.08%. Precision at 5 / 10 / 20 per seed, averaged: 0.30 / 0.36 / 0.22. Injected windows with at least one flag: 10 of 21.
+168,000 test agent-days; 1,196 flagged (0.7%), 51 of them on injected anomalies: precision 4.3% against a base rate of 0.08%. Precision at 5 / 10 / 20 per seed, averaged: 0.24 / 0.36 / 0.22. Injected windows with at least one flag: 12 of 21.
+Of the 346 injected split cash-outs in the test windows, 18 (5%) were served; the rest found the drawer short and were turned away, which leaves no record for the flag to see.
 <!-- /numbers -->
 
 Reading: night activity is easy, spikes half the time, and **structuring (split cash-outs just under round figures) is mostly missed**: a burst of mid-size cash-outs barely moves day-level features. A real deployment would need transaction-level features (amounts just under round figures, bursts within minutes) and real labelled cases before this flag could be trusted for anything but triage.
@@ -142,3 +143,15 @@ Reading: night activity is easy, spikes half the time, and **structuring (split 
 ## 6. How to validate on real data
 
 Shadow mode first (Jogan recommends, nobody acts on it, outcomes are compared), then a randomised pilot by distributor territory. Details in [`07-product-readiness.md`](07-product-readiness.md).
+
+## 7. Next version of the model
+
+The pre-evaluation asked for deeper models, better urban and calibration results and a working split cash-out detector (on-site R2, D-032). What we would build next, each with the current model as the bar to beat on the same splits and seeds:
+
+| Area | Now | Next version | Why |
+|---|---|---|---|
+| Forecast | LightGBM quantile boosters, one per horizon, side and level | A global deep probabilistic forecaster trained across all agents (DeepAR, Salinas et al. 2020; or the Temporal Fusion Transformer, Lim et al. 2021), with CQR kept on top | Shares patterns across agents with short histories and learns the payday and Eid shapes jointly; kept only if it beats the boosters on pinball loss and coverage |
+| Calibration | Split CQR per setting × size class, fixed after the calibration window | Adaptive conformal inference (Gibbs and Candès 2021), which updates each group's shift as outcomes arrive | The current misses are in Eid days and some groups, where the calibration window's error no longer holds |
+| Urban agents | One model for every setting; H4 fails for urban agents | Urban-specific features (agents nearby, footfall proxies) and a service floor per group in the optimizer (D-002 #9) | Urban agents are served slightly worse than under the threshold rule (§5, `05-evaluation` §8) |
+| From forecast to plan | Forecast first, then the newsvendor and the dispatch program | Decision-focused training (the SPO+ loss, Elmachtoub and Grigas 2022): score the forecast by the cost of the plan it produces | Errors that do not change a visit should not cost the model anything |
+| Split cash-outs | Hourly features, including the busiest hour's cash-out taka (D-032) | A sequence model on upay's transaction-level ledger: amounts just under round values, repeated within minutes, the same customer across agents | Hourly totals hide the amounts; a split attempt that fails for lack of cash is never logged at all |

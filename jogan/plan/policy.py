@@ -25,8 +25,8 @@ from jogan.ops.costs import commission_rate, fuel_tk_per_km, labour_tk_per_minut
 from jogan.ops.env import Context, Observation
 from jogan.ops.fleet import Visit
 from jogan.ops.metrics import HOURS_PER_YEAR
-from jogan.ops.policies import Planned, balanced_target
-from jogan.plan.config import PlanConfig, load_plan_config
+from jogan.ops.policies import Planned, balanced_target, send_first_free
+from jogan.plan.config import Midday, PlanConfig, load_midday, load_plan_config
 from jogan.plan.dispatch import SolveLog, milp_rounds
 from jogan.plan.newsvendor import exceedance, shortage_cost, target_cash
 
@@ -193,3 +193,63 @@ class Jogan(Planned):
             }
         ).assign(hour=obs.hour)
         return visits
+
+
+class JoganMidday(Jogan):
+    """Jogan plus a midday check for surprise rushes (on-site R6, D-036).
+
+    At ``midday.hour`` the forecaster runs again from that hour's observed history (it is trained
+    at every origin hour from 08:00 to 20:00), and every agent whose stock-out chance on either
+    side within ``midday.horizon_hours`` reaches ``midday.p_min`` at its live balance, and has no
+    runner on the way, gets the runner that arrives first, highest chance first. The visit asks
+    for a balanced split, like a call. Evaluated as its own variant; :class:`Jogan` is unchanged.
+    """
+
+    name = "jogan_midday"
+
+    def __init__(
+        self, forecaster: Forecaster, cfg: PlanConfig | None = None, midday: Midday | None = None
+    ) -> None:
+        super().__init__(forecaster, cfg)
+        self.midday = midday or load_midday()
+        if self.midday.horizon_hours not in forecaster.cfg.horizons_hours:
+            raise ValueError(f"no forecast for a {self.midday.horizon_hours}-hour horizon")
+        if self.midday.hour not in forecaster.cfg.origin_hours:
+            raise ValueError(f"the forecaster was not trained at {self.midday.hour}:00")
+        self.midday_sent = 0
+
+    def reset(self, ctx: Context) -> None:
+        super().reset(ctx)
+        self.midday_sent = 0
+
+    def decide(self, obs: Observation) -> list[Visit]:
+        visits = super().decide(obs)
+        if obs.hour_of_day == self.midday.hour:
+            visits += self.check(obs, {v.agent for v in visits})
+        return visits
+
+    def check(self, obs: Observation, booked: set[int]) -> list[Visit]:
+        h, fcfg = self.midday.horizon_hours, self.forecaster.cfg
+        panel = panel_from_history(obs.history)
+        x = build_features(panel, self.ctx.calendar, self.ctx.agents, fcfg, np.array([obs.hour]))
+        x = x.matrix(h)
+        p = np.maximum(
+            stockout_probability(
+                self.forecaster.models[h, "cash"].predict(x, self.groups),
+                fcfg.quantiles,
+                obs.cash_est.astype(float),
+            ),
+            stockout_probability(
+                self.forecaster.models[h, "efloat"].predict(x, self.groups),
+                fcfg.quantiles,
+                obs.efloat.astype(float),
+            ),
+        )
+        order = np.argsort(-p, kind="stable")
+        due = [int(a) for a in order if p[a] >= self.midday.p_min]
+        due = [a for a in due if not obs.pending[a] and a not in booked]
+        typ_co, typ_ci = self.typical(obs)
+        target = balanced_target(obs, typ_co, typ_ci)
+        sent = send_first_free(due, obs.fleet, obs.t, lambda a, _: target[a], reason="midday")
+        self.midday_sent += len(sent)
+        return sent

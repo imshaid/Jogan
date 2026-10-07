@@ -375,6 +375,13 @@ def anomaly(s: Sources) -> str:
         + " / ".join(f"{pk[k]:.2f}" for k in sorted(pk, key=int))
         + f". Injected windows with at least one flag: {a['windows_detected']} of {a['windows']}.",
     ]
+    if "split_served" in a:
+        served, total = a["split_served"]
+        notes.append(
+            f"Of the {num(total)} injected split cash-outs in the test windows, {num(served)} "
+            f"({pct(served / total) if total else '0%'}) were served; the rest found the drawer "
+            "short and were turned away, which leaves no record for the flag to see."
+        )
     header = ["Injected pattern", "Windows", "With a flag"]
     return "\n".join(table(header, rows) + notes)
 
@@ -697,9 +704,136 @@ def problem(s: Sources) -> str:
     return "\n".join(table(header, rows) + notes)
 
 
+KPI_NAMES = {
+    "failed_requests": ("Failed transactions", 0),
+    "value_turned_away_tk": ("Transaction value turned away (৳)", 0),
+    "cash_out_turned_away_tk": ("of it cash-out (৳)", 0),
+    "agent_commission_lost_tk": ("Agent commission lost (৳)", 0),
+    "runner_km": ("Runner km", 0),
+    "runner_cost_tk": ("Runner cost, time and fuel (৳)", 0),
+    "agents_own_bank_trips": ("Agents' own bank trips", 0),
+    "known_cost_tk": ("Known cost (৳)", 0),
+}
+
+
+def business(s: Sources) -> str:
+    """Jogan minus the status quo and the best baseline in business units, per 1,000 agents."""
+    m = s.metrics
+    biz = m["business"]
+    best = m["fairness"]["best_baseline"]
+    sq, bb = biz["versus"]["fixed_round"]["test"], biz["versus"][best]["test"]
+    header = [
+        "KPI (Jogan minus baseline; negative is a saving)",
+        f"vs status quo, {sq['days']}-day test window",
+        "vs status quo, per 1,000 agents a month",
+        f"vs {NAMES[best]}, per 1,000 agents a month",
+    ]
+    rows = [
+        [label, ci(sq["kpis"][k]["window"], d), ci(sq["kpis"][k]["per_1000_agents_month"], d),
+         ci(bb["kpis"][k]["per_1000_agents_month"], d)]
+        for k, (label, d) in KPI_NAMES.items()
+    ]  # fmt: skip
+    saving = sq["kpis"]["known_cost_tk"]["per_1000_agents_month"]
+    notes = [
+        "",
+        f"**Return on investment.** Against the status quo, Jogan's known cost is lower by "
+        f"৳{num(-saving['mean'])} per 1,000 agents a month ({pct(m['meta']['interval_level'])} "
+        f"interval ৳{num(-saving['high'])} to ৳{num(-saving['low'])}), before any value is put "
+        "on a customer kept. So it pays for "
+        "itself while running it (cloud, an analyst and an approver's time) costs less than that; "
+        "every customer kept is extra. The running cost was not measured.",
+        "",
+        f"Paired by seed; scaled from the simulated network of {biz['agents']} agents to 1,000 "
+        f"agents and 30 days. Known cost is runner time and fuel, lost commission and idle "
+        f"liquidity at the middle runner salary. Transaction value turned away is what customers "
+        "asked for and did not get; upay's own fee on it is not public and is not priced.",
+        "",
+        _scope(s),
+    ]
+    return "\n".join(table(header, rows) + notes)
+
+
+DAY_NAMES = {
+    "eid": "Eid day and the two after",
+    "pre_eid": "10 days before Eid (bonuses, remittances)",
+    "payday": "1st to 10th of the month (wages, remittances)",
+    "holiday": "Other bank holiday",
+    "bank_weekend": "Friday or Saturday (banks shut)",
+    "ordinary": "Ordinary day",
+}
+
+
+def events(s: Sources) -> str:
+    """How the plan responds to Bangladesh's calendar, per day type in the test window."""
+    m = s.metrics
+    ev = m["events"]
+    best = m["fairness"]["best_baseline"]
+    header = [
+        "Day type",
+        "Days",
+        "Runner visits a day: status quo / Jogan",
+        "Jogan minus status quo, visits a day",
+        "Turned away per 1,000: status quo / Jogan",
+        "Jogan minus status quo, per 1,000",
+        f"Jogan minus {NAMES[best]}, per 1,000",
+    ]
+    rows = []
+    for kind, label in DAY_NAMES.items():
+        if kind not in ev["types"]:
+            continue
+        e = ev["types"][kind]
+        sq, jo = e["policies"]["fixed_round"], e["policies"][s.jogan]
+        rows.append(
+            [label, str(e["days"]),
+             f"{num(sq['visits_per_day']['mean'], 1)} / {num(jo['visits_per_day']['mean'], 1)}",
+             ci(e["versus"]["fixed_round"]["visits_per_day"], 1),
+             f"{num(sq['lost_per_1000']['mean'], 1)} / {num(jo['lost_per_1000']['mean'], 1)}",
+             ci(e["versus"]["fixed_round"]["lost_per_1000"], 1),
+             ci(e["versus"][best]["lost_per_1000"], 1)]
+        )  # fmt: skip
+    notes = [
+        "",
+        "Each test-window day gets the first type that applies, in the order of the rows. "
+        "Jogan has no rule for any of these days: the forecast reads calendar features (day of "
+        "the month, days to Eid, holidays) and recent flows, and the visits follow the forecast "
+        "and the stock-out chance. Paired by seed; negative means Jogan is lower.",
+        "",
+        _scope(s),
+    ]
+    return "\n".join(table(header, rows) + notes)
+
+
+def midday(s: Sources) -> str:
+    """The midday check for surprise rushes, against Jogan and the status quo (D-036)."""
+    m = s.metrics["midday"]
+    vj, vq = m["test"]["vs_jogan"], m["test"]["vs_status_quo"]
+    header = ["Test window", "Midday check minus Jogan", "Midday check minus status quo"]
+    rows = [
+        ["Requests turned away per 1,000", ci(vj["lost_per_1000"], 2), ci(vq["lost_per_1000"], 2)],
+        ["Runner visits", ci(vj["runner_visits"]), ""],
+        ["Runner km", ci(vj["runner_km"]), ci(vq["runner_km"])],
+        ["Known cost (৳)", ci(vj["known_cost_tk"][SALARY]), ci(vq["known_cost_tk"][SALARY])],
+    ]
+    notes = [
+        "",
+        f"Midday visits sent per seed over the run: {ci(m['visits_per_seed'])}. "
+        f"The setting (`configs/plan/midday.yaml`) was not tuned. Paired by seed; negative means "
+        "the midday check is lower.",
+    ]
+    if "eid" in m:
+        notes[-1] += (
+            " In the Eid-ul-Azha window, midday check minus Jogan: "
+            f"{ci(m['eid']['vs_jogan']['lost_per_1000'], 2)} lost requests per 1,000."
+        )
+    notes += ["", _scope(s)]
+    return "\n".join(table(header, rows) + notes)
+
+
 RENDERERS: dict[str, Callable[[Sources], str]] = {
     "ablations": ablations,
     "anomaly": anomaly,
+    "business": business,
+    "events": events,
     "break_even": break_even,
     "by_value": by_value,
     "calibration": calibration,
@@ -712,6 +846,7 @@ RENDERERS: dict[str, Callable[[Sources], str]] = {
     "headline": headline,
     "hypotheses": hypotheses,
     "limits": limits,
+    "midday": midday,
     "problem": problem,
     "runtime": runtime,
     "sizing": sizing,

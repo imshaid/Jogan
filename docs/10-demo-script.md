@@ -176,7 +176,7 @@ Eid-ul-Azha window: 2026-05-18 to 2026-05-31 (14 days).
 - **Some groups are served worse than by the best baseline (Threshold).** Lost requests per 1,000, Jogan minus Threshold: `urban` and `DHK` (the same agents) 1.03 (0.01 to 2.06).
 - **Forecast intervals are off their nominal coverage by more than 5 points in 45 cells** (by side, horizon, interval and agent group), 4 of them over all agents.
 - **The oracle is still ahead:** Jogan minus the oracle, 19.9 (19.1 to 20.7) lost requests per 1,000.
-- **The anomaly flag is weak on structuring:** split cash-outs found in 1 of 9 injected windows; precision 3.9% against a base rate of 0.08%.
+- **The anomaly flag is weak on structuring:** split cash-outs found in 3 of 9 injected windows; precision 4.3% against a base rate of 0.08%.
 - **62 group-level comparisons** (across lost-customer values and baselines) show no significant win or a baseline as good or better (`does_not_win` in `artifacts/metrics.json`).
 <!-- /numbers -->
 

@@ -417,21 +417,25 @@
   "agent_days": 168000,
   "anomalous_agent_days": 131,
   "base_rate": 0.0008,
-  "flag_precision": 0.0394,
-  "flagged": 1219,
-  "flagged_true": 48,
+  "flag_precision": 0.0426,
+  "flagged": 1196,
+  "flagged_true": 51,
   "per_seed": [
    {
     "agent_days": 16800,
     "anomalous_agent_days": 19,
     "base_rate": 0.0011,
-    "flagged": 111,
+    "flagged": 122,
     "flagged_true": 6,
     "precision_at_k": {
-     "10": 0.4,
-     "20": 0.3,
-     "5": 0.2
+     "10": 0.3,
+     "20": 0.2,
+     "5": 0.0
     },
+    "split_served": [
+     0,
+     28
+    ],
     "windows": 3,
     "windows_by_pattern": {
      "night": [
@@ -453,13 +457,17 @@
     "agent_days": 16800,
     "anomalous_agent_days": 16,
     "base_rate": 0.001,
-    "flagged": 106,
-    "flagged_true": 2,
+    "flagged": 113,
+    "flagged_true": 4,
     "precision_at_k": {
-     "10": 0.1,
-     "20": 0.05,
-     "5": 0.2
+     "10": 0.3,
+     "20": 0.15,
+     "5": 0.4
     },
+    "split_served": [
+     7,
+     82
+    ],
     "windows": 3,
     "windows_by_pattern": {
      "spike": [
@@ -467,23 +475,27 @@
       1
      ],
      "split": [
-      0,
+      1,
       2
      ]
     },
-    "windows_detected": 1
+    "windows_detected": 2
    },
    {
     "agent_days": 16800,
     "anomalous_agent_days": 19,
     "base_rate": 0.0011,
-    "flagged": 144,
-    "flagged_true": 13,
+    "flagged": 140,
+    "flagged_true": 12,
     "precision_at_k": {
      "10": 0.5,
      "20": 0.55,
      "5": 0.0
     },
+    "split_served": [
+     0,
+     0
+    ],
     "windows": 3,
     "windows_by_pattern": {
      "night": [
@@ -501,13 +513,17 @@
     "agent_days": 16800,
     "anomalous_agent_days": 9,
     "base_rate": 0.0005,
-    "flagged": 115,
-    "flagged_true": 5,
+    "flagged": 122,
+    "flagged_true": 6,
     "precision_at_k": {
      "10": 0.5,
      "20": 0.25,
      "5": 0.8
     },
+    "split_served": [
+     0,
+     0
+    ],
     "windows": 1,
     "windows_by_pattern": {
      "night": [
@@ -521,13 +537,17 @@
     "agent_days": 16800,
     "anomalous_agent_days": 9,
     "base_rate": 0.0005,
-    "flagged": 116,
+    "flagged": 111,
     "flagged_true": 0,
     "precision_at_k": {
      "10": 0.0,
      "20": 0.0,
      "5": 0.0
     },
+    "split_served": [
+     0,
+     65
+    ],
     "windows": 3,
     "windows_by_pattern": {
      "spike": [
@@ -545,13 +565,17 @@
     "agent_days": 16800,
     "anomalous_agent_days": 0,
     "base_rate": 0.0,
-    "flagged": 129,
+    "flagged": 114,
     "flagged_true": 0,
     "precision_at_k": {
      "10": 0.0,
      "20": 0.0,
      "5": 0.0
     },
+    "split_served": [
+     0,
+     0
+    ],
     "windows": 0,
     "windows_by_pattern": {},
     "windows_detected": 0
@@ -560,13 +584,17 @@
     "agent_days": 16800,
     "anomalous_agent_days": 19,
     "base_rate": 0.0011,
-    "flagged": 132,
+    "flagged": 119,
     "flagged_true": 9,
     "precision_at_k": {
-     "10": 0.8,
+     "10": 0.7,
      "20": 0.4,
-     "5": 0.6
+     "5": 0.4
     },
+    "split_served": [
+     7,
+     71
+    ],
     "windows": 3,
     "windows_by_pattern": {
      "night": [
@@ -584,13 +612,17 @@
     "agent_days": 16800,
     "anomalous_agent_days": 3,
     "base_rate": 0.0002,
-    "flagged": 144,
+    "flagged": 124,
     "flagged_true": 0,
     "precision_at_k": {
      "10": 0.0,
      "20": 0.0,
      "5": 0.0
     },
+    "split_served": [
+     0,
+     0
+    ],
     "windows": 1,
     "windows_by_pattern": {
      "spike": [
@@ -604,13 +636,17 @@
     "agent_days": 16800,
     "anomalous_agent_days": 20,
     "base_rate": 0.0012,
-    "flagged": 119,
+    "flagged": 117,
     "flagged_true": 6,
     "precision_at_k": {
      "10": 0.6,
      "20": 0.3,
-     "5": 0.8
+     "5": 0.4
     },
+    "split_served": [
+     0,
+     67
+    ],
     "windows": 2,
     "windows_by_pattern": {
      "night": [
@@ -628,13 +664,17 @@
     "agent_days": 16800,
     "anomalous_agent_days": 17,
     "base_rate": 0.001,
-    "flagged": 103,
-    "flagged_true": 7,
+    "flagged": 114,
+    "flagged_true": 8,
     "precision_at_k": {
      "10": 0.7,
      "20": 0.35,
      "5": 0.4
     },
+    "split_served": [
+     4,
+     33
+    ],
     "windows": 2,
     "windows_by_pattern": {
      "night": [
@@ -642,19 +682,23 @@
       1
      ],
      "split": [
-      0,
+      1,
       1
      ]
     },
-    "windows_detected": 1
+    "windows_detected": 2
    }
   ],
   "precision_at_k_mean": {
    "10": 0.36,
    "20": 0.22,
-   "5": 0.3
+   "5": 0.24
   },
-  "window_recall": 0.4762,
+  "split_served": [
+   18,
+   346
+  ],
+  "window_recall": 0.5714,
   "windows": 21,
   "windows_by_pattern": {
    "night": {
@@ -666,11 +710,821 @@
     "windows": 6
    },
    "split": {
-    "detected": 1,
+    "detected": 3,
     "windows": 9
    }
   },
-  "windows_detected": 10
+  "windows_detected": 12
+ },
+ "business": {
+  "agents": 600,
+  "salary": "mid",
+  "versus": {
+   "fixed_round": {
+    "eid": {
+     "days": 14,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -22970.0,
+        "low": -29433.6,
+        "mean": -26201.8,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -6431.6,
+        "low": -8241.4,
+        "mean": -7336.5,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": -199.3,
+        "low": -310.7,
+        "mean": -255.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -55.8,
+        "low": -87.0,
+        "mean": -71.4,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -6126017.5,
+        "low": -7007411.1,
+        "mean": -6566714.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1715284.9,
+        "low": -1962075.1,
+        "mean": -1838680.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -2898.6,
+        "low": -3280.0,
+        "mean": -3089.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -811.6,
+        "low": -918.4,
+        "mean": -865.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -27430.0,
+        "low": -37404.3,
+        "mean": -32417.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -7680.4,
+        "low": -10473.2,
+        "mean": -9076.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -876.8,
+        "low": -9162.1,
+        "mean": -5019.6,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -245.5,
+        "low": -2565.4,
+        "mean": -1405.5,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -1229.6,
+        "low": -2337.9,
+        "mean": -1783.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -344.3,
+        "low": -654.6,
+        "mean": -499.5,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -5602480.0,
+        "low": -7178948.6,
+        "mean": -6390714.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1568694.4,
+        "low": -2010105.6,
+        "mean": -1789400.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    },
+    "test": {
+     "days": 28,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -21169.8,
+        "low": -25797.3,
+        "mean": -23483.6,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -11855.1,
+        "low": -14446.5,
+        "mean": -13150.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": -344.8,
+        "low": -414.5,
+        "mean": -379.6,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -193.1,
+        "low": -232.1,
+        "mean": -212.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -5161645.5,
+        "low": -5673086.6,
+        "mean": -5417366.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2890521.5,
+        "low": -3176928.5,
+        "mean": -3033725.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -2622.9,
+        "low": -2936.4,
+        "mean": -2779.6,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1468.8,
+        "low": -1644.4,
+        "mean": -1556.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -29976.3,
+        "low": -40819.6,
+        "mean": -35397.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -16786.7,
+        "low": -22859.0,
+        "mean": -19822.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -6315.7,
+        "low": -14227.0,
+        "mean": -10271.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -3536.8,
+        "low": -7967.1,
+        "mean": -5752.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -2381.8,
+        "low": -3572.5,
+        "mean": -2977.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1333.8,
+        "low": -2000.6,
+        "mean": -1667.2,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -5163375.4,
+        "low": -6292017.5,
+        "mean": -5727696.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2891490.2,
+        "low": -3523529.8,
+        "mean": -3207510.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    }
+   },
+   "safety_stock": {
+    "eid": {
+     "days": 14,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -7678.9,
+        "low": -14311.8,
+        "mean": -10995.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2150.1,
+        "low": -4007.3,
+        "mean": -3078.7,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": 54.3,
+        "low": -49.3,
+        "mean": 2.5,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 15.2,
+        "low": -13.8,
+        "mean": 0.7,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -2146887.1,
+        "low": -3223791.4,
+        "mean": -2685339.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -601128.4,
+        "low": -902661.6,
+        "mean": -751895.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -604.6,
+        "low": -1038.2,
+        "mean": -821.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -169.3,
+        "low": -290.7,
+        "mean": -230.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -17413.6,
+        "low": -25911.8,
+        "mean": -21662.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -4875.8,
+        "low": -7255.3,
+        "mean": -6065.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -7502.5,
+        "low": -12761.4,
+        "mean": -10132.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2100.7,
+        "low": -3573.2,
+        "mean": -2837.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -1298.2,
+        "low": -2234.6,
+        "mean": -1766.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -363.5,
+        "low": -625.7,
+        "mean": -494.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1872888.9,
+        "low": -3490646.8,
+        "mean": -2681767.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -524408.9,
+        "low": -977381.1,
+        "mean": -750895.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    },
+    "test": {
+     "days": 28,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -6991.8,
+        "low": -10284.8,
+        "mean": -8638.2,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -3915.4,
+        "low": -5759.5,
+        "mean": -4837.4,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": 22.0,
+        "low": -49.8,
+        "mean": -13.9,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 12.3,
+        "low": -27.9,
+        "mean": -7.8,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -2213727.7,
+        "low": -2969772.3,
+        "mean": -2591750.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1239687.5,
+        "low": -1663072.5,
+        "mean": -1451380.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -605.7,
+        "low": -915.7,
+        "mean": -760.7,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -339.2,
+        "low": -512.8,
+        "mean": -426.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -19719.1,
+        "low": -25126.8,
+        "mean": -22423.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -11042.7,
+        "low": -14071.0,
+        "mean": -12556.9,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -11229.1,
+        "low": -14809.6,
+        "mean": -13019.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -6288.3,
+        "low": -8293.4,
+        "mean": -7290.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -2050.7,
+        "low": -2545.7,
+        "mean": -2298.2,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1148.4,
+        "low": -1425.6,
+        "mean": -1287.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1705302.0,
+        "low": -2508501.6,
+        "mean": -2106901.8,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -954969.1,
+        "low": -1404760.9,
+        "mean": -1179865.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    }
+   },
+   "threshold": {
+    "eid": {
+     "days": 14,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -5448.6,
+        "low": -9450.0,
+        "mean": -7449.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1525.6,
+        "low": -2646.0,
+        "mean": -2085.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": 6.4,
+        "low": -47.1,
+        "mean": -20.4,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 1.8,
+        "low": -13.2,
+        "mean": -5.7,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1559023.6,
+        "low": -2112476.4,
+        "mean": -1835750.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -436526.6,
+        "low": -591493.4,
+        "mean": -514010.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -448.6,
+        "low": -755.7,
+        "mean": -602.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -125.6,
+        "low": -211.6,
+        "mean": -168.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -5699.3,
+        "low": -14367.5,
+        "mean": -10033.2,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1595.8,
+        "low": -4022.9,
+        "mean": -2809.3,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": 926.1,
+        "low": -5047.5,
+        "mean": -2060.7,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 259.3,
+        "low": -1413.3,
+        "mean": -577.0,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -1764.3,
+        "low": -2752.1,
+        "mean": -2258.2,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -494.0,
+        "low": -770.6,
+        "mean": -632.3,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1328914.3,
+        "low": -2304835.7,
+        "mean": -1816875.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -372096.0,
+        "low": -645354.0,
+        "mean": -508725.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    },
+    "test": {
+     "days": 28,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -5191.8,
+        "low": -8403.4,
+        "mean": -6797.5,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2907.4,
+        "low": -4705.9,
+        "mean": -3806.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": 4.3,
+        "low": -39.6,
+        "mean": -17.7,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 2.4,
+        "low": -22.2,
+        "mean": -9.9,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1800978.8,
+        "low": -2225842.7,
+        "mean": -2013410.7,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1008548.1,
+        "low": -1246471.9,
+        "mean": -1127510.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -526.1,
+        "low": -788.6,
+        "mean": -657.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -294.6,
+        "low": -441.6,
+        "mean": -368.1,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -7568.4,
+        "low": -13326.8,
+        "mean": -10447.7,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -4238.3,
+        "low": -7463.0,
+        "mean": -5850.7,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -563.9,
+        "low": -5079.6,
+        "mean": -2821.8,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -315.8,
+        "low": -2844.6,
+        "mean": -1580.2,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -2543.9,
+        "low": -3361.8,
+        "mean": -2952.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1424.6,
+        "low": -1882.6,
+        "mean": -1653.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1266289.1,
+        "low": -2049603.8,
+        "mean": -1657946.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -709121.9,
+        "low": -1147778.1,
+        "mean": -928450.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    }
+   }
+  }
  },
  "comparison": {
   "by_value": {
@@ -5391,6 +6245,821 @@
    "why": "no significant difference"
   }
  ],
+ "events": {
+  "types": {
+   "bank_weekend": {
+    "days": 2,
+    "policies": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": 91.5,
+       "low": 83.2,
+       "mean": 87.3,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 234.9,
+       "low": 225.9,
+       "mean": 230.4,
+       "n": 10
+      }
+     },
+     "jogan@20": {
+      "lost_per_1000": {
+       "high": 77.0,
+       "low": 70.8,
+       "mean": 73.9,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 280.9,
+       "low": 275.2,
+       "mean": 278.1,
+       "n": 10
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": 81.0,
+       "low": 74.8,
+       "mean": 77.9,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 277.0,
+       "low": 273.1,
+       "mean": 275.1,
+       "n": 10
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": 81.7,
+       "low": 75.5,
+       "mean": 78.6,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 242.5,
+       "low": 232.7,
+       "mean": 237.6,
+       "n": 10
+      }
+     }
+    },
+    "versus": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": -10.8,
+       "low": -16.1,
+       "mean": -13.4,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 52.4,
+       "low": 42.9,
+       "mean": 47.6,
+       "n": 10,
+       "sign": "higher"
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": -2.0,
+       "low": -6.0,
+       "mean": -4.0,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 5.4,
+       "low": 0.6,
+       "mean": 3.0,
+       "n": 10,
+       "sign": "higher"
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": -2.9,
+       "low": -6.5,
+       "mean": -4.7,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 46.2,
+       "low": 34.7,
+       "mean": 40.5,
+       "n": 10,
+       "sign": "higher"
+      }
+     }
+    }
+   },
+   "eid": {
+    "days": 3,
+    "policies": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": 130.3,
+       "low": 118.0,
+       "mean": 124.1,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 205.2,
+       "low": 200.9,
+       "mean": 203.1,
+       "n": 10
+      }
+     },
+     "jogan@20": {
+      "lost_per_1000": {
+       "high": 122.4,
+       "low": 110.6,
+       "mean": 116.5,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 174.3,
+       "low": 170.8,
+       "mean": 172.5,
+       "n": 10
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": 124.4,
+       "low": 111.1,
+       "mean": 117.8,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 183.9,
+       "low": 178.1,
+       "mean": 181.0,
+       "n": 10
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": 123.9,
+       "low": 110.1,
+       "mean": 117.0,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 165.6,
+       "low": 158.6,
+       "mean": 162.1,
+       "n": 10
+      }
+     }
+    },
+    "versus": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": -5.1,
+       "low": -10.1,
+       "mean": -7.6,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": -28.4,
+       "low": -32.7,
+       "mean": -30.5,
+       "n": 10,
+       "sign": "lower"
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": 1.4,
+       "low": -3.9,
+       "mean": -1.3,
+       "n": 10,
+       "sign": "no significant difference"
+      },
+      "visits_per_day": {
+       "high": -6.5,
+       "low": -10.5,
+       "mean": -8.5,
+       "n": 10,
+       "sign": "lower"
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": 1.8,
+       "low": -2.7,
+       "mean": -0.5,
+       "n": 10,
+       "sign": "no significant difference"
+      },
+      "visits_per_day": {
+       "high": 12.7,
+       "low": 8.3,
+       "mean": 10.5,
+       "n": 10,
+       "sign": "higher"
+      }
+     }
+    }
+   },
+   "holiday": {
+    "days": 1,
+    "policies": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": 83.8,
+       "low": 77.1,
+       "mean": 80.4,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 195.0,
+       "low": 181.0,
+       "mean": 188.0,
+       "n": 10
+      }
+     },
+     "jogan@20": {
+      "lost_per_1000": {
+       "high": 80.7,
+       "low": 75.5,
+       "mean": 78.1,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 274.4,
+       "low": 260.2,
+       "mean": 267.3,
+       "n": 10
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": 82.1,
+       "low": 75.7,
+       "mean": 78.9,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 282.2,
+       "low": 269.2,
+       "mean": 275.7,
+       "n": 10
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": 80.4,
+       "low": 75.2,
+       "mean": 77.8,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 0.0,
+       "low": 0.0,
+       "mean": 0.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 235.6,
+       "low": 227.6,
+       "mean": 231.6,
+       "n": 10
+      }
+     }
+    },
+    "versus": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": 1.3,
+       "low": -5.9,
+       "mean": -2.3,
+       "n": 10,
+       "sign": "no significant difference"
+      },
+      "visits_per_day": {
+       "high": 85.3,
+       "low": 73.3,
+       "mean": 79.3,
+       "n": 10,
+       "sign": "higher"
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": 2.2,
+       "low": -3.7,
+       "mean": -0.8,
+       "n": 10,
+       "sign": "no significant difference"
+      },
+      "visits_per_day": {
+       "high": -2.3,
+       "low": -14.5,
+       "mean": -8.4,
+       "n": 10,
+       "sign": "lower"
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": 3.3,
+       "low": -2.7,
+       "mean": 0.3,
+       "n": 10,
+       "sign": "no significant difference"
+      },
+      "visits_per_day": {
+       "high": 41.6,
+       "low": 29.8,
+       "mean": 35.7,
+       "n": 10,
+       "sign": "higher"
+      }
+     }
+    }
+   },
+   "ordinary": {
+    "days": 5,
+    "policies": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": 71.4,
+       "low": 67.3,
+       "mean": 69.4,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 72.8,
+       "low": 66.8,
+       "mean": 69.8,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 276.7,
+       "low": 271.3,
+       "mean": 274.0,
+       "n": 10
+      }
+     },
+     "jogan@20": {
+      "lost_per_1000": {
+       "high": 63.8,
+       "low": 60.2,
+       "mean": 62.0,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 57.8,
+       "low": 52.3,
+       "mean": 55.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 280.6,
+       "low": 272.2,
+       "mean": 276.4,
+       "n": 10
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": 66.5,
+       "low": 62.8,
+       "mean": 64.7,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 58.4,
+       "low": 54.2,
+       "mean": 56.3,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 275.2,
+       "low": 267.7,
+       "mean": 271.5,
+       "n": 10
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": 66.3,
+       "low": 63.1,
+       "mean": 64.7,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 57.8,
+       "low": 54.0,
+       "mean": 55.9,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 243.9,
+       "low": 235.7,
+       "mean": 239.8,
+       "n": 10
+      }
+     }
+    },
+    "versus": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": -6.3,
+       "low": -8.4,
+       "mean": -7.3,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 4.9,
+       "low": -0.2,
+       "mean": 2.4,
+       "n": 10,
+       "sign": "no significant difference"
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": -1.6,
+       "low": -3.7,
+       "mean": -2.6,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 7.8,
+       "low": 2.1,
+       "mean": 4.9,
+       "n": 10,
+       "sign": "higher"
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": -1.2,
+       "low": -4.2,
+       "mean": -2.7,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 39.3,
+       "low": 33.9,
+       "mean": 36.6,
+       "n": 10,
+       "sign": "higher"
+      }
+     }
+    }
+   },
+   "payday": {
+    "days": 7,
+    "policies": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": 74.9,
+       "low": 71.2,
+       "mean": 73.1,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 53.9,
+       "low": 50.4,
+       "mean": 52.2,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 250.8,
+       "low": 244.9,
+       "mean": 247.9,
+       "n": 10
+      }
+     },
+     "jogan@20": {
+      "lost_per_1000": {
+       "high": 66.4,
+       "low": 61.6,
+       "mean": 64.0,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 44.7,
+       "low": 40.4,
+       "mean": 42.6,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 282.2,
+       "low": 275.3,
+       "mean": 278.8,
+       "n": 10
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": 68.6,
+       "low": 63.6,
+       "mean": 66.1,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 44.0,
+       "low": 41.8,
+       "mean": 42.9,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 278.0,
+       "low": 269.3,
+       "mean": 273.6,
+       "n": 10
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": 68.1,
+       "low": 63.9,
+       "mean": 66.0,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 44.7,
+       "low": 40.4,
+       "mean": 42.5,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 248.6,
+       "low": 243.4,
+       "mean": 246.0,
+       "n": 10
+      }
+     }
+    },
+    "versus": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": -8.0,
+       "low": -10.1,
+       "mean": -9.1,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 33.3,
+       "low": 28.5,
+       "mean": 30.9,
+       "n": 10,
+       "sign": "higher"
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": -1.1,
+       "low": -3.1,
+       "mean": -2.1,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 8.2,
+       "low": 2.1,
+       "mean": 5.1,
+       "n": 10,
+       "sign": "higher"
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": -0.9,
+       "low": -3.0,
+       "mean": -2.0,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 35.4,
+       "low": 30.1,
+       "mean": 32.7,
+       "n": 10,
+       "sign": "higher"
+      }
+     }
+    }
+   },
+   "pre_eid": {
+    "days": 10,
+    "policies": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": 170.3,
+       "low": 162.4,
+       "mean": 166.4,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 43.5,
+       "low": 40.5,
+       "mean": 42.0,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 269.3,
+       "low": 263.7,
+       "mean": 266.5,
+       "n": 10
+      }
+     },
+     "jogan@20": {
+      "lost_per_1000": {
+       "high": 159.8,
+       "low": 151.5,
+       "mean": 155.7,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 35.8,
+       "low": 33.9,
+       "mean": 34.9,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 289.3,
+       "low": 284.0,
+       "mean": 286.6,
+       "n": 10
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": 162.5,
+       "low": 154.6,
+       "mean": 158.6,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 36.7,
+       "low": 32.9,
+       "mean": 34.8,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 283.5,
+       "low": 277.5,
+       "mean": 280.5,
+       "n": 10
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": 162.1,
+       "low": 153.7,
+       "mean": 157.9,
+       "n": 10
+      },
+      "own_bank_trips_per_day": {
+       "high": 36.5,
+       "low": 34.4,
+       "mean": 35.4,
+       "n": 10
+      },
+      "visits_per_day": {
+       "high": 266.6,
+       "low": 259.9,
+       "mean": 263.2,
+       "n": 10
+      }
+     }
+    },
+    "versus": {
+     "fixed_round": {
+      "lost_per_1000": {
+       "high": -10.1,
+       "low": -11.3,
+       "mean": -10.7,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 22.3,
+       "low": 18.0,
+       "mean": 20.1,
+       "n": 10,
+       "sign": "higher"
+      }
+     },
+     "safety_stock": {
+      "lost_per_1000": {
+       "high": -2.0,
+       "low": -3.8,
+       "mean": -2.9,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 8.2,
+       "low": 4.1,
+       "mean": 6.2,
+       "n": 10,
+       "sign": "higher"
+      }
+     },
+     "threshold": {
+      "lost_per_1000": {
+       "high": -1.6,
+       "low": -2.8,
+       "mean": -2.2,
+       "n": 10,
+       "sign": "lower"
+      },
+      "visits_per_day": {
+       "high": 26.2,
+       "low": 20.6,
+       "mean": 23.4,
+       "n": 10,
+       "sign": "higher"
+      }
+     }
+    }
+   }
+  },
+  "window": "test"
+ },
  "fairness": {
   "best_baseline": "threshold",
   "groups": {
@@ -8862,64 +10531,67 @@
      "fallbacks": 0,
      "filled_stops": 1295,
      "programs": 162,
-     "seconds": 9.06,
-     "solver_seconds": 0.821
+     "seconds": 9.19,
+     "solver_seconds": 0.826
     },
     "jogan@100": {
      "dropped_stops": 3,
      "fallbacks": 0,
      "filled_stops": 698,
      "programs": 162,
-     "seconds": 12.0,
-     "solver_seconds": 3.989
+     "seconds": 11.89,
+     "solver_seconds": 3.927
     },
     "jogan@20": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 976,
      "programs": 162,
-     "seconds": 9.86,
-     "solver_seconds": 1.77
+     "seconds": 9.83,
+     "solver_seconds": 1.761
     },
     "jogan@200": {
      "dropped_stops": 3,
      "fallbacks": 0,
      "filled_stops": 675,
      "programs": 162,
-     "seconds": 14.71,
-     "solver_seconds": 7.159
+     "seconds": 15.02,
+     "solver_seconds": 7.219
     },
     "jogan@5": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 1173,
      "programs": 162,
-     "seconds": 9.38,
-     "solver_seconds": 0.992
+     "seconds": 8.88,
+     "solver_seconds": 0.858
     },
     "jogan@50": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 795,
      "programs": 162,
-     "seconds": 11.02,
-     "solver_seconds": 2.953
+     "seconds": 10.83,
+     "solver_seconds": 2.83
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.58,
+     "seconds": 7.84,
      "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 128
     },
     "jogan_two_sided@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 937,
      "programs": 162,
-     "seconds": 9.99,
-     "solver_seconds": 1.851
+     "seconds": 9.94,
+     "solver_seconds": 1.852
     }
    },
    "1001": {
@@ -8929,63 +10601,66 @@
      "filled_stops": 1268,
      "programs": 162,
      "seconds": 9.04,
-     "solver_seconds": 0.764
+     "solver_seconds": 0.867
     },
     "jogan@100": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 741,
      "programs": 162,
-     "seconds": 12.09,
-     "solver_seconds": 4.213
+     "seconds": 11.95,
+     "solver_seconds": 4.096
     },
     "jogan@20": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 1070,
      "programs": 162,
-     "seconds": 9.41,
-     "solver_seconds": 1.368
+     "seconds": 9.29,
+     "solver_seconds": 1.35
     },
     "jogan@200": {
      "dropped_stops": 6,
      "fallbacks": 0,
      "filled_stops": 733,
      "programs": 162,
-     "seconds": 17.81,
-     "solver_seconds": 10.284
+     "seconds": 18.2,
+     "solver_seconds": 10.427
     },
     "jogan@5": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 1185,
      "programs": 162,
-     "seconds": 9.45,
-     "solver_seconds": 1.114
+     "seconds": 8.96,
+     "solver_seconds": 0.999
     },
     "jogan@50": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 806,
      "programs": 162,
-     "seconds": 10.57,
-     "solver_seconds": 2.533
+     "seconds": 10.28,
+     "solver_seconds": 2.429
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.6,
+     "seconds": 7.74,
      "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 143
     },
     "jogan_two_sided@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 995,
      "programs": 162,
-     "seconds": 9.5,
-     "solver_seconds": 1.416
+     "seconds": 9.41,
+     "solver_seconds": 1.411
     }
    },
    "1002": {
@@ -8994,64 +10669,67 @@
      "fallbacks": 0,
      "filled_stops": 1311,
      "programs": 162,
-     "seconds": 8.91,
-     "solver_seconds": 0.739
+     "seconds": 8.62,
+     "solver_seconds": 0.775
     },
     "jogan@100": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 782,
      "programs": 162,
-     "seconds": 12.35,
-     "solver_seconds": 4.661
+     "seconds": 12.84,
+     "solver_seconds": 4.732
     },
     "jogan@20": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 1078,
      "programs": 162,
-     "seconds": 9.69,
-     "solver_seconds": 1.61
+     "seconds": 9.7,
+     "solver_seconds": 1.693
     },
     "jogan@200": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 827,
      "programs": 162,
-     "seconds": 17.12,
-     "solver_seconds": 9.126
+     "seconds": 16.96,
+     "solver_seconds": 9.085
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1282,
      "programs": 162,
-     "seconds": 9.51,
-     "solver_seconds": 1.126
+     "seconds": 8.98,
+     "solver_seconds": 1.034
     },
     "jogan@50": {
      "dropped_stops": 3,
      "fallbacks": 0,
      "filled_stops": 907,
      "programs": 162,
-     "seconds": 11.3,
-     "solver_seconds": 3.362
+     "seconds": 11.15,
+     "solver_seconds": 3.327
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 8.14,
+     "seconds": 7.8,
      "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 123
     },
     "jogan_two_sided@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1051,
      "programs": 162,
-     "seconds": 10.91,
-     "solver_seconds": 1.837
+     "seconds": 10.36,
+     "solver_seconds": 1.782
     }
    },
    "1003": {
@@ -9060,48 +10738,324 @@
      "fallbacks": 0,
      "filled_stops": 1297,
      "programs": 162,
-     "seconds": 9.51,
-     "solver_seconds": 0.916
+     "seconds": 9.0,
+     "solver_seconds": 0.859
     },
     "jogan@100": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 778,
      "programs": 162,
-     "seconds": 12.67,
-     "solver_seconds": 4.785
+     "seconds": 13.03,
+     "solver_seconds": 5.1
     },
     "jogan@20": {
      "dropped_stops": 2,
      "fallbacks": 0,
      "filled_stops": 1037,
      "programs": 162,
-     "seconds": 9.08,
-     "solver_seconds": 1.187
+     "seconds": 9.21,
+     "solver_seconds": 1.204
     },
     "jogan@200": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 731,
      "programs": 162,
-     "seconds": 16.0,
-     "solver_seconds": 8.13
+     "seconds": 15.73,
+     "solver_seconds": 8.035
     },
     "jogan@5": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 1168,
      "programs": 162,
-     "seconds": 9.59,
-     "solver_seconds": 1.17
+     "seconds": 9.16,
+     "solver_seconds": 1.066
     },
     "jogan@50": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 932,
      "programs": 162,
-     "seconds": 10.5,
-     "solver_seconds": 2.599
+     "seconds": 10.44,
+     "solver_seconds": 2.546
+    },
+    "jogan_greedy@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 0,
+     "programs": 0,
+     "seconds": 7.98,
+     "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 142
+    },
+    "jogan_two_sided@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 992,
+     "programs": 162,
+     "seconds": 10.22,
+     "solver_seconds": 1.74
+    }
+   },
+   "1004": {
+    "jogan@0": {
+     "dropped_stops": 4,
+     "fallbacks": 0,
+     "filled_stops": 1334,
+     "programs": 162,
+     "seconds": 8.88,
+     "solver_seconds": 0.839
+    },
+    "jogan@100": {
+     "dropped_stops": 1,
+     "fallbacks": 0,
+     "filled_stops": 816,
+     "programs": 162,
+     "seconds": 14.85,
+     "solver_seconds": 6.362
+    },
+    "jogan@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1115,
+     "programs": 162,
+     "seconds": 10.09,
+     "solver_seconds": 1.83
+    },
+    "jogan@200": {
+     "dropped_stops": 4,
+     "fallbacks": 0,
+     "filled_stops": 841,
+     "programs": 162,
+     "seconds": 18.45,
+     "solver_seconds": 10.366
+    },
+    "jogan@5": {
+     "dropped_stops": 1,
+     "fallbacks": 0,
+     "filled_stops": 1235,
+     "programs": 162,
+     "seconds": 9.13,
+     "solver_seconds": 0.99
+    },
+    "jogan@50": {
+     "dropped_stops": 1,
+     "fallbacks": 0,
+     "filled_stops": 958,
+     "programs": 162,
+     "seconds": 13.42,
+     "solver_seconds": 4.161
+    },
+    "jogan_greedy@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 0,
+     "programs": 0,
+     "seconds": 7.55,
+     "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 132
+    },
+    "jogan_two_sided@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1081,
+     "programs": 162,
+     "seconds": 10.27,
+     "solver_seconds": 2.178
+    }
+   },
+   "1005": {
+    "jogan@0": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1296,
+     "programs": 162,
+     "seconds": 8.91,
+     "solver_seconds": 0.744
+    },
+    "jogan@100": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 793,
+     "programs": 162,
+     "seconds": 13.28,
+     "solver_seconds": 4.718
+    },
+    "jogan@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1062,
+     "programs": 162,
+     "seconds": 10.12,
+     "solver_seconds": 1.798
+    },
+    "jogan@200": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 705,
+     "programs": 162,
+     "seconds": 16.21,
+     "solver_seconds": 8.285
+    },
+    "jogan@5": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1186,
+     "programs": 162,
+     "seconds": 8.95,
+     "solver_seconds": 0.765
+    },
+    "jogan@50": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 886,
+     "programs": 162,
+     "seconds": 12.17,
+     "solver_seconds": 3.052
+    },
+    "jogan_greedy@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 0,
+     "programs": 0,
+     "seconds": 7.32,
+     "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 144
+    },
+    "jogan_two_sided@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 992,
+     "programs": 162,
+     "seconds": 10.29,
+     "solver_seconds": 2.028
+    }
+   },
+   "1006": {
+    "jogan@0": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1221,
+     "programs": 162,
+     "seconds": 8.51,
+     "solver_seconds": 0.89
+    },
+    "jogan@100": {
+     "dropped_stops": 1,
+     "fallbacks": 0,
+     "filled_stops": 727,
+     "programs": 162,
+     "seconds": 14.7,
+     "solver_seconds": 6.742
+    },
+    "jogan@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1057,
+     "programs": 162,
+     "seconds": 9.56,
+     "solver_seconds": 1.491
+    },
+    "jogan@200": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 680,
+     "programs": 162,
+     "seconds": 15.73,
+     "solver_seconds": 8.143
+    },
+    "jogan@5": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1172,
+     "programs": 162,
+     "seconds": 9.28,
+     "solver_seconds": 0.949
+    },
+    "jogan@50": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 875,
+     "programs": 162,
+     "seconds": 10.88,
+     "solver_seconds": 2.875
+    },
+    "jogan_greedy@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 0,
+     "programs": 0,
+     "seconds": 7.73,
+     "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 133
+    },
+    "jogan_two_sided@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 966,
+     "programs": 162,
+     "seconds": 11.25,
+     "solver_seconds": 2.22
+    }
+   },
+   "1007": {
+    "jogan@0": {
+     "dropped_stops": 2,
+     "fallbacks": 0,
+     "filled_stops": 1273,
+     "programs": 162,
+     "seconds": 9.36,
+     "solver_seconds": 0.914
+    },
+    "jogan@100": {
+     "dropped_stops": 2,
+     "fallbacks": 0,
+     "filled_stops": 751,
+     "programs": 162,
+     "seconds": 13.52,
+     "solver_seconds": 5.324
+    },
+    "jogan@20": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1048,
+     "programs": 162,
+     "seconds": 10.6,
+     "solver_seconds": 2.199
+    },
+    "jogan@200": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 734,
+     "programs": 162,
+     "seconds": 17.96,
+     "solver_seconds": 9.536
+    },
+    "jogan@5": {
+     "dropped_stops": 0,
+     "fallbacks": 0,
+     "filled_stops": 1205,
+     "programs": 162,
+     "seconds": 9.3,
+     "solver_seconds": 0.947
+    },
+    "jogan@50": {
+     "dropped_stops": 1,
+     "fallbacks": 0,
+     "filled_stops": 864,
+     "programs": 162,
+     "seconds": 11.81,
+     "solver_seconds": 3.673
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
@@ -9111,277 +11065,16 @@
      "seconds": 8.34,
      "solver_seconds": 0.0
     },
-    "jogan_two_sided@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 992,
-     "programs": 162,
-     "seconds": 10.57,
-     "solver_seconds": 1.774
-    }
-   },
-   "1004": {
-    "jogan@0": {
-     "dropped_stops": 4,
-     "fallbacks": 0,
-     "filled_stops": 1334,
-     "programs": 162,
-     "seconds": 8.86,
-     "solver_seconds": 0.837
-    },
-    "jogan@100": {
-     "dropped_stops": 1,
-     "fallbacks": 0,
-     "filled_stops": 816,
-     "programs": 162,
-     "seconds": 13.78,
-     "solver_seconds": 6.007
-    },
-    "jogan@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1115,
-     "programs": 162,
-     "seconds": 9.91,
-     "solver_seconds": 1.867
-    },
-    "jogan@200": {
-     "dropped_stops": 4,
-     "fallbacks": 0,
-     "filled_stops": 841,
-     "programs": 162,
-     "seconds": 18.12,
-     "solver_seconds": 10.258
-    },
-    "jogan@5": {
-     "dropped_stops": 1,
-     "fallbacks": 0,
-     "filled_stops": 1235,
-     "programs": 162,
-     "seconds": 9.22,
-     "solver_seconds": 0.986
-    },
-    "jogan@50": {
-     "dropped_stops": 1,
-     "fallbacks": 0,
-     "filled_stops": 958,
-     "programs": 162,
-     "seconds": 11.88,
-     "solver_seconds": 3.851
-    },
-    "jogan_greedy@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 0,
-     "programs": 0,
-     "seconds": 8.19,
-     "solver_seconds": 0.0
-    },
-    "jogan_two_sided@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1081,
-     "programs": 162,
-     "seconds": 10.18,
-     "solver_seconds": 2.2
-    }
-   },
-   "1005": {
-    "jogan@0": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1296,
-     "programs": 162,
-     "seconds": 8.89,
-     "solver_seconds": 0.748
-    },
-    "jogan@100": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 793,
-     "programs": 162,
-     "seconds": 12.08,
-     "solver_seconds": 4.362
-    },
-    "jogan@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1062,
-     "programs": 162,
-     "seconds": 9.79,
-     "solver_seconds": 1.754
-    },
-    "jogan@200": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 705,
-     "programs": 162,
-     "seconds": 15.97,
-     "solver_seconds": 8.181
-    },
-    "jogan@5": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1186,
-     "programs": 162,
-     "seconds": 9.01,
-     "solver_seconds": 0.769
-    },
-    "jogan@50": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 886,
-     "programs": 162,
-     "seconds": 10.41,
-     "solver_seconds": 2.523
-    },
-    "jogan_greedy@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 0,
-     "programs": 0,
-     "seconds": 8.17,
-     "solver_seconds": 0.0
-    },
-    "jogan_two_sided@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 992,
-     "programs": 162,
-     "seconds": 9.99,
-     "solver_seconds": 1.978
-    }
-   },
-   "1006": {
-    "jogan@0": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1221,
-     "programs": 162,
-     "seconds": 8.77,
-     "solver_seconds": 0.893
-    },
-    "jogan@100": {
-     "dropped_stops": 1,
-     "fallbacks": 0,
-     "filled_stops": 727,
-     "programs": 162,
-     "seconds": 14.67,
-     "solver_seconds": 6.692
-    },
-    "jogan@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1057,
-     "programs": 162,
-     "seconds": 9.43,
-     "solver_seconds": 1.463
-    },
-    "jogan@200": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 680,
-     "programs": 162,
-     "seconds": 15.86,
-     "solver_seconds": 8.185
-    },
-    "jogan@5": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1172,
-     "programs": 162,
-     "seconds": 9.16,
-     "solver_seconds": 0.924
-    },
-    "jogan@50": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 875,
-     "programs": 162,
-     "seconds": 11.02,
-     "solver_seconds": 2.861
-    },
-    "jogan_greedy@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 0,
-     "programs": 0,
-     "seconds": 8.0,
-     "solver_seconds": 0.0
-    },
-    "jogan_two_sided@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 966,
-     "programs": 162,
-     "seconds": 10.41,
-     "solver_seconds": 2.087
-    }
-   },
-   "1007": {
-    "jogan@0": {
-     "dropped_stops": 2,
-     "fallbacks": 0,
-     "filled_stops": 1273,
-     "programs": 162,
-     "seconds": 8.94,
-     "solver_seconds": 0.898
-    },
-    "jogan@100": {
-     "dropped_stops": 2,
-     "fallbacks": 0,
-     "filled_stops": 751,
-     "programs": 162,
-     "seconds": 13.11,
-     "solver_seconds": 5.346
-    },
-    "jogan@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1048,
-     "programs": 162,
-     "seconds": 10.43,
-     "solver_seconds": 2.21
-    },
-    "jogan@200": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 734,
-     "programs": 162,
-     "seconds": 17.63,
-     "solver_seconds": 9.537
-    },
-    "jogan@5": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 1205,
-     "programs": 162,
-     "seconds": 9.17,
-     "solver_seconds": 0.938
-    },
-    "jogan@50": {
-     "dropped_stops": 1,
-     "fallbacks": 0,
-     "filled_stops": 864,
-     "programs": 162,
-     "seconds": 11.84,
-     "solver_seconds": 3.72
-    },
-    "jogan_greedy@20": {
-     "dropped_stops": 0,
-     "fallbacks": 0,
-     "filled_stops": 0,
-     "programs": 0,
-     "seconds": 7.95,
-     "solver_seconds": 0.0
+    "jogan_midday@20": {
+     "midday_visits": 142
     },
     "jogan_two_sided@20": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 931,
      "programs": 162,
-     "seconds": 10.35,
-     "solver_seconds": 2.165
+     "seconds": 10.64,
+     "solver_seconds": 2.167
     }
    },
    "1008": {
@@ -9390,39 +11083,39 @@
      "fallbacks": 0,
      "filled_stops": 1319,
      "programs": 162,
-     "seconds": 8.58,
-     "solver_seconds": 0.714
+     "seconds": 9.3,
+     "solver_seconds": 0.76
     },
     "jogan@100": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 782,
      "programs": 162,
-     "seconds": 12.16,
-     "solver_seconds": 4.27
+     "seconds": 12.68,
+     "solver_seconds": 4.568
     },
     "jogan@20": {
      "dropped_stops": 1,
      "fallbacks": 0,
      "filled_stops": 973,
      "programs": 162,
-     "seconds": 9.22,
-     "solver_seconds": 1.423
+     "seconds": 9.29,
+     "solver_seconds": 1.424
     },
     "jogan@200": {
      "dropped_stops": 4,
      "fallbacks": 0,
      "filled_stops": 648,
      "programs": 162,
-     "seconds": 17.05,
-     "solver_seconds": 9.045
+     "seconds": 16.28,
+     "solver_seconds": 8.565
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1190,
      "programs": 162,
-     "seconds": 9.25,
+     "seconds": 8.84,
      "solver_seconds": 1.01
     },
     "jogan@50": {
@@ -9430,24 +11123,27 @@
      "fallbacks": 0,
      "filled_stops": 850,
      "programs": 162,
-     "seconds": 10.69,
-     "solver_seconds": 2.923
+     "seconds": 11.11,
+     "solver_seconds": 3.043
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.72,
+     "seconds": 7.48,
      "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 150
     },
     "jogan_two_sided@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 944,
      "programs": 162,
-     "seconds": 9.63,
-     "solver_seconds": 1.674
+     "seconds": 9.83,
+     "solver_seconds": 1.661
     }
    },
    "1009": {
@@ -9456,64 +11152,67 @@
      "fallbacks": 0,
      "filled_stops": 1399,
      "programs": 162,
-     "seconds": 9.26,
-     "solver_seconds": 0.844
+     "seconds": 9.08,
+     "solver_seconds": 0.828
     },
     "jogan@100": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 835,
      "programs": 162,
-     "seconds": 15.25,
-     "solver_seconds": 7.106
+     "seconds": 14.6,
+     "solver_seconds": 6.679
     },
     "jogan@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1118,
      "programs": 162,
-     "seconds": 10.28,
-     "solver_seconds": 2.233
+     "seconds": 10.77,
+     "solver_seconds": 2.355
     },
     "jogan@200": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 817,
      "programs": 162,
-     "seconds": 21.34,
-     "solver_seconds": 13.05
+     "seconds": 21.56,
+     "solver_seconds": 13.148
     },
     "jogan@5": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1293,
      "programs": 162,
-     "seconds": 9.93,
-     "solver_seconds": 1.901
+     "seconds": 10.1,
+     "solver_seconds": 1.912
     },
     "jogan@50": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 928,
      "programs": 162,
-     "seconds": 13.27,
-     "solver_seconds": 5.137
+     "seconds": 13.56,
+     "solver_seconds": 5.388
     },
     "jogan_greedy@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 0,
      "programs": 0,
-     "seconds": 7.68,
+     "seconds": 7.83,
      "solver_seconds": 0.0
+    },
+    "jogan_midday@20": {
+     "midday_visits": 141
     },
     "jogan_two_sided@20": {
      "dropped_stops": 0,
      "fallbacks": 0,
      "filled_stops": 1043,
      "programs": 162,
-     "seconds": 10.42,
-     "solver_seconds": 2.662
+     "seconds": 11.59,
+     "solver_seconds": 3.272
     }
    }
   },
@@ -9526,47 +11225,47 @@
    200.0
   ],
   "profile": "full",
-  "runtime_s": 1451.7,
+  "runtime_s": 1556.3,
   "seed_runtime_s": {
    "1000": {
-    "forecast_s": 160.1,
-    "total_s": 250.7
+    "forecast_s": 197.8,
+    "total_s": 304.4
    },
    "1001": {
-    "forecast_s": 160.6,
-    "total_s": 253.0
+    "forecast_s": 196.6,
+    "total_s": 304.4
    },
    "1002": {
-    "forecast_s": 196.9,
-    "total_s": 292.4
+    "forecast_s": 199.1,
+    "total_s": 309.1
    },
    "1003": {
-    "forecast_s": 198.9,
-    "total_s": 292.3
+    "forecast_s": 203.4,
+    "total_s": 311.7
    },
    "1004": {
-    "forecast_s": 205.1,
-    "total_s": 303.1
+    "forecast_s": 202.1,
+    "total_s": 318.1
    },
    "1005": {
-    "forecast_s": 208.8,
-    "total_s": 300.2
+    "forecast_s": 201.0,
+    "total_s": 311.0
    },
    "1006": {
-    "forecast_s": 196.7,
-    "total_s": 291.4
+    "forecast_s": 198.1,
+    "total_s": 309.3
    },
    "1007": {
-    "forecast_s": 200.0,
-    "total_s": 296.4
+    "forecast_s": 201.1,
+    "total_s": 317.1
    },
    "1008": {
-    "forecast_s": 199.7,
-    "total_s": 292.5
+    "forecast_s": 181.7,
+    "total_s": 290.2
    },
    "1009": {
-    "forecast_s": 203.2,
-    "total_s": 308.0
+    "forecast_s": 183.4,
+    "total_s": 306.3
    }
   },
   "seeds": [
@@ -9599,6 +11298,441 @@
     "2026-05-07",
     "2026-06-03"
    ]
+  }
+ },
+ "midday": {
+  "eid": {
+   "vs_jogan": {
+    "break_even_tk": {
+     "high": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 3,
+      "value": 17.53,
+      "verdict": "a cheaper above the value"
+     },
+     "low": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 4,
+      "value": 12.51,
+      "verdict": "a cheaper above the value"
+     },
+     "mid": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 4,
+      "value": 15.02,
+      "verdict": "a cheaper above the value"
+     }
+    },
+    "known_cost_tk": {
+     "high": {
+      "high": 1185.6,
+      "low": -246.0,
+      "mean": 469.8,
+      "n": 10,
+      "sign": "no significant difference"
+     },
+     "low": {
+      "high": 954.7,
+      "low": -284.2,
+      "mean": 335.3,
+      "n": 10,
+      "sign": "no significant difference"
+     },
+     "mid": {
+      "high": 1069.1,
+      "low": -264.1,
+      "mean": 402.5,
+      "n": 10,
+      "sign": "no significant difference"
+     }
+    },
+    "lost": {
+     "high": 21.1,
+     "low": -74.7,
+     "mean": -26.8,
+     "n": 10,
+     "sign": "no significant difference"
+    },
+    "lost_per_1000": {
+     "high": 0.243,
+     "low": -0.876,
+     "mean": -0.317,
+     "n": 10,
+     "sign": "no significant difference"
+    },
+    "runner_km": {
+     "high": 187.1,
+     "low": -27.5,
+     "mean": 79.8,
+     "n": 10,
+     "sign": "no significant difference"
+    },
+    "runner_visits": {
+     "high": 28.6,
+     "low": 2.2,
+     "mean": 15.4,
+     "n": 10,
+     "sign": "higher"
+    },
+    "self_refills": {
+     "high": 7.1,
+     "low": -9.5,
+     "mean": -1.2,
+     "n": 10,
+     "sign": "no significant difference"
+    },
+    "total_cost_tk": {
+     "high": {
+      "high": 1292.7,
+      "low": -1425.1,
+      "mean": -66.2,
+      "n": 10,
+      "sign": "no significant difference"
+     },
+     "low": {
+      "high": 1115.5,
+      "low": -1517.0,
+      "mean": -200.7,
+      "n": 10,
+      "sign": "no significant difference"
+     },
+     "mid": {
+      "high": 1202.9,
+      "low": -1469.9,
+      "mean": -133.5,
+      "n": 10,
+      "sign": "no significant difference"
+     }
+    }
+   },
+   "vs_status_quo": {
+    "break_even_tk": {
+     "high": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 10,
+      "value": null,
+      "verdict": "a cheaper at every value"
+     },
+     "low": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 10,
+      "value": null,
+      "verdict": "a cheaper at every value"
+     },
+     "mid": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 10,
+      "value": null,
+      "verdict": "a cheaper at every value"
+     }
+    },
+    "known_cost_tk": {
+     "high": {
+      "high": -6922.4,
+      "low": -10257.8,
+      "mean": -8590.1,
+      "n": 10,
+      "sign": "lower"
+     },
+     "low": {
+      "high": -7245.8,
+      "low": -10271.1,
+      "mean": -8758.5,
+      "n": 10,
+      "sign": "lower"
+     },
+     "mid": {
+      "high": -7085.4,
+      "low": -10263.2,
+      "mean": -8674.3,
+      "n": 10,
+      "sign": "lower"
+     }
+    },
+    "lost": {
+     "high": -813.9,
+     "low": -969.7,
+     "mean": -891.8,
+     "n": 10,
+     "sign": "lower"
+    },
+    "lost_per_1000": {
+     "high": -9.293,
+     "low": -11.201,
+     "mean": -10.247,
+     "n": 10,
+     "sign": "lower"
+    },
+    "runner_km": {
+     "high": -250.9,
+     "low": -588.4,
+     "mean": -419.7,
+     "n": 10,
+     "sign": "lower"
+    },
+    "self_refills": {
+     "high": -54.1,
+     "low": -91.1,
+     "mean": -72.6,
+     "n": 10,
+     "sign": "lower"
+    },
+    "total_cost_tk": {
+     "high": {
+      "high": -23747.9,
+      "low": -29104.3,
+      "mean": -26426.1,
+      "n": 10,
+      "sign": "lower"
+     },
+     "low": {
+      "high": -23991.1,
+      "low": -29197.9,
+      "mean": -26594.5,
+      "n": 10,
+      "sign": "lower"
+     },
+     "mid": {
+      "high": -23871.1,
+      "low": -29149.5,
+      "mean": -26510.3,
+      "n": 10,
+      "sign": "lower"
+     }
+    }
+   }
+  },
+  "key": "jogan_midday@20",
+  "test": {
+   "vs_jogan": {
+    "break_even_tk": {
+     "high": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 0,
+      "value": 234.14,
+      "verdict": "a cheaper above the value"
+     },
+     "low": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 0,
+      "value": 193.42,
+      "verdict": "a cheaper above the value"
+     },
+     "mid": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 0,
+      "value": 213.78,
+      "verdict": "a cheaper above the value"
+     }
+    },
+    "known_cost_tk": {
+     "high": {
+      "high": 5701.2,
+      "low": 3289.8,
+      "mean": 4495.5,
+      "n": 10,
+      "sign": "higher"
+     },
+     "low": {
+      "high": 4786.5,
+      "low": 2640.8,
+      "mean": 3713.6,
+      "n": 10,
+      "sign": "higher"
+     },
+     "mid": {
+      "high": 5243.6,
+      "low": 2965.5,
+      "mean": 4104.5,
+      "n": 10,
+      "sign": "higher"
+     }
+    },
+    "lost": {
+     "high": 27.3,
+     "low": -65.7,
+     "mean": -19.2,
+     "n": 10,
+     "sign": "no significant difference"
+    },
+    "lost_per_1000": {
+     "high": 0.167,
+     "low": -0.408,
+     "mean": -0.12,
+     "n": 10,
+     "sign": "no significant difference"
+    },
+    "runner_km": {
+     "high": 624.6,
+     "low": 403.2,
+     "mean": 513.9,
+     "n": 10,
+     "sign": "higher"
+    },
+    "runner_visits": {
+     "high": 87.4,
+     "low": 51.8,
+     "mean": 69.6,
+     "n": 10,
+     "sign": "higher"
+    },
+    "self_refills": {
+     "high": 7.9,
+     "low": -17.1,
+     "mean": -4.6,
+     "n": 10,
+     "sign": "no significant difference"
+    },
+    "total_cost_tk": {
+     "high": {
+      "high": 5952.2,
+      "low": 2270.7,
+      "mean": 4111.5,
+      "n": 10,
+      "sign": "higher"
+     },
+     "low": {
+      "high": 5056.2,
+      "low": 1603.1,
+      "mean": 3329.6,
+      "n": 10,
+      "sign": "higher"
+     },
+     "mid": {
+      "high": 5503.7,
+      "low": 1937.4,
+      "mean": 3720.5,
+      "n": 10,
+      "sign": "higher"
+     }
+    }
+   },
+   "vs_status_quo": {
+    "break_even_tk": {
+     "high": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 10,
+      "value": null,
+      "verdict": "a cheaper at every value"
+     },
+     "low": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 10,
+      "value": null,
+      "verdict": "a cheaper at every value"
+     },
+     "mid": {
+      "bounded": false,
+      "high": null,
+      "low": null,
+      "seeds_a_cheaper_and_fewer_lost": 10,
+      "value": null,
+      "verdict": "a cheaper at every value"
+     }
+    },
+    "known_cost_tk": {
+     "high": {
+      "high": -12425.6,
+      "low": -18419.4,
+      "mean": -15422.5,
+      "n": 10,
+      "sign": "lower"
+     },
+     "low": {
+      "high": -13305.3,
+      "low": -18722.9,
+      "mean": -16014.1,
+      "n": 10,
+      "sign": "lower"
+     },
+     "mid": {
+      "high": -12866.6,
+      "low": -18570.0,
+      "mean": -15718.3,
+      "n": 10,
+      "sign": "lower"
+     }
+    },
+    "lost": {
+     "high": -1459.6,
+     "low": -1692.0,
+     "mean": -1575.8,
+     "n": 10,
+     "sign": "lower"
+    },
+    "lost_per_1000": {
+     "high": -8.877,
+     "low": -10.387,
+     "mean": -9.632,
+     "n": 10,
+     "sign": "lower"
+    },
+    "runner_km": {
+     "high": -845.5,
+     "low": -1461.1,
+     "mean": -1153.3,
+     "n": 10,
+     "sign": "lower"
+    },
+    "self_refills": {
+     "high": -191.1,
+     "low": -243.3,
+     "mean": -217.2,
+     "n": 10,
+     "sign": "lower"
+    },
+    "total_cost_tk": {
+     "high": {
+      "high": -42211.2,
+      "low": -51665.8,
+      "mean": -46938.5,
+      "n": 10,
+      "sign": "lower"
+     },
+     "low": {
+      "high": -43023.9,
+      "low": -52036.3,
+      "mean": -47530.1,
+      "n": 10,
+      "sign": "lower"
+     },
+     "mid": {
+      "high": -42619.2,
+      "low": -51849.4,
+      "mean": -47234.3,
+      "n": 10,
+      "sign": "lower"
+     }
+    }
+   }
+  },
+  "visits_per_seed": {
+   "high": 143.8,
+   "low": 131.8,
+   "mean": 137.8,
+   "n": 10
   }
  },
  "oracle_gap": {
@@ -11548,6 +13682,224 @@
      "high": 940.1,
      "low": 892.9,
      "mean": 916.5,
+     "n": 10
+    }
+   }
+  },
+  "jogan_midday@20": {
+   "eid": {
+    "agent_days_with_loss_share": {
+     "high": 0.5073,
+     "low": 0.4968,
+     "mean": 0.5021,
+     "n": 10
+    },
+    "cost_tk": {
+     "idle_liquidity": {
+      "high": 18084.2,
+      "low": 17175.0,
+      "mean": 17629.6,
+      "n": 10
+     },
+     "lost_commission": {
+      "high": 204570.8,
+      "low": 195286.6,
+      "mean": 199928.7,
+      "n": 10
+     },
+     "runner_fuel": {
+      "high": 57568.9,
+      "low": 56421.3,
+      "mean": 56995.1,
+      "n": 10
+     },
+     "runner_time": {
+      "high": 123791.1,
+      "low": 121544.4,
+      "mean": 122667.8,
+      "n": 10
+     }
+    },
+    "known_cost_tk": {
+     "high": {
+      "high": 418426.0,
+      "low": 408727.6,
+      "mean": 413576.8,
+      "n": 10
+     },
+     "low": {
+      "high": 385683.0,
+      "low": 376047.9,
+      "mean": 380865.5,
+      "n": 10
+     },
+     "mid": {
+      "high": 402052.2,
+      "low": 392390.1,
+      "mean": 397221.1,
+      "n": 10
+     }
+    },
+    "lost": {
+     "high": 13258.6,
+     "low": 12428.0,
+     "mean": 12843.3,
+     "n": 10
+    },
+    "lost_cash_out_tk": {
+     "high": 26831932.0,
+     "low": 25802098.0,
+     "mean": 26317015.0,
+     "n": 10
+    },
+    "lost_per_1000": {
+     "high": 151.448,
+     "low": 143.427,
+     "mean": 147.437,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 49895313.0,
+     "low": 47630887.0,
+     "mean": 48763100.0,
+     "n": 10
+    },
+    "requests": {
+     "high": 88836.9,
+     "low": 85394.9,
+     "mean": 87115.9,
+     "n": 10
+    },
+    "runner_busy_hours": {
+     "high": 1722.5,
+     "low": 1691.2,
+     "mean": 1706.8,
+     "n": 10
+    },
+    "runner_km": {
+     "high": 19884.7,
+     "low": 19503.0,
+     "mean": 19693.9,
+     "n": 10
+    },
+    "runner_visits": {
+     "high": 3697.3,
+     "low": 3636.1,
+     "mean": 3666.7,
+     "n": 10
+    },
+    "self_refills": {
+     "high": 361.0,
+     "low": 334.2,
+     "mean": 347.6,
+     "n": 10
+    }
+   },
+   "test": {
+    "agent_days_with_loss_share": {
+     "high": 0.4381,
+     "low": 0.4281,
+     "mean": 0.4331,
+     "n": 10
+    },
+    "cost_tk": {
+     "idle_liquidity": {
+      "high": 33843.7,
+      "low": 32092.0,
+      "mean": 32967.9,
+      "n": 10
+     },
+     "lost_commission": {
+      "high": 297437.9,
+      "low": 286506.0,
+      "mean": 291971.9,
+      "n": 10
+     },
+     "runner_fuel": {
+      "high": 119490.5,
+      "low": 117141.3,
+      "mean": 118315.9,
+      "n": 10
+     },
+     "runner_time": {
+      "high": 256241.4,
+      "low": 252855.6,
+      "mean": 254548.5,
+      "n": 10
+     }
+    },
+    "known_cost_tk": {
+     "high": {
+      "high": 738202.3,
+      "low": 725285.7,
+      "mean": 731744.0,
+      "n": 10
+     },
+     "low": {
+      "high": 670126.3,
+      "low": 657602.5,
+      "mean": 663864.4,
+      "n": 10
+     },
+     "mid": {
+      "high": 704161.0,
+      "low": 691447.3,
+      "mean": 697804.2,
+      "n": 10
+     }
+    },
+    "lost": {
+     "high": 18298.3,
+     "low": 17302.3,
+     "mean": 17800.3,
+     "n": 10
+    },
+    "lost_cash_out_tk": {
+     "high": 35125017.0,
+     "low": 34005943.0,
+     "mean": 34565480.0,
+     "n": 10
+    },
+    "lost_per_1000": {
+     "high": 111.548,
+     "low": 105.931,
+     "mean": 108.74,
+     "n": 10
+    },
+    "lost_tk": {
+     "high": 72545831.0,
+     "low": 69879509.0,
+     "mean": 71212670.0,
+     "n": 10
+    },
+    "requests": {
+     "high": 166681.3,
+     "low": 160767.9,
+     "mean": 163724.6,
+     "n": 10
+    },
+    "runner_busy_hours": {
+     "high": 3565.4,
+     "low": 3518.3,
+     "mean": 3541.9,
+     "n": 10
+    },
+    "runner_km": {
+     "high": 41107.4,
+     "low": 40308.4,
+     "mean": 40707.9,
+     "n": 10
+    },
+    "runner_visits": {
+     "high": 7654.5,
+     "low": 7566.1,
+     "mean": 7610.3,
+     "n": 10
+    },
+    "self_refills": {
+     "high": 947.7,
+     "low": 886.9,
+     "mean": 917.3,
      "n": 10
     }
    }

@@ -90,6 +90,59 @@ Agents' own bank trips, Jogan minus each baseline, paired by seed: Fixed round (
 _Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
 <!-- /numbers -->
 
+**Business KPIs** (D-033). The same runs in the units an MFS business reports, per 1,000 agents a month:
+
+<!-- numbers:business -->
+| KPI (Jogan minus baseline; negative is a saving) | vs status quo, 28-day test window | vs status quo, per 1,000 agents a month | vs Threshold, per 1,000 agents a month |
+|---|---|---|---|
+| Failed transactions | -1,557 (-1,644 to -1,469) | -2,780 (-2,936 to -2,623) | -657 (-789 to -526) |
+| Transaction value turned away (৳) | -3,207,510 (-3,523,530 to -2,891,490) | -5,727,696 (-6,292,018 to -5,163,375) | -1,657,946 (-2,049,604 to -1,266,289) |
+| of it cash-out (৳) | -3,033,725 (-3,176,928 to -2,890,522) | -5,417,366 (-5,673,087 to -5,161,646) | -2,013,411 (-2,225,843 to -1,800,979) |
+| Agent commission lost (৳) | -13,151 (-14,446 to -11,855) | -23,484 (-25,797 to -21,170) | -6,798 (-8,403 to -5,192) |
+| Runner km | -1,667 (-2,001 to -1,334) | -2,977 (-3,572 to -2,382) | -2,953 (-3,362 to -2,544) |
+| Runner cost, time and fuel (৳) | -5,752 (-7,967 to -3,537) | -10,271 (-14,227 to -6,316) | -2,822 (-5,080 to -564) |
+| Agents' own bank trips | -213 (-232 to -193) | -380 (-414 to -345) | -18 (-40 to 4) |
+| Known cost (৳) | -19,823 (-22,859 to -16,787) | -35,398 (-40,820 to -29,976) | -10,448 (-13,327 to -7,568) |
+
+**Return on investment.** Against the status quo, Jogan's known cost is lower by ৳35,398 per 1,000 agents a month (95% interval ৳29,976 to ৳40,820), before any value is put on a customer kept. So it pays for itself while running it (cloud, an analyst and an approver's time) costs less than that; every customer kept is extra. The running cost was not measured.
+
+Paired by seed; scaled from the simulated network of 600 agents to 1,000 agents and 30 days. Known cost is runner time and fuel, lost commission and idle liquidity at the middle runner salary. Transaction value turned away is what customers asked for and did not get; upay's own fee on it is not public and is not priced.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
+**Bangladesh's calendar** (D-035). Per day type in the test window, how many visits each policy sends and how many requests it turns away. Jogan has no rule for any of these days:
+
+<!-- numbers:events -->
+| Day type | Days | Runner visits a day: status quo / Jogan | Jogan minus status quo, visits a day | Turned away per 1,000: status quo / Jogan | Jogan minus status quo, per 1,000 | Jogan minus Threshold, per 1,000 |
+|---|---|---|---|---|---|---|
+| Eid day and the two after | 3 | 203.1 / 172.5 | -30.5 (-32.7 to -28.4) | 124.1 / 116.5 | -7.6 (-10.1 to -5.1) | -0.5 (-2.7 to 1.8) |
+| 10 days before Eid (bonuses, remittances) | 10 | 266.5 / 286.6 | 20.1 (18.0 to 22.3) | 166.4 / 155.7 | -10.7 (-11.3 to -10.1) | -2.2 (-2.8 to -1.6) |
+| 1st to 10th of the month (wages, remittances) | 7 | 247.9 / 278.8 | 30.9 (28.5 to 33.3) | 73.1 / 64.0 | -9.1 (-10.1 to -8.0) | -2.0 (-3.0 to -0.9) |
+| Other bank holiday | 1 | 188.0 / 267.3 | 79.3 (73.3 to 85.3) | 80.4 / 78.1 | -2.3 (-5.9 to 1.3) | 0.3 (-2.7 to 3.3) |
+| Friday or Saturday (banks shut) | 2 | 230.4 / 278.1 | 47.6 (42.9 to 52.4) | 87.3 / 73.9 | -13.4 (-16.1 to -10.8) | -4.7 (-6.5 to -2.9) |
+| Ordinary day | 5 | 274.0 / 276.4 | 2.4 (-0.2 to 4.9) | 69.4 / 62.0 | -7.3 (-8.4 to -6.3) | -2.7 (-4.2 to -1.2) |
+
+Each test-window day gets the first type that applies, in the order of the rows. Jogan has no rule for any of these days: the forecast reads calendar features (day of the month, days to Eid, holidays) and recent flows, and the visits follow the forecast and the stock-out chance. Paired by seed; negative means Jogan is lower.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
+**Midday check** (D-036). A variant of Jogan that re-forecasts at 14:00 from the live balances and sends the first free runner to agents likely to run dry before close, for surprise rushes:
+
+<!-- numbers:midday -->
+| Test window | Midday check minus Jogan | Midday check minus status quo |
+|---|---|---|
+| Requests turned away per 1,000 | -0.12 (-0.41 to 0.17) | -9.63 (-10.39 to -8.88) |
+| Runner visits | 70 (52 to 87) |  |
+| Runner km | 514 (403 to 625) | -1,153 (-1,461 to -846) |
+| Known cost (৳) | 4,104 (2,966 to 5,244) | -15,718 (-18,570 to -12,867) |
+
+Midday visits sent per seed over the run: 138 (132 to 144). The setting (`configs/plan/midday.yaml`) was not tuned. Paired by seed; negative means the midday check is lower. In the Eid-ul-Azha window, midday check minus Jogan: -0.32 (-0.88 to 0.24) lost requests per 1,000.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
 ## 3. The lost-customer value and the salary
 
 Jogan at each setting of the lost-customer value, and its total cost against each baseline when lost requests are priced at that same value:
@@ -195,7 +248,7 @@ Reading: the program beats the greedy round with the same forecast, on service a
 - **Some groups are served worse than by the best baseline (Threshold).** Lost requests per 1,000, Jogan minus Threshold: `urban` and `DHK` (the same agents) 1.03 (0.01 to 2.06).
 - **Forecast intervals are off their nominal coverage by more than 5 points in 45 cells** (by side, horizon, interval and agent group), 4 of them over all agents.
 - **The oracle is still ahead:** Jogan minus the oracle, 19.9 (19.1 to 20.7) lost requests per 1,000.
-- **The anomaly flag is weak on structuring:** split cash-outs found in 1 of 9 injected windows; precision 3.9% against a base rate of 0.08%.
+- **The anomaly flag is weak on structuring:** split cash-outs found in 3 of 9 injected windows; precision 4.3% against a base rate of 0.08%.
 - **62 group-level comparisons** (across lost-customer values and baselines) show no significant win or a baseline as good or better (`does_not_win` in `artifacts/metrics.json`).
 <!-- /numbers -->
 
@@ -235,7 +288,7 @@ make check    # tests fail if a copy is stale
 ```
 
 <!-- numbers:runtime -->
-`make eval` took 24 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
+`make eval` took 26 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
 <!-- /numbers -->
 
 `artifacts/metrics.json` records the config hashes and library versions it was made with (`meta`); the same commit and configs give the same numbers. Development runs (`make eval ARGS="--seeds 0 1 2 3"`) write `artifacts/eval/metrics_dev.json` instead and never overwrite the final file.

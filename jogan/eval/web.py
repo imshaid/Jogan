@@ -69,6 +69,18 @@ def project(m: dict[str, Any]) -> dict[str, Any]:
             v: {b: rows[b]["test"]["total_cost_tk"][SALARY] for b in BASELINES}
             for v, rows in m["comparison"]["by_value"].items()
         },
+        "events": {
+            kind: {
+                "days": e["days"],
+                "policies": {p: e["policies"][p] for p in ("fixed_round", jogan)},
+                "versus_quo": e["versus"]["fixed_round"],
+            }
+            for kind, e in m["events"]["types"].items()
+        },
+        "business": {
+            "agents": m["business"]["agents"],
+            "versus": {b: {w: m["business"]["versus"][b][w] for w in WINDOWS} for b in BASELINES},
+        },
         "ablations": {
             k: {"lost_per_1000": a["test"]["lost_per_1000"], "runner_km": a["test"]["runner_km"]}
             for k, a in m["ablations"].items()

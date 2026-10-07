@@ -774,6 +774,1183 @@
    }
   }
  },
+ "events": {
+  "bank_weekend": {
+   "days": 2,
+   "policies": {
+    "fixed_round": {
+     "lost_per_1000": {
+      "high": 91.5,
+      "low": 83.2,
+      "mean": 87.3,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 0.0,
+      "low": 0.0,
+      "mean": 0.0,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 234.9,
+      "low": 225.9,
+      "mean": 230.4,
+      "n": 10
+     }
+    },
+    "jogan@20": {
+     "lost_per_1000": {
+      "high": 77.0,
+      "low": 70.8,
+      "mean": 73.9,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 0.0,
+      "low": 0.0,
+      "mean": 0.0,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 280.9,
+      "low": 275.2,
+      "mean": 278.1,
+      "n": 10
+     }
+    }
+   },
+   "versus_quo": {
+    "lost_per_1000": {
+     "high": -10.8,
+     "low": -16.1,
+     "mean": -13.4,
+     "n": 10,
+     "sign": "lower"
+    },
+    "visits_per_day": {
+     "high": 52.4,
+     "low": 42.9,
+     "mean": 47.6,
+     "n": 10,
+     "sign": "higher"
+    }
+   }
+  },
+  "eid": {
+   "days": 3,
+   "policies": {
+    "fixed_round": {
+     "lost_per_1000": {
+      "high": 130.3,
+      "low": 118.0,
+      "mean": 124.1,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 0.0,
+      "low": 0.0,
+      "mean": 0.0,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 205.2,
+      "low": 200.9,
+      "mean": 203.1,
+      "n": 10
+     }
+    },
+    "jogan@20": {
+     "lost_per_1000": {
+      "high": 122.4,
+      "low": 110.6,
+      "mean": 116.5,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 0.0,
+      "low": 0.0,
+      "mean": 0.0,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 174.3,
+      "low": 170.8,
+      "mean": 172.5,
+      "n": 10
+     }
+    }
+   },
+   "versus_quo": {
+    "lost_per_1000": {
+     "high": -5.1,
+     "low": -10.1,
+     "mean": -7.6,
+     "n": 10,
+     "sign": "lower"
+    },
+    "visits_per_day": {
+     "high": -28.4,
+     "low": -32.7,
+     "mean": -30.5,
+     "n": 10,
+     "sign": "lower"
+    }
+   }
+  },
+  "holiday": {
+   "days": 1,
+   "policies": {
+    "fixed_round": {
+     "lost_per_1000": {
+      "high": 83.8,
+      "low": 77.1,
+      "mean": 80.4,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 0.0,
+      "low": 0.0,
+      "mean": 0.0,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 195.0,
+      "low": 181.0,
+      "mean": 188.0,
+      "n": 10
+     }
+    },
+    "jogan@20": {
+     "lost_per_1000": {
+      "high": 80.7,
+      "low": 75.5,
+      "mean": 78.1,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 0.0,
+      "low": 0.0,
+      "mean": 0.0,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 274.4,
+      "low": 260.2,
+      "mean": 267.3,
+      "n": 10
+     }
+    }
+   },
+   "versus_quo": {
+    "lost_per_1000": {
+     "high": 1.3,
+     "low": -5.9,
+     "mean": -2.3,
+     "n": 10,
+     "sign": "no significant difference"
+    },
+    "visits_per_day": {
+     "high": 85.3,
+     "low": 73.3,
+     "mean": 79.3,
+     "n": 10,
+     "sign": "higher"
+    }
+   }
+  },
+  "ordinary": {
+   "days": 5,
+   "policies": {
+    "fixed_round": {
+     "lost_per_1000": {
+      "high": 71.4,
+      "low": 67.3,
+      "mean": 69.4,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 72.8,
+      "low": 66.8,
+      "mean": 69.8,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 276.7,
+      "low": 271.3,
+      "mean": 274.0,
+      "n": 10
+     }
+    },
+    "jogan@20": {
+     "lost_per_1000": {
+      "high": 63.8,
+      "low": 60.2,
+      "mean": 62.0,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 57.8,
+      "low": 52.3,
+      "mean": 55.0,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 280.6,
+      "low": 272.2,
+      "mean": 276.4,
+      "n": 10
+     }
+    }
+   },
+   "versus_quo": {
+    "lost_per_1000": {
+     "high": -6.3,
+     "low": -8.4,
+     "mean": -7.3,
+     "n": 10,
+     "sign": "lower"
+    },
+    "visits_per_day": {
+     "high": 4.9,
+     "low": -0.2,
+     "mean": 2.4,
+     "n": 10,
+     "sign": "no significant difference"
+    }
+   }
+  },
+  "payday": {
+   "days": 7,
+   "policies": {
+    "fixed_round": {
+     "lost_per_1000": {
+      "high": 74.9,
+      "low": 71.2,
+      "mean": 73.1,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 53.9,
+      "low": 50.4,
+      "mean": 52.2,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 250.8,
+      "low": 244.9,
+      "mean": 247.9,
+      "n": 10
+     }
+    },
+    "jogan@20": {
+     "lost_per_1000": {
+      "high": 66.4,
+      "low": 61.6,
+      "mean": 64.0,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 44.7,
+      "low": 40.4,
+      "mean": 42.6,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 282.2,
+      "low": 275.3,
+      "mean": 278.8,
+      "n": 10
+     }
+    }
+   },
+   "versus_quo": {
+    "lost_per_1000": {
+     "high": -8.0,
+     "low": -10.1,
+     "mean": -9.1,
+     "n": 10,
+     "sign": "lower"
+    },
+    "visits_per_day": {
+     "high": 33.3,
+     "low": 28.5,
+     "mean": 30.9,
+     "n": 10,
+     "sign": "higher"
+    }
+   }
+  },
+  "pre_eid": {
+   "days": 10,
+   "policies": {
+    "fixed_round": {
+     "lost_per_1000": {
+      "high": 170.3,
+      "low": 162.4,
+      "mean": 166.4,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 43.5,
+      "low": 40.5,
+      "mean": 42.0,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 269.3,
+      "low": 263.7,
+      "mean": 266.5,
+      "n": 10
+     }
+    },
+    "jogan@20": {
+     "lost_per_1000": {
+      "high": 159.8,
+      "low": 151.5,
+      "mean": 155.7,
+      "n": 10
+     },
+     "own_bank_trips_per_day": {
+      "high": 35.8,
+      "low": 33.9,
+      "mean": 34.9,
+      "n": 10
+     },
+     "visits_per_day": {
+      "high": 289.3,
+      "low": 284.0,
+      "mean": 286.6,
+      "n": 10
+     }
+    }
+   },
+   "versus_quo": {
+    "lost_per_1000": {
+     "high": -10.1,
+     "low": -11.3,
+     "mean": -10.7,
+     "n": 10,
+     "sign": "lower"
+    },
+    "visits_per_day": {
+     "high": 22.3,
+     "low": 18.0,
+     "mean": 20.1,
+     "n": 10,
+     "sign": "higher"
+    }
+   }
+  }
+ },
+ "business": {
+  "agents": 600,
+  "versus": {
+   "fixed_round": {
+    "test": {
+     "days": 28,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -21169.8,
+        "low": -25797.3,
+        "mean": -23483.6,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -11855.1,
+        "low": -14446.5,
+        "mean": -13150.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": -344.8,
+        "low": -414.5,
+        "mean": -379.6,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -193.1,
+        "low": -232.1,
+        "mean": -212.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -5161645.5,
+        "low": -5673086.6,
+        "mean": -5417366.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2890521.5,
+        "low": -3176928.5,
+        "mean": -3033725.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -2622.9,
+        "low": -2936.4,
+        "mean": -2779.6,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1468.8,
+        "low": -1644.4,
+        "mean": -1556.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -29976.3,
+        "low": -40819.6,
+        "mean": -35397.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -16786.7,
+        "low": -22859.0,
+        "mean": -19822.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -6315.7,
+        "low": -14227.0,
+        "mean": -10271.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -3536.8,
+        "low": -7967.1,
+        "mean": -5752.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -2381.8,
+        "low": -3572.5,
+        "mean": -2977.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1333.8,
+        "low": -2000.6,
+        "mean": -1667.2,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -5163375.4,
+        "low": -6292017.5,
+        "mean": -5727696.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2891490.2,
+        "low": -3523529.8,
+        "mean": -3207510.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    },
+    "eid": {
+     "days": 14,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -22970.0,
+        "low": -29433.6,
+        "mean": -26201.8,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -6431.6,
+        "low": -8241.4,
+        "mean": -7336.5,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": -199.3,
+        "low": -310.7,
+        "mean": -255.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -55.8,
+        "low": -87.0,
+        "mean": -71.4,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -6126017.5,
+        "low": -7007411.1,
+        "mean": -6566714.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1715284.9,
+        "low": -1962075.1,
+        "mean": -1838680.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -2898.6,
+        "low": -3280.0,
+        "mean": -3089.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -811.6,
+        "low": -918.4,
+        "mean": -865.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -27430.0,
+        "low": -37404.3,
+        "mean": -32417.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -7680.4,
+        "low": -10473.2,
+        "mean": -9076.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -876.8,
+        "low": -9162.1,
+        "mean": -5019.6,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -245.5,
+        "low": -2565.4,
+        "mean": -1405.5,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -1229.6,
+        "low": -2337.9,
+        "mean": -1783.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -344.3,
+        "low": -654.6,
+        "mean": -499.5,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -5602480.0,
+        "low": -7178948.6,
+        "mean": -6390714.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1568694.4,
+        "low": -2010105.6,
+        "mean": -1789400.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    }
+   },
+   "threshold": {
+    "test": {
+     "days": 28,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -5191.8,
+        "low": -8403.4,
+        "mean": -6797.5,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2907.4,
+        "low": -4705.9,
+        "mean": -3806.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": 4.3,
+        "low": -39.6,
+        "mean": -17.7,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 2.4,
+        "low": -22.2,
+        "mean": -9.9,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1800978.8,
+        "low": -2225842.7,
+        "mean": -2013410.7,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1008548.1,
+        "low": -1246471.9,
+        "mean": -1127510.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -526.1,
+        "low": -788.6,
+        "mean": -657.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -294.6,
+        "low": -441.6,
+        "mean": -368.1,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -7568.4,
+        "low": -13326.8,
+        "mean": -10447.7,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -4238.3,
+        "low": -7463.0,
+        "mean": -5850.7,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -563.9,
+        "low": -5079.6,
+        "mean": -2821.8,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -315.8,
+        "low": -2844.6,
+        "mean": -1580.2,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -2543.9,
+        "low": -3361.8,
+        "mean": -2952.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1424.6,
+        "low": -1882.6,
+        "mean": -1653.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1266289.1,
+        "low": -2049603.8,
+        "mean": -1657946.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -709121.9,
+        "low": -1147778.1,
+        "mean": -928450.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    },
+    "eid": {
+     "days": 14,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -5448.6,
+        "low": -9450.0,
+        "mean": -7449.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1525.6,
+        "low": -2646.0,
+        "mean": -2085.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": 6.4,
+        "low": -47.1,
+        "mean": -20.4,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 1.8,
+        "low": -13.2,
+        "mean": -5.7,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1559023.6,
+        "low": -2112476.4,
+        "mean": -1835750.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -436526.6,
+        "low": -591493.4,
+        "mean": -514010.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -448.6,
+        "low": -755.7,
+        "mean": -602.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -125.6,
+        "low": -211.6,
+        "mean": -168.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -5699.3,
+        "low": -14367.5,
+        "mean": -10033.2,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1595.8,
+        "low": -4022.9,
+        "mean": -2809.3,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": 926.1,
+        "low": -5047.5,
+        "mean": -2060.7,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 259.3,
+        "low": -1413.3,
+        "mean": -577.0,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -1764.3,
+        "low": -2752.1,
+        "mean": -2258.2,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -494.0,
+        "low": -770.6,
+        "mean": -632.3,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1328914.3,
+        "low": -2304835.7,
+        "mean": -1816875.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -372096.0,
+        "low": -645354.0,
+        "mean": -508725.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    }
+   },
+   "safety_stock": {
+    "test": {
+     "days": 28,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -6991.8,
+        "low": -10284.8,
+        "mean": -8638.2,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -3915.4,
+        "low": -5759.5,
+        "mean": -4837.4,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": 22.0,
+        "low": -49.8,
+        "mean": -13.9,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 12.3,
+        "low": -27.9,
+        "mean": -7.8,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -2213727.7,
+        "low": -2969772.3,
+        "mean": -2591750.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1239687.5,
+        "low": -1663072.5,
+        "mean": -1451380.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -605.7,
+        "low": -915.7,
+        "mean": -760.7,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -339.2,
+        "low": -512.8,
+        "mean": -426.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -19719.1,
+        "low": -25126.8,
+        "mean": -22423.0,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -11042.7,
+        "low": -14071.0,
+        "mean": -12556.9,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -11229.1,
+        "low": -14809.6,
+        "mean": -13019.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -6288.3,
+        "low": -8293.4,
+        "mean": -7290.8,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -2050.7,
+        "low": -2545.7,
+        "mean": -2298.2,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -1148.4,
+        "low": -1425.6,
+        "mean": -1287.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1705302.0,
+        "low": -2508501.6,
+        "mean": -2106901.8,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -954969.1,
+        "low": -1404760.9,
+        "mean": -1179865.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    },
+    "eid": {
+     "days": 14,
+     "kpis": {
+      "agent_commission_lost_tk": {
+       "per_1000_agents_month": {
+        "high": -7678.9,
+        "low": -14311.8,
+        "mean": -10995.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2150.1,
+        "low": -4007.3,
+        "mean": -3078.7,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "agents_own_bank_trips": {
+       "per_1000_agents_month": {
+        "high": 54.3,
+        "low": -49.3,
+        "mean": 2.5,
+        "n": 10,
+        "sign": "no significant difference"
+       },
+       "window": {
+        "high": 15.2,
+        "low": -13.8,
+        "mean": 0.7,
+        "n": 10,
+        "sign": "no significant difference"
+       }
+      },
+      "cash_out_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -2146887.1,
+        "low": -3223791.4,
+        "mean": -2685339.3,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -601128.4,
+        "low": -902661.6,
+        "mean": -751895.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "failed_requests": {
+       "per_1000_agents_month": {
+        "high": -604.6,
+        "low": -1038.2,
+        "mean": -821.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -169.3,
+        "low": -290.7,
+        "mean": -230.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "known_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -17413.6,
+        "low": -25911.8,
+        "mean": -21662.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -4875.8,
+        "low": -7255.3,
+        "mean": -6065.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_cost_tk": {
+       "per_1000_agents_month": {
+        "high": -7502.5,
+        "low": -12761.4,
+        "mean": -10132.1,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -2100.7,
+        "low": -3573.2,
+        "mean": -2837.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "runner_km": {
+       "per_1000_agents_month": {
+        "high": -1298.2,
+        "low": -2234.6,
+        "mean": -1766.4,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -363.5,
+        "low": -625.7,
+        "mean": -494.6,
+        "n": 10,
+        "sign": "lower"
+       }
+      },
+      "value_turned_away_tk": {
+       "per_1000_agents_month": {
+        "high": -1872888.9,
+        "low": -3490646.8,
+        "mean": -2681767.9,
+        "n": 10,
+        "sign": "lower"
+       },
+       "window": {
+        "high": -524408.9,
+        "low": -977381.1,
+        "mean": -750895.0,
+        "n": 10,
+        "sign": "lower"
+       }
+      }
+     }
+    }
+   }
+  }
+ },
  "ablations": {
   "greedy": {
    "lost_per_1000": {
@@ -1193,17 +2370,17 @@
  },
  "anomaly": {
   "agent_days": 168000,
-  "flagged": 1219,
-  "flagged_true": 48,
-  "flag_precision": 0.0394,
+  "flagged": 1196,
+  "flagged_true": 51,
+  "flag_precision": 0.0426,
   "base_rate": 0.0008,
   "precision_at_k_mean": {
    "10": 0.36,
    "20": 0.22,
-   "5": 0.3
+   "5": 0.24
   },
   "windows": 21,
-  "windows_detected": 10,
+  "windows_detected": 12,
   "windows_by_pattern": {
    "night": {
     "detected": 6,
@@ -1214,7 +2391,7 @@
     "windows": 6
    },
    "split": {
-    "detected": 1,
+    "detected": 3,
     "windows": 9
    }
   }

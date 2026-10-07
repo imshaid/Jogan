@@ -1,0 +1,8 @@
+# Midday check (on-site R6, D-036): a second look at the day at a midday forecast origin, for
+# surprise rushes. Evaluated as a separate Jogan variant (`jogan_midday`); the main plan and the
+# served demo do not use it, so the plan config hash is unchanged.
+# Every number is tagged SOURCE (verified, link), DERIVED (computed in code) or ASSUMPTION.
+
+hour: 14 # one of the forecast's origin hours in configs/forecast/base.yaml (ASSUMPTION)
+horizon_hours: 6 # one of the forecast horizons; covers the rest of the runners' shift (ASSUMPTION)
+p_min: 0.5 # send the first free runner when P(stock-out within the horizon) reaches this (ASSUMPTION)

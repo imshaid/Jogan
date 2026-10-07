@@ -39,3 +39,20 @@ def load_plan_config(
     """Load ``configs/plan/base.yaml``; ``overrides`` merge on top."""
     data = _read_yaml((config_dir or CONFIG_DIR) / "plan" / "base.yaml")
     return PlanConfig.model_validate(_merge(data, overrides or {}))
+
+
+class Midday(Strict):
+    """``configs/plan/midday.yaml``: the midday check of :class:`~jogan.plan.policy.JoganMidday`.
+
+    Kept out of :class:`PlanConfig` so the main plan's config hash, and the served demo, do not
+    change (D-036).
+    """
+
+    hour: int = Field(ge=0, le=23)
+    horizon_hours: int = Field(ge=1)
+    p_min: float = Field(gt=0.0, lt=1.0)
+
+
+def load_midday(config_dir: Path | None = None) -> Midday:
+    path = (config_dir or CONFIG_DIR) / "plan" / "midday.yaml"
+    return Midday.model_validate(_read_yaml(path))
