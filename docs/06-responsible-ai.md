@@ -80,6 +80,21 @@ Tests mock the HTTP layer and cover the fallback, every refusal, the rate limit,
 | Vulnerable dependencies | lockfiles (`uv.lock`, `package-lock.json`), Dependabot, security fixes merged after CI | Dependabot |
 | Adversarial or unusual agent data | guardrails send out-of-range and gappy agents to manual review; the anomaly flag asks a person to look | guardrail tests |
 
+### Access control matrix
+
+Who may do what today, and what enforces it (on-site R7, D-037). Every row is enforced on the server; the web app only hides what the server would refuse anyway.
+
+| Action | Anonymous | Analyst | Approver | API runtime (secret key) | Enforced by |
+|---|---|---|---|---|---|
+| Read the impact page and "How it works" | yes | yes | yes | – | public pages, simulated aggregates only |
+| Read the plan, map, evidence, trace, anomaly flags | no (401) | yes | yes | – | API token check, then row-level security |
+| Read the audit log | no | yes | yes | – | API token check, RLS |
+| Ask for an AI rewording | no | yes | yes | – | API token check, rate limit per user |
+| Approve or reject a visit | no | no (403) | yes, once per visit; a note when flagged | – | API role check, then `decide_recommendation` (approver role, note rule, one transaction with the audit row) |
+| Publish a day's plan | no | no | no | yes | `publish_plan` granted to the secret key only |
+| Edit or delete a decision or an audit row | no | no | no | no | append-only triggers, even for the table owner |
+| Change a model or a config | no | no | no | no | only through a reviewed commit: CI, then a keyless deploy from `main` |
+
 ## 8. Accessibility
 
 Risk is never shown by colour alone: every band has a word and a shape (▲ ◆ ●). Text colours meet WCAG AA contrast (measured in D-007, D-025 and D-029); upay yellow is used only as a fill under dark text. Every chart has a table view, and the map's facts are repeated in a territory table and a "highest risk" list for screen readers. The whole interface works in Bangla and English, and at phone width.
@@ -94,5 +109,47 @@ Risk is never shown by colour alone: every band has a word and a shape (▲ ◆ 
 - **No full Content-Security-Policy** on the web app (it would need per-request nonces).
 - **The demo password is public by design** so judges can sign in; the accounts see only simulated data and every decision is audited.
 - **The anomaly flag is weak on structuring** and must stay advisory.
+
+## 10. Operating a pilot: data protection, monitoring, override and escalation
+
+What a pilot on upay's data adds to the controls above (on-site R7, D-037). Thresholds are ASSUMPTIONS to agree with upay before the pilot; none is tuned.
+
+### 10.1 Agent data protection
+
+| Data | Sensitivity | Who sees it | How it is protected |
+|---|---|---|---|
+| Customer identity, phone number, single transactions | personal | nobody in Jogan | **never ingested**: Jogan needs agent-hour totals only (§2) |
+| Agent id | pseudonymous | analyst, approver | upay's own id, or a key whose mapping table stays inside upay |
+| Agent balances and hourly flows | commercially confidential | analyst, approver | TLS in transit; database behind RLS; no export endpoint; the LLM sees one visit's evidence only, and only with a provider approved by upay |
+| Agent location | confidential | analyst, approver, the runner of that territory | shown at shop level only where a runner needs it; never sent to the LLM |
+| Anomaly flags | sensitive (can stigmatise an agent) | approver and analyst only | advisory, never an accusation; no automatic action |
+| Decisions and audit log | accountability record | analyst, approver, auditors | append-only; kept for the pilot and its review |
+
+Retention: hourly aggregates for 13 months, so the forecast sees each Eid once (ASSUMPTION); decisions and the audit log for as long as upay's record rules require. At the end of the pilot, the data is deleted or returned, as in [`09-deployment.md`](09-deployment.md).
+
+### 10.2 Model monitoring
+
+Checked every morning before the plan is published, from data the system already holds. A breach does not stop the queue; it adds a banner for the approver and a ticket for the model owner.
+
+| Signal | How it is measured | Alert when (ASSUMPTION) | What happens |
+|---|---|---|---|
+| Calibration | realised coverage of the 90% interval over the last 14 days, per setting and size class | below 85% in any group | more visits of that group go to manual review; recalibrate (CQR) on recent days |
+| Accuracy | Brier score of the stock-out chance against the `empirical` forecast, last 14 days | worse than `empirical` for 7 days running | model owner reviews; fall back to the safety-stock rule for the affected group |
+| Data feed | share of agent-hours missing or late | above 5% in a territory | that territory's visits go to manual review (the data-gap guardrail) |
+| Input drift | share of agents outside the training range (guardrail) | twice the training rate | retrain on recent history |
+| Human override | share of visits rejected, per approver and territory | above 30% over a week | review the reasons with the approvers; it means the plan does not fit the field |
+| Anomaly flag | flags per 1,000 agent-days | twice the evaluation rate | check for a data problem before reading any flag |
+| Optimizer | fallbacks to the greedy round, solve time | any fallback; a morning over 60 s | the plan is still valid (greedy); ticket to the model owner |
+| Outcome | failed requests per 1,000 against control territories | worse than control for 2 weeks | go/no-go review (`07-product-readiness` §5) |
+
+### 10.3 Override and escalation
+
+1. **Reject.** An approver rejects any visit; the decision and its audit row are written together. A rejection is final for that visit.
+2. **Add.** A visit Jogan did not propose is not blocked: the distributor's call path stays open under every policy, and the runner serves it as today.
+3. **Escalate.** An approver passes a visit to the operations manager, outside Jogan, when the agent is flagged and the amount is large, when the evidence and the field disagree, or when an approver's rejections pass the monitoring threshold.
+4. **Suspected fraud.** Never handled in Jogan: the anomaly flag only asks a person to look, and a concern goes to upay's compliance team through its existing channel.
+5. **Kill switch.** Any territory can go back to the status quo (fixed rounds plus calls) at once: the queue simply stops being used and runners keep their rounds. Jogan never moves money, so stopping it is safe at any hour.
+
+Not built yet: the monitoring job and its banner, an "escalate" button with its audit row, and a runner role (§9).
 
 The AI tools used to build Jogan are disclosed in [`08-ai-usage.md`](08-ai-usage.md).

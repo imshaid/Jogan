@@ -11,9 +11,20 @@
 - **Demo video:** <https://drive.google.com/file/d/1uXKkTAHMD9jE1exa-kO9ypYZwW8NukoK/view?usp=drive_link> (Google Drive)
 - **Project report:** [`report/report.pdf`](report/report.pdf) (source: [`report/report.md`](report/report.md))
 
+## Try the live prototype in two minutes
+
+1. Open <https://jogan-bd.vercel.app> and under **Demo accounts** on the sign-in page click **Approver** (no sign-up needed).
+2. **Network:** every agent on the map, shaped by stock-out risk; use **Play through the days** on the timeline to watch 28 mornings of planned visits.
+3. **Visit queue:** open **Why?** on a visit for its reasons in English or Bangla, then **Approve** or **Reject**. A visit tagged **⚑ Manual review** asks for a note first.
+4. **Runner route:** the phone screen a runner would carry on the road: that day's approved stops in order, how much cash to hand over or collect, and directions.
+5. **Agent page:** click an agent id for the stock-out chance over time, the forecast against the balance and the 8-step decision trace.
+6. **Audit log** shows every decision; **Impact** shows the evaluation and the business KPIs; **How it works** explains the problem and the method. **বাংলা** switches the whole app.
+
+Everything also runs locally with `make run` ([Run and build](#run-and-build)).
+
 ## Contents
 
-[Overview](#overview) · [Results](#results) · [Features and how AI is used](#features-and-how-ai-is-used) · [Architecture](#architecture) · [Technology stack](#technology-stack) · [Requirements](#requirements) · [Installation and setup](#installation-and-setup) · [Environment variables](#environment-variables) · [Run and build](#run-and-build) · [Testing](#testing) · [Configuration](#configuration) · [Deployment](#deployment) · [Data and external sources](#data-and-external-sources) · [Responsible AI and security](#responsible-ai-and-security) · [Documentation](#documentation) · [Team](#team) · [AI usage](#ai-usage) · [License](#license)
+[Try the live prototype](#try-the-live-prototype-in-two-minutes) · [Overview](#overview) · [Results](#results) · [Features and how AI is used](#features-and-how-ai-is-used) · [Architecture](#architecture) · [Technology stack](#technology-stack) · [Requirements](#requirements) · [Installation and setup](#installation-and-setup) · [Environment variables](#environment-variables) · [Run and build](#run-and-build) · [Testing](#testing) · [Configuration](#configuration) · [Deployment](#deployment) · [Data and external sources](#data-and-external-sources) · [Responsible AI and security](#responsible-ai-and-security) · [Documentation](#documentation) · [Team](#team) · [AI usage](#ai-usage) · [License](#license)
 
 ## Overview
 
@@ -102,13 +113,66 @@ Known cost is runner time and fuel, lost commission and idle liquidity at the mi
 _Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
 <!-- /numbers -->
 
+**Business KPIs** (Jogan minus the status quo and the best simple rule, paired by seed; generated, D-033):
+
+<!-- numbers:business -->
+| KPI (Jogan minus baseline; negative is a saving) | vs status quo, 28-day test window | vs status quo, per 1,000 agents a month | vs Threshold, per 1,000 agents a month |
+|---|---|---|---|
+| Failed transactions | -1,557 (-1,644 to -1,469) | -2,780 (-2,936 to -2,623) | -657 (-789 to -526) |
+| Transaction value turned away (৳) | -3,207,510 (-3,523,530 to -2,891,490) | -5,727,696 (-6,292,018 to -5,163,375) | -1,657,946 (-2,049,604 to -1,266,289) |
+| of it cash-out (৳) | -3,033,725 (-3,176,928 to -2,890,522) | -5,417,366 (-5,673,087 to -5,161,646) | -2,013,411 (-2,225,843 to -1,800,979) |
+| Agent commission lost (৳) | -13,151 (-14,446 to -11,855) | -23,484 (-25,797 to -21,170) | -6,798 (-8,403 to -5,192) |
+| Runner km | -1,667 (-2,001 to -1,334) | -2,977 (-3,572 to -2,382) | -2,953 (-3,362 to -2,544) |
+| Runner cost, time and fuel (৳) | -5,752 (-7,967 to -3,537) | -10,271 (-14,227 to -6,316) | -2,822 (-5,080 to -564) |
+| Agents' own bank trips | -213 (-232 to -193) | -380 (-414 to -345) | -18 (-40 to 4) |
+| Known cost (৳) | -19,823 (-22,859 to -16,787) | -35,398 (-40,820 to -29,976) | -10,448 (-13,327 to -7,568) |
+
+**Return on investment.** Against the status quo, Jogan's known cost is lower by ৳35,398 per 1,000 agents a month (95% interval ৳29,976 to ৳40,820), before any value is put on a customer kept. So it pays for itself while running it (cloud, an analyst and an approver's time) costs less than that; every customer kept is extra. The running cost was not measured.
+
+Paired by seed; scaled from the simulated network of 600 agents to 1,000 agents and 30 days. Known cost is runner time and fuel, lost commission and idle liquidity at the middle runner salary. Transaction value turned away is what customers asked for and did not get; upay's own fee on it is not public and is not priced.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
+**Bangladesh's calendar.** How the plan meets Eid, the days before it, paydays and remittance days, holidays and bank weekends, with no rule for any of them (D-035):
+
+<!-- numbers:events -->
+| Day type | Days | Runner visits a day: status quo / Jogan | Jogan minus status quo, visits a day | Turned away per 1,000: status quo / Jogan | Jogan minus status quo, per 1,000 | Jogan minus Threshold, per 1,000 |
+|---|---|---|---|---|---|---|
+| Eid day and the two after | 3 | 203.1 / 172.5 | -30.5 (-32.7 to -28.4) | 124.1 / 116.5 | -7.6 (-10.1 to -5.1) | -0.5 (-2.7 to 1.8) |
+| 10 days before Eid (bonuses, remittances) | 10 | 266.5 / 286.6 | 20.1 (18.0 to 22.3) | 166.4 / 155.7 | -10.7 (-11.3 to -10.1) | -2.2 (-2.8 to -1.6) |
+| 1st to 10th of the month (wages, remittances) | 7 | 247.9 / 278.8 | 30.9 (28.5 to 33.3) | 73.1 / 64.0 | -9.1 (-10.1 to -8.0) | -2.0 (-3.0 to -0.9) |
+| Other bank holiday | 1 | 188.0 / 267.3 | 79.3 (73.3 to 85.3) | 80.4 / 78.1 | -2.3 (-5.9 to 1.3) | 0.3 (-2.7 to 3.3) |
+| Friday or Saturday (banks shut) | 2 | 230.4 / 278.1 | 47.6 (42.9 to 52.4) | 87.3 / 73.9 | -13.4 (-16.1 to -10.8) | -4.7 (-6.5 to -2.9) |
+| Ordinary day | 5 | 274.0 / 276.4 | 2.4 (-0.2 to 4.9) | 69.4 / 62.0 | -7.3 (-8.4 to -6.3) | -2.7 (-4.2 to -1.2) |
+
+Each test-window day gets the first type that applies, in the order of the rows. Jogan has no rule for any of these days: the forecast reads calendar features (day of the month, days to Eid, holidays) and recent flows, and the visits follow the forecast and the stock-out chance. Paired by seed; negative means Jogan is lower.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
+**Midday check for surprise rushes** (a variant that re-forecasts at 14:00 and sends a free runner, D-036):
+
+<!-- numbers:midday -->
+| Test window | Midday check minus Jogan | Midday check minus status quo |
+|---|---|---|
+| Requests turned away per 1,000 | -0.12 (-0.41 to 0.17) | -9.63 (-10.39 to -8.88) |
+| Runner visits | 70 (52 to 87) |  |
+| Runner km | 514 (403 to 625) | -1,153 (-1,461 to -846) |
+| Known cost (৳) | 4,104 (2,966 to 5,244) | -15,718 (-18,570 to -12,867) |
+
+Midday visits sent per seed over the run: 138 (132 to 144). The setting (`configs/plan/midday.yaml`) was not tuned. Paired by seed; negative means the midday check is lower. In the Eid-ul-Azha window, midday check minus Jogan: -0.32 (-0.88 to 0.24) lost requests per 1,000.
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
 **Where Jogan does not win** (details in [`docs/05-evaluation.md`](docs/05-evaluation.md)):
 
 <!-- numbers:limits -->
 - **Some groups are served worse than by the best baseline (Threshold).** Lost requests per 1,000, Jogan minus Threshold: `urban` and `DHK` (the same agents) 1.03 (0.01 to 2.06).
 - **Forecast intervals are off their nominal coverage by more than 5 points in 45 cells** (by side, horizon, interval and agent group), 4 of them over all agents.
 - **The oracle is still ahead:** Jogan minus the oracle, 19.9 (19.1 to 20.7) lost requests per 1,000.
-- **The anomaly flag is weak on structuring:** split cash-outs found in 1 of 9 injected windows; precision 3.9% against a base rate of 0.08%.
+- **The anomaly flag is weak on structuring:** split cash-outs found in 3 of 9 injected windows; precision 4.3% against a base rate of 0.08%.
 - **62 group-level comparisons** (across lost-customer values and baselines) show no significant win or a baseline as good or better (`does_not_win` in `artifacts/metrics.json`).
 <!-- /numbers -->
 
@@ -145,6 +209,45 @@ The impact page of the web app (<https://jogan-bd.vercel.app/impact>) shows the 
 
 The LLM never decides and never produces a number: it may only reword a template that was built from structured evidence, and the template stays the default. See [`docs/06-responsible-ai.md`](docs/06-responsible-ai.md).
 
+### How the forecast model works
+
+Jogan trains its own models in this repository; no pretrained or third-party model makes a prediction.
+
+**What it predicts.** For each agent, each side (cash, e-float) and each horizon (6, 12, 24 hours): how much money will drain out at the worst moment of the window, the **peak cumulative drain**, as eight quantiles from 5% to 99%. Comparing those quantiles with the balance the agent holds now gives the stock-out chance directly: P(stock-out) = P(peak drain > balance).
+
+```text
+agent's served flows, balance, calendar ──► 41 features ──► 48 LightGBM quantile boosters ──► CQR calibration ──► quantiles of peak drain ──► P(stock-out), top-up need
+  (only records that had arrived by 08:00)                    (3 horizons × 2 sides × 8 levels)   (per setting × size)
+```
+
+**How it is trained** (`make forecast`, `jogan/forecast/`):
+
+1. **Data:** the status quo's observed log only: hourly served cash-outs and cash-ins, e-float and the cash estimate per agent, with late and missing records. Never the simulator's truth.
+2. **Labels, corrected for censoring:** when an agent is dry, customers leave and nothing is logged, so served flows understate demand exactly when it matters. Censored hours are lifted to an estimate of the true demand before the peak drain is computed (D-020).
+3. **Features (41):** agent type and size, calendar (payday, remittance day, Eid, weekday), the last 3, 24 and 168 hours, and the agent's own hour-of-day profile. A test perturbs every record that arrives after the forecast time and checks that no feature changes (no leakage).
+4. **Fit:** one LightGBM quantile booster per horizon, side and level on `log1p` of the target, on the training split (5 Jan to 22 Apr 2026).
+5. **Calibrate:** conformalized quantile regression (CQR) on a separate calibration split (23 Apr to 6 May) shifts each level until it covers what it claims, per agent setting and size class.
+6. **Test:** a later window (7 May to 3 Jun, Eid-ul-Azha inside) on ten seeds never used in development, scored against the **true** demand, next to two simple forecasts.
+
+**How well it does** (expected performance on unseen seeds; generated):
+
+<!-- numbers:forecast -->
+| Side | Horizon | Pinball loss, ৳: Empirical / Naive + CQR / LightGBM / LightGBM + CQR | 90% interval: coverage (mean width) | Brier: Empirical / LightGBM + CQR | Stock-out base rate |
+|---|---|---|---|---|---|
+| Cash | 6 h | 654 / 765 / 585 / 582 | 90.3% (৳5,920) | 0.089 / 0.084 | 14.1% |
+| Cash | 12 h | 856 / 959 / 744 / 740 | 89.7% (৳7,291) | 0.105 / 0.097 | 18.0% |
+| Cash | 24 h | 1,404 / 1,406 / 1,216 / 1,207 | 87.7% (৳11,400) | 0.157 / 0.147 | 29.2% |
+| E-float | 6 h | 654 / 776 / 598 / 595 | 91.0% (৳6,615) | 0.071 / 0.069 | 10.0% |
+| E-float | 12 h | 846 / 953 / 749 / 744 | 90.2% (৳8,239) | 0.088 / 0.085 | 13.4% |
+| E-float | 24 h | 1,307 / 1,317 / 1,119 / 1,112 | 87.5% (৳12,278) | 0.135 / 0.127 | 21.5% |
+
+Pinball loss is averaged over the eight quantile levels and scored against true demand (lower is better). Coverage is of the calibrated LightGBM interval against true demand (nominal 90%). Brier scores the stock-out chance for the no-top-up event (lower is better).
+
+_Evaluation on simulated data: profile `full`, 10 seeds (1000 to 1009), test window 2026-05-07 to 2026-06-03 (28 days), mean and 95% interval over seeds. Source: `artifacts/metrics.json`, written by `make eval`._
+<!-- /numbers -->
+
+The model beats both simple forecasts on every side and horizon, and its 90% interval holds close to 90%. It is not perfect: coverage misses in some agent groups and on Eid days are listed in [Results](#results) and [`docs/04-model-card.md`](docs/04-model-card.md), with the next version's model in §7 there.
+
 ## Architecture
 
 ```mermaid
@@ -165,6 +268,24 @@ flowchart LR
 ```
 
 Data preparation, model inference, business rules and the LLM are separate modules; every layer of a recommendation names the config hash it ran under. Details in [`docs/03-architecture.md`](docs/03-architecture.md).
+
+### Scale and integration
+
+**What Jogan needs from upay's and the distributors' systems** (agent-level only, no customer data; field lists in [`docs/07-product-readiness.md`](docs/07-product-readiness.md) §5, contracts in [`docs/03-architecture.md`](docs/03-architecture.md) §5):
+
+| System | What Jogan reads or writes | How often | Seam in the code |
+|---|---|---|---|
+| Transaction ledger | served cash-out and cash-in counts and amounts per agent-hour, with arrival time | hourly batch | the observed-log table (`obs/hourly.parquet` columns) |
+| Wallet balances | each agent's e-float (exact) and the cash estimate | hourly | same table |
+| Agent master data | agent id, territory, type, location, opening hours | daily | the agents table |
+| Distributor and runner management | runners, hubs, shifts and rosters; road distances | daily | the runners table and `jogan/ops/fleet` |
+| Calendar | bank holidays, Eid dates, upay campaigns | yearly | `configs/calendar/` |
+| Runner app or SMS (out) | the approved visits, in order, with the amount | each morning | `GET /v1/plans/{day}`, the runner route screen |
+| Identity provider | analyst and approver roles | per sign-in | JWT checked against a JWK set (`jogan/api/auth`) |
+
+**The morning, as a job.** 08:00 data cut → forecast (every agent, both sides, 6 to 24 h) → newsvendor need → one dispatch program per territory → explanations and guardrails → queue for the approver → runners leave with approved stops. A **midday check** for surprise rushes re-runs the forecast at 14:00 from the live balances and sends the first free runner to agents likely to run dry before close; it is evaluated as its own variant (see [Results](#results)).
+
+**At scale:** each territory's dispatch program is independent, so territories can run in parallel on separate workers, and the forecast is one batched prediction per horizon and side. The 10,000-agent timing from `make stress` is under **Scale check** in [Results](#results).
 
 ## Technology stack
 
@@ -191,7 +312,7 @@ Exact versions are pinned in [`uv.lock`](uv.lock) and [`web/package-lock.json`](
 Hardware: the tests and the `tiny` and `dev` profiles are light. The heavy commands, as last run:
 
 <!-- numbers:runtime -->
-`make eval` took 24 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
+`make eval` took 26 min for 10 seeds (`meta.runtime_s`). `make stress` took 101 s at a peak of 1,779 MB on 13th Gen Intel(R) Core(TM) i7-13650HX (20 threads, 15 GB RAM).
 <!-- /numbers -->
 
 ## Installation and setup
@@ -306,15 +427,26 @@ External services at run time: Supabase (auth, database), Google AI Studio (Gemi
 
 ## Responsible AI and security
 
-- Synthetic data only; nothing personal is stored. The "Simulated data" badge is always visible.
-- A human approves or rejects every visit; approving a flagged visit needs a note. Decisions and audit rows are written in one transaction, and the audit log is append-only even for the table owner.
-- Roles (analyst, approver) are enforced twice: by the API, which verifies every Supabase token, and by row-level security in Postgres.
-- Rate limits per address, per user, for decisions and for AI rewording; body size cap; strict input validation; uniform error bodies.
-- The LLM receives only structured evidence, never user text, and its output is discarded if it adds a number, drops the stock-out chance, uses the wrong script or runs too long.
-- Every output is labelled as a prediction, a template, AI-written, an assumption or an evaluation; risk is never shown by colour alone.
-- Fairness by territory, setting and agent size is measured and reported, including where Jogan is worse.
+**Data security and privacy**
 
-Details in [`docs/06-responsible-ai.md`](docs/06-responsible-ai.md).
+- **No personal data, by design.** Jogan needs agent-level hourly totals, balances, runner visits and rosters only; it never ingests a customer's identity, phone number or single transaction. In this prototype every record is simulated, and a "Simulated data" badge is on every page.
+- **Protected in transit and behind roles.** HTTPS only; the database is reachable only through the API and PostgREST with row-level security; users cannot write to any table directly. Secrets live in Google Secret Manager, deploys are keyless (Workload Identity Federation for this repository's `main` only), and gitleaks scans every commit.
+- **The LLM sees one simulated visit's evidence, on request,** never user text, location or other agents; its output is discarded if it adds a number, drops the stock-out chance, uses the wrong script or runs too long.
+- How each kind of agent data would be classified and protected in a pilot: [`docs/06-responsible-ai.md`](docs/06-responsible-ai.md) §10.1.
+
+**Access control.** Two roles, checked twice: the API verifies every Supabase token itself (signature against the project's JWK set, issuer, audience, expiry, role) before any database call, and Postgres row-level security and SQL functions check it again. Analysts read; approvers read and decide; only the server's secret key can publish a plan; nobody can edit a decision or the audit log. The full matrix is in §7 there. Rate limits per address and per user, an 8 KB body cap, strict input validation and one error body that never echoes input.
+
+**Human oversight, override and escalation**
+
+- A human approves or rejects **every** visit; there is no "approve all". Approving a visit flagged for manual review needs a written note, enforced in the database.
+- The decision and its audit row are written in one transaction; the audit log is append-only, even for the table owner.
+- An approver can reject any visit, the distributor's call path stays open for visits Jogan did not propose, suspected fraud goes to upay's compliance team (never handled by Jogan), and any territory can switch back to its fixed rounds at once: §10.3 there.
+
+**Model monitoring and transparency**
+
+- Each morning's checks in a pilot: realised interval coverage per group, Brier score against a simple forecast, data-feed gaps, input drift, the approvers' override rate, the anomaly flag rate, optimizer fallbacks and outcomes against control territories, each with an alert threshold and an action: §10.2 there.
+- Every output is labelled as a prediction, a template, AI-written, an assumption or an evaluation; risk is never shown by colour alone; every recommendation has an 8-step trace with the config hash of each step.
+- Fairness by territory, setting and agent size is measured, and where Jogan does worse is reported next to the wins.
 
 ## Documentation
 

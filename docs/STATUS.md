@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-07, on site (R1, D-031)._
+_Last updated: 2026-10-07, on site (R1–R7, D-031 to D-037)._
 
 Submission deadline: **4 Oct 2026 10:00 BST** (no late submissions). On-site final: **7 Oct 2026**. Keep the live URL up until about 15 Oct.
 
@@ -237,6 +237,12 @@ Working copy: `~/code/Jogan` (ext4). The old NTFS copy under `/run/media/surjo/C
 
 - **On site, 7 Oct** ([`ONSITE_LOG.md`](ONSITE_LOG.md); seven pieces of pre-evaluation feedback, about 2.5 h)
   - **R1 · Problem relevance** (D-031): README overview, report §1 and the about page now define the problem (who loses what), the two refill channels (runner, agent's own bank trip) and the solution in three steps. `make sizing` → `artifacts/sizing.json` sizes the problem from Bangladesh Bank totals over turned-away rates (ASSUMPTION). `make eval` re-run: it now also reports the turned-away value, the share of agent-days with a loss and agents' own bank trips per policy; every earlier number unchanged. Step 0 of the validation plan measures the real rate on upay's logs
+  - **R2 · AI/ML depth** (D-032): anomaly feature `hour_tk` (busiest hour's cash-out taka) for split cash-outs, designed on dev seeds; `make eval` counts how many injected splits were served (most are turned away and never logged). README explains the forecast step by step with its generated scores; model card §7 lists the next version
+  - **R3 · Business impact** (D-033): `jogan/eval/business.py`: failed transactions, value and commission turned away, runner km and cost, bank trips and known cost, Jogan minus each baseline, per 1,000 agents a month; ROI as a break-even running cost. `business` block and an impact-page panel
+  - **R4 · Prototype quality** (D-034): `/runner`, the runner's phone screen (approved stops in a suggested order, hand over or collect, directions); README opens with a two-minute walkthrough of the live app
+  - **R5 · Innovation** (D-035): `events`: visits a day and losses per 1,000 per Bangladesh day type (Eid, pre-Eid, paydays and remittances, holidays, bank weekends); peer swap idea on the agent page (labelled, not evaluated)
+  - **R6 · Scale and integration** (D-036): `JoganMidday`, a 14:00 re-forecast for surprise rushes, evaluated as the variant `jogan_midday@20`; README section on scale and integration
+  - **R7 · Responsible AI and security** (D-037): README section in four parts; `06-responsible-ai` gains an access-control matrix and §10 (agent-data protection, model monitoring with thresholds and actions, override and escalation, kill switch)
   - **Checks:** `make check`, web lint, types and build
 
 ## Next
